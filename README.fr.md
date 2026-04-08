@@ -46,6 +46,7 @@ Tout le runtime est embarqué dans le fichier batch lui-même. Au lancement, il 
 | `Update all` | Lance une mise à jour plus large de la chaîne d’outils |
 | Diagnostics | Affiche l’état d’installation, la version et des indices d’auth/config |
 | Portabilité | Distribution en un seul `.bat` |
+| Langue | Détecte automatiquement le français/anglais pour l'interface du lanceur |
 
 ## Outils Pris En Charge
 
@@ -72,6 +73,25 @@ Le menu d’installation prend actuellement en charge :
 - `Claude Code`
 - `Gemini CLI`
 - `Oh My OpenCode Slim`
+
+## Langue
+
+L'interface du lanceur détecte maintenant automatiquement le **français** ou l'**anglais**.
+
+Un forçage manuel est aussi disponible :
+
+```powershell
+syta-super-launcher.bat -UiLanguage fr
+syta-super-launcher.bat -UiLanguage en
+```
+
+Vous pouvez aussi passer par une variable d'environnement :
+
+```powershell
+set SYTA_LANGUAGE=fr
+```
+
+L'interface du lanceur suit cette préférence. Les sorties des outils tiers ou des installateurs peuvent toutefois rester dans leur langue native.
 
 ## Racine Des Projets
 

@@ -46,6 +46,7 @@ The entire runtime is embedded into the batch file itself. At launch, it extract
 | `Update all` | Runs a broader toolchain update pass |
 | Diagnostics | Shows install, version, and auth/config hints |
 | Portability | Ships as one `.bat` file |
+| Language | Auto-detects French/English for the launcher UI |
 
 ## Supported Tools
 
@@ -72,6 +73,25 @@ The installer currently supports:
 - `Claude Code`
 - `Gemini CLI`
 - `Oh My OpenCode Slim`
+
+## Language
+
+The launcher UI now auto-detects between **French** and **English**.
+
+Manual override is also available:
+
+```powershell
+syta-super-launcher.bat -UiLanguage fr
+syta-super-launcher.bat -UiLanguage en
+```
+
+Environment-variable override is supported too:
+
+```powershell
+set SYTA_LANGUAGE=fr
+```
+
+The launcher UI follows this preference. Third-party installer or CLI output may still appear in its own native language.
 
 ## Project Layout
 

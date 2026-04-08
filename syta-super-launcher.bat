@@ -42,7 +42,10 @@ exit /b %errorlevel%
 ::     [switch]$NoAnimation,
 ::     [switch]$NoMaximize,
 ::     [switch]$DryRun,
-::     [switch]$SmokeTest
+::     [switch]$SmokeTest,
+::     [ValidateSet('auto', 'fr', 'en')]
+::     [Alias('Lang')]
+::     [string]$UiLanguage = 'auto'
 :: )
 ::
 :: $ErrorActionPreference = 'Stop'
@@ -54,7 +57,152 @@ exit /b %errorlevel%
 :: }
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
-:: $script:BuildId = 'SYTA-build-2026-04-08-085230Z'
+:: $script:BuildId = 'SYTA-build-2026-04-08-102049Z'
+:: $script:Language = 'en'
+::
+:: function Resolve-Language {
+::     param([string]$Requested = 'auto')
+::
+::     $candidate = $null
+::     if ($Requested -and $Requested -ne 'auto') {
+::         $candidate = $Requested
+::     } elseif ($env:SYTA_LANGUAGE) {
+::         $candidate = $env:SYTA_LANGUAGE
+::     } elseif ($env:SYTA_LANG) {
+::         $candidate = $env:SYTA_LANG
+::     }
+::
+::     if ($candidate) {
+::         $normalized = $candidate.ToLowerInvariant()
+::         if ($normalized -match '^fr') { return 'fr' }
+::         if ($normalized -match '^en') { return 'en' }
+::     }
+::
+::     try {
+::         $culture = [System.Globalization.CultureInfo]::CurrentUICulture.Name
+::     } catch {
+::         $culture = ''
+::     }
+::
+::     if ($culture -match '^fr') { return 'fr' }
+::     return 'en'
+:: }
+::
+:: function Localize-Text {
+::     param([string]$Text)
+::
+::     if ([string]::IsNullOrEmpty($Text) -or $script:Language -ne 'fr') {
+::         return $Text
+::     }
+::
+::     $map = @{
+::         'Selector' = 'Selection'
+::         'Arrows move, Enter selects, Esc goes back' = 'Fleches pour naviguer, Entree pour valider, Echap pour revenir'
+::         'Please wait' = 'Veuillez patienter'
+::         'Launching in a new terminal tab' = 'Ouverture immediate dans un nouvel onglet du terminal'
+::         'SYTA keeps this selector open while new tabs launch' = 'SYTA garde ce selecteur ouvert pendant l''ouverture des nouveaux onglets'
+::         'Boot sequence' = 'Demarrage'
+::         'unpacking portable runtime' = 'extraction du runtime portable'
+::         'loading command deck' = 'chargement du poste de commande'
+::         'scanning WSL bridge' = 'analyse du pont WSL'
+::         'mapping project roots' = 'cartographie des projets'
+::         'arming install matrix' = 'preparation de la matrice d''installation'
+::         'warming AI launch lanes' = 'prechauffage des voies IA'
+::         'routing terminal host' = 'configuration de l''hote terminal'
+::         'syncing updater engines' = 'synchronisation des moteurs de mise a jour'
+::         'locking flight path' = 'verrouillage de la trajectoire'
+::         'SYTA ready' = 'SYTA pret'
+::         'telemetry: launcher online, diagnostics cache cold, routes ready' = 'telemetrie : lanceur en ligne, cache de diagnostic vide, routes pretes'
+::         'Create New Project' = 'Creer un nouveau projet'
+::         'Leave blank to cancel' = 'Laisser vide pour annuler'
+::         'Choose a short Windows-safe folder name.' = 'Choisissez un nom de dossier court et compatible Windows.'
+::         '   Project name' = '   Nom du projet'
+::         'Invalid project name' = 'Nom de projet invalide'
+::         'Avoid characters Windows cannot use in folder names.' = 'Evitez les caracteres interdits dans les noms de dossier Windows.'
+::         'Try another name' = 'Essayez un autre nom'
+::         'Back' = 'Retour'
+::         'Project Selector' = 'Selection du projet'
+::         'Recent Projects' = 'Projets recents'
+::         'Existing Projects' = 'Projets existants'
+::         'Search Projects' = 'Rechercher des projets'
+::         'Search scans existing folders under C:\.CODEX.' = 'La recherche parcourt les dossiers existants sous C:\.CODEX.'
+::         '   Search term' = '   Terme de recherche'
+::         'No project matches' = 'Aucun projet correspondant'
+::         'Try another search' = 'Essayez une autre recherche'
+::         'Open existing project' = 'Ouvrir un projet existant'
+::         'Type a fresh project name and create its folder.' = 'Saisissez un nouveau nom de projet et creez son dossier.'
+::         'Filter existing projects by a search term.' = 'Filtrer les projets existants par terme de recherche.'
+::         'Choose a recently used project folder.' = 'Choisissez un dossier de projet recent.'
+::         'Choose a project folder to open.' = 'Choisissez un dossier de projet a ouvrir.'
+::         'Choose the tool to launch in the project workspace.' = 'Choisissez l''outil a lancer dans l''espace de travail du projet.'
+::         'Agent Selector' = 'Selection de l''agent'
+::         'Mode Selector' = 'Selection du mode'
+::         'Choose what SYTA should do.' = 'Choisissez ce que SYTA doit faire.'
+::         'Install or repair WSL Ubuntu and supported coding CLIs.' = 'Installer ou reparer WSL Ubuntu et les CLI de codage prises en charge.'
+::         'Return to the main menu.' = 'Revenir au menu principal.'
+::         'Return to the previous menu.' = 'Revenir au menu precedent.'
+::         'Launch Preflight' = 'Pre-verification avant lancement'
+::         'Full Update Preflight' = 'Pre-verification avant mise a jour complete'
+::         'Light Update Preflight' = 'Pre-verification avant mise a jour legere'
+::         'Install Preflight' = 'Pre-verification avant installation'
+::         'A new terminal tab opens immediately after this screen' = 'Un nouvel onglet du terminal s''ouvre juste apres cet ecran'
+::         'A PowerShell tab opens immediately after this screen' = 'Un onglet PowerShell s''ouvre juste apres cet ecran'
+::         'SYTA WSL Ubuntu Install' = 'SYTA Installation WSL Ubuntu'
+::         'SYTA PowerShell 7 Install' = 'SYTA Installation PowerShell 7'
+::         'SYTA Light Updater' = 'SYTA Mise a jour legere'
+::         'SYTA Updater' = 'SYTA Mise a jour complete'
+::         'Unknown tool' = 'Outil inconnu'
+::         'Auth via env key' = 'Auth via cle d''environnement'
+::         'Auth/config detected' = 'Auth/config detectee'
+::         'Auth n/a' = 'Auth n/a'
+::         'WSL Ubuntu missing' = 'WSL Ubuntu absent'
+::         'Auth not detected' = 'Auth non detectee'
+::         'Auth unknown' = 'Auth inconnue'
+::         'Configured only' = 'Configuration detectee seulement'
+::         'Missing' = 'Absent'
+::         'version not detected' = 'version non detectee'
+::         'binary not found on PATH' = 'binaire introuvable dans le PATH'
+::         'not installed' = 'non installe'
+::         'via nvm' = 'via nvm'
+::         'user-local' = 'utilisateur local'
+::         'system-wide' = 'systeme'
+::         'config-only' = 'config seulement'
+::         'custom path' = 'chemin personnalise'
+::         'unknown source' = 'source inconnue'
+::     }
+::
+::     if ($map.ContainsKey($Text)) { return $map[$Text] }
+::     if ($Text -match '^Projects root: (.+)$') { return "Racine des projets : $($Matches[1])" }
+::     if ($Text -match '^Build: (.+)$') { return "Build : $($Matches[1])" }
+::     if ($Text -match '^Recent projects tracked: (.+)$') { return "Projets recents suivis : $($Matches[1])" }
+::     if ($Text -match '^Hint: (.+)$') { return "Astuce : $(Localize-Text $Matches[1])" }
+::     if ($Text -match '^Folder root: (.+)$') { return "Racine du dossier : $($Matches[1])" }
+::     if ($Text -match '^Recent project in (.+)$') { return "Projet recent dans $($Matches[1])" }
+::     if ($Text -match '^Project folder at (.+)$') { return "Dossier du projet dans $($Matches[1])" }
+::     if ($Text -match '^Project folder in (.+)$') { return "Dossier du projet dans $($Matches[1])" }
+::     if ($Text -match '^Choose how to work inside (.+)\.$') { return "Choisissez comment travailler dans $($Matches[1])." }
+::     if ($Text -match '^Jump into one of (.+) recently used project\(s\)\.$') { return "Ouvrir l''un des $($Matches[1]) projet(s) recemment utilises." }
+::     if ($Text -match '^Browse (.+) existing project folder\(s\)\.$') { return "Parcourir $($Matches[1]) dossier(s) de projet existant(s)." }
+::     if ($Text -match '^No existing project matched ''(.+)''\.$') { return "Aucun projet existant ne correspond a ''$($Matches[1])''." }
+::     if ($Text -match '^Projects matching ''(.+)''\.$') { return "Projets correspondant a ''$($Matches[1])''." }
+::     if ($Text -match '^Project : (.+)$') { return "Projet  : $($Matches[1])" }
+::     if ($Text -match '^Tool    : (.+)$') { return "Outil   : $(Localize-Text $Matches[1])" }
+::     if ($Text -match '^Install : (.+)$') { return "Install : $(Localize-Text $Matches[1])" }
+::     if ($Text -match '^Version : (.+)$') { return "Version : $(Localize-Text $Matches[1])" }
+::     if ($Text -match '^Auth    : (.+)$') { return "Auth    : $(Localize-Text $Matches[1])" }
+::     if ($Text -match '^Path    : (.+)$') { return "Chemin  : $($Matches[1])" }
+::     if ($Text -match '^Scope   : (.+)$') { return "Portee  : $($Matches[1])" }
+::     if ($Text -match '^Folder  : (.+)$') { return "Dossier : $($Matches[1])" }
+::     if ($Text -match '^Target  : (.+)$') { return "Cible   : $(Localize-Text $Matches[1])" }
+::     if ($Text -match '^Current : (.+)$') { return "Actuel  : $(Localize-Text $Matches[1])" }
+::     if ($Text -match '^Action  : (.+)$') { return "Action  : $(Localize-Text $Matches[1])" }
+::     if ($Text -match '^Impact  : (.+)$') { return "Impact  : $(Localize-Text $Matches[1])" }
+::     if ($Text -match '^Items: (\d+) \| Selected: (\d+)/(\d+)$') { return "Elements : $($Matches[1]) | Selection : $($Matches[2])/$($Matches[3])" }
+::     if ($Text -match '^Installed \((.+)\)$') { return "Installe ($($Matches[1]))" }
+::     return $Text
+:: }
+::
+:: $script:Language = if (("$UiLanguage" -match '^fr') -or ("$env:SYTA_LANGUAGE" -match '^fr') -or ("$env:SYTA_LANG" -match '^fr')) { 'fr' } elseif (("$UiLanguage" -match '^en') -or ("$env:SYTA_LANGUAGE" -match '^en') -or ("$env:SYTA_LANG" -match '^en')) { 'en' } elseif ([System.Globalization.CultureInfo]::CurrentUICulture.Name -match '^fr') { 'fr' } else { 'en' }
 :: function Ensure-MaximizedWindow {
 ::     if ($NoMaximize) {
 ::         return
@@ -355,13 +503,13 @@ exit /b %errorlevel%
 ::     param([string]$Raw)
 ::
 ::     switch ($Raw) {
-::         'env-key' { return 'Auth via env key' }
-::         'config-present' { return 'Auth/config detected' }
-::         'not-installed' { return 'Auth n/a' }
-::         'wsl-missing' { return 'WSL Ubuntu missing' }
-::         'not-detected' { return 'Auth not detected' }
+::         'env-key' { return (Localize-Text 'Auth via env key') }
+::         'config-present' { return (Localize-Text 'Auth/config detected') }
+::         'not-installed' { return (Localize-Text 'Auth n/a') }
+::         'wsl-missing' { return (Localize-Text 'WSL Ubuntu missing') }
+::         'not-detected' { return (Localize-Text 'Auth not detected') }
 ::         default {
-::             if ([string]::IsNullOrWhiteSpace($Raw)) { return 'Auth unknown' }
+::             if ([string]::IsNullOrWhiteSpace($Raw)) { return (Localize-Text 'Auth unknown') }
 ::             return $Raw
 ::         }
 ::     }
@@ -384,14 +532,14 @@ exit /b %errorlevel%
 ::             Key = $resolvedKey
 ::             Installed = $false
 ::             Path = $null
-::             PathText = 'Unknown tool'
+::             PathText = (Localize-Text 'Unknown tool')
 ::             Version = $null
-::             VersionText = 'Unknown tool'
+::             VersionText = (Localize-Text 'Unknown tool')
 ::             AuthRaw = 'not-detected'
-::             AuthText = 'Auth unknown'
+::             AuthText = (Localize-Text 'Auth unknown')
 ::             InstallSource = 'unknown'
-::             InstallText = 'Unknown'
-::             MenuText = 'Unknown tool'
+::             InstallText = (Localize-Text 'Unknown')
+::             MenuText = (Localize-Text 'Unknown tool')
 ::         }
 ::         $script:ToolDiagCache[$resolvedKey] = $diag
 ::         return $diag
@@ -404,12 +552,12 @@ exit /b %errorlevel%
 ::             Path = $null
 ::             PathText = $spec.InstallHint
 ::             Version = $null
-::             VersionText = 'WSL Ubuntu missing'
+::             VersionText = (Localize-Text 'WSL Ubuntu missing')
 ::             AuthRaw = 'wsl-missing'
-::             AuthText = 'WSL Ubuntu missing'
+::             AuthText = (Localize-Text 'WSL Ubuntu missing')
 ::             InstallSource = 'unknown'
-::             InstallText = 'Missing'
-::             MenuText = 'WSL Ubuntu missing'
+::             InstallText = (Localize-Text 'Missing')
+::             MenuText = (Localize-Text 'WSL Ubuntu missing')
 ::         }
 ::         $script:ToolDiagCache[$resolvedKey] = $diag
 ::         return $diag
@@ -423,16 +571,16 @@ exit /b %errorlevel%
 ::     $installSource = if ($raw.install_source) { $raw.install_source } else { 'unknown' }
 ::
 ::     $sourceLabel = switch ($installSource) {
-::         'nvm' { 'via nvm' }
-::         'user' { 'user-local' }
-::         'system' { 'system-wide' }
-::         'config' { 'config-only' }
-::         'custom' { 'custom path' }
-::         default { 'unknown source' }
+::         'nvm' { Localize-Text 'via nvm' }
+::         'user' { Localize-Text 'user-local' }
+::         'system' { Localize-Text 'system-wide' }
+::         'config' { Localize-Text 'config-only' }
+::         'custom' { Localize-Text 'custom path' }
+::         default { Localize-Text 'unknown source' }
 ::     }
 ::
 ::     $configPath = if ($raw.config) { $raw.config } else { $null }
-::     $statusText = if ($installed) { "Installed ($sourceLabel)" } elseif ($configPath) { 'Configured only' } else { 'Missing' }
+::     $statusText = if ($installed) { Localize-Text "Installed ($sourceLabel)" } elseif ($configPath) { Localize-Text 'Configured only' } else { Localize-Text 'Missing' }
 ::
 ::     $diag = [pscustomobject]@{
 ::         Key = $resolvedKey
@@ -440,7 +588,7 @@ exit /b %errorlevel%
 ::         Path = $path
 ::         PathText = if ($path) { $path } elseif ($configPath) { $configPath } else { $spec.InstallHint }
 ::         Version = $version
-::         VersionText = if ($installed) { if ($version) { $version } else { 'version not detected' } } elseif ($configPath) { 'binary not found on PATH' } else { 'not installed' }
+::         VersionText = if ($installed) { if ($version) { $version } else { (Localize-Text 'version not detected') } } elseif ($configPath) { (Localize-Text 'binary not found on PATH') } else { (Localize-Text 'not installed') }
 ::         AuthRaw = $authRaw
 ::         AuthText = Format-AuthStatus -Raw $authRaw
 ::         InstallSource = $installSource
@@ -473,7 +621,7 @@ exit /b %errorlevel%
 ::         [int]$Width = 72
 ::     )
 ::
-::     $render = Shorten-Text -Text $Content -Max $Width
+::     $render = Shorten-Text -Text (Localize-Text $Content) -Max $Width
 ::     Write-Host ('  | ' + $render.PadRight($Width) + ' |') -ForegroundColor $Color
 :: }
 ::
@@ -541,10 +689,10 @@ exit /b %errorlevel%
 ::         }
 ::
 ::         Write-Host ''
-::         Write-Host ("   " + $frame.Bar + "  " + $frame.Status) -ForegroundColor $frame.Accent
+::         Write-Host ("   " + $frame.Bar + "  " + (Localize-Text $frame.Status)) -ForegroundColor $frame.Accent
 ::         Write-Host '   Made by Sylvain T.' -ForegroundColor Magenta
 ::         Write-Host '   Made by Sylvain T.' -ForegroundColor Cyan
-::         Write-Host '   telemetry: launcher online, diagnostics cache cold, routes ready' -ForegroundColor DarkGray
+::         Write-Host ('   ' + (Localize-Text 'telemetry: launcher online, diagnostics cache cold, routes ready')) -ForegroundColor DarkGray
 ::         Start-Sleep -Milliseconds 90
 ::     }
 ::
@@ -589,7 +737,7 @@ exit /b %errorlevel%
 ::     $psArgs = @(
 ::         '-NoExit',
 ::         '-ExecutionPolicy', 'Bypass',
-::         '-Command', "`$Host.UI.RawUI.WindowTitle = '$Title'; $Command"
+::         '-Command', "`$env:SYTA_LANGUAGE = '$($script:Language)'; `$Host.UI.RawUI.WindowTitle = '$Title'; $Command"
 ::     )
 ::
 ::     if ($DryRun) {
@@ -638,6 +786,8 @@ exit /b %errorlevel%
 ::             $label = if ($item.PSObject.Properties.Match('Title').Count) { $item.Title } else { [string]$item }
 ::             $detail = if ($item.PSObject.Properties.Match('Subtitle').Count) { $item.Subtitle } else { '' }
 ::
+::             $label = Localize-Text $label
+::             $detail = Localize-Text $detail
 ::             Write-Host ('  ' + $prefix + (Shorten-Text -Text $label -Max 76)) -ForegroundColor $titleColor
 ::             if ($detail) {
 ::                 Write-Host ('     ' + (Shorten-Text -Text $detail -Max 74)) -ForegroundColor $detailColor
@@ -675,7 +825,7 @@ exit /b %errorlevel%
 ::         Write-BoxLine -Content 'Choose a short Windows-safe folder name.' -Color Gray
 ::         Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
 ::         Write-Host ''
-::         $name = Read-Host '   Project name'
+::         $name = Read-Host (Localize-Text '   Project name')
 ::         if ([string]::IsNullOrWhiteSpace($name)) {
 ::             return $null
 ::         }
@@ -767,7 +917,7 @@ exit /b %errorlevel%
 ::                 Write-BoxLine -Content 'Search scans existing folders under C:\.CODEX.' -Color Gray
 ::                 Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
 ::                 Write-Host ''
-::                 $query = Read-Host '   Search term'
+::                 $query = Read-Host (Localize-Text '   Search term')
 ::                 if ([string]::IsNullOrWhiteSpace($query)) {
 ::                     return $null
 ::                 }
@@ -908,10 +1058,10 @@ exit /b %errorlevel%
 ::     )
 ::
 ::     $result = Open-WslWindow `
-::         -Title "$($agent.WindowTitle) - $($project.Name)" `
+::         -Title "$(Localize-Text $agent.WindowTitle) - $($project.Name)" `
 ::         -WindowsDirectory $projectDir `
 ::         -WindowsScriptPath (Join-Path $script:ScriptDir 'syta-wsl-session.sh') `
-::         -ScriptArguments @('code', $agent.Key)
+::         -ScriptArguments @('code', $agent.Key, $script:Language)
 ::
 ::     if ($DryRun) {
 ::         $result | ConvertTo-Json -Depth 4
@@ -931,10 +1081,10 @@ exit /b %errorlevel%
 ::     Show-InfoBox -Title 'Full Update Preflight' -Accent Yellow -Hint 'A new terminal tab opens immediately after this screen' -Lines $lines
 ::
 ::     $result = Open-WslWindow `
-::         -Title 'SYTA Updater' `
+::         -Title (Localize-Text 'SYTA Updater') `
 ::         -WindowsDirectory $script:ScriptDir `
 ::         -WindowsScriptPath (Join-Path $script:ScriptDir 'syta-wsl-session.sh') `
-::         -ScriptArguments @('update')
+::         -ScriptArguments @('update', $script:Language)
 ::
 ::     if ($DryRun) {
 ::         $result | ConvertTo-Json -Depth 4
@@ -953,10 +1103,10 @@ exit /b %errorlevel%
 ::     Show-InfoBox -Title 'Light Update Preflight' -Accent Green -Hint 'A new terminal tab opens immediately after this screen' -Lines $lines
 ::
 ::     $result = Open-WslWindow `
-::         -Title 'SYTA Light Updater' `
+::         -Title (Localize-Text 'SYTA Light Updater') `
 ::         -WindowsDirectory $script:ScriptDir `
 ::         -WindowsScriptPath (Join-Path $script:ScriptDir 'syta-wsl-session.sh') `
-::         -ScriptArguments @('update-light')
+::         -ScriptArguments @('update-light', $script:Language)
 ::
 ::     if ($DryRun) {
 ::         $result | ConvertTo-Json -Depth 4
@@ -982,7 +1132,7 @@ exit /b %errorlevel%
 ::             'Action  : Run wsl --install -d Ubuntu',
 ::             'Impact  : Installs Ubuntu into Windows Subsystem for Linux'
 ::         )
-::         $result = Open-WindowsPowerShellWindow -Title 'SYTA WSL Ubuntu Install' -Command 'wsl --install -d Ubuntu'
+::         $result = Open-WindowsPowerShellWindow -Title (Localize-Text 'SYTA WSL Ubuntu Install') -Command 'wsl --install -d Ubuntu'
 ::         if ($DryRun) {
 ::             $result | ConvertTo-Json -Depth 4
 ::             return
@@ -1000,7 +1150,7 @@ exit /b %errorlevel%
 ::             'Action  : Install PowerShell 7 with winget and set Windows Terminal default profile to PowerShell'
 ::         )
 ::         $scriptPath = Join-Path $script:ScriptDir 'syta-install-powershell7.ps1'
-::         $result = Open-WindowsPowerShellWindow -Title 'SYTA PowerShell 7 Install' -Command ("& '$scriptPath'")
+::         $result = Open-WindowsPowerShellWindow -Title (Localize-Text 'SYTA PowerShell 7 Install') -Command ("& '$scriptPath'")
 ::         if ($DryRun) {
 ::             $result | ConvertTo-Json -Depth 4
 ::             return
@@ -1029,7 +1179,7 @@ exit /b %errorlevel%
 ::         -Title "SYTA Install - $($selection.Title)" `
 ::         -WindowsDirectory $script:ScriptDir `
 ::         -WindowsScriptPath (Join-Path $script:ScriptDir 'syta-wsl-session.sh') `
-::         -ScriptArguments @('install', $selection.Key)
+::         -ScriptArguments @('install', $selection.Key, $script:Language)
 ::
 ::     if ($DryRun) {
 ::         $result | ConvertTo-Json -Depth 4
@@ -1045,6 +1195,7 @@ exit /b %errorlevel%
 ::         ProjectsRoot = $script:ProjectsRoot
 ::         StateFile = $script:StateFile
 ::         BuildId = $script:BuildId
+::         Language = $script:Language
 ::         RecentProjects = @((Get-RecentProjects | Select-Object -ExpandProperty Name))
 ::         Agents = $script:AgentOptions.Key
 ::         WslDistros = Get-WslDistros
@@ -1242,17 +1393,24 @@ exit /b %errorlevel%
 ::END:syta-tool-diagnostics.sh
 ::BEGIN:syta-install-powershell7.ps1
 :: $ErrorActionPreference = 'Stop'
+:: $script:Language = if (("$env:SYTA_LANGUAGE" -match '^fr') -or ("$env:SYTA_LANG" -match '^fr')) { 'fr' } else { 'en' }
+::
+:: function T {
+::     param([string]$En, [string]$Fr)
+::     if ($script:Language -eq 'fr') { return $Fr }
+::     return $En
+:: }
 ::
 :: function Write-Stage {
-::     param([string]$Text)
+::     param([string]$En, [string]$Fr)
 ::     Write-Host ''
-::     Write-Host ("== " + $Text + " ==") -ForegroundColor Cyan
+::     Write-Host ("== " + (T $En $Fr) + " ==") -ForegroundColor Cyan
 :: }
 ::
 :: function Set-WindowsTerminalDefaultPowerShellProfile {
 ::     $wtPath = Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json'
 ::     if (-not (Test-Path -LiteralPath $wtPath)) {
-::         Write-Host 'Windows Terminal settings.json not found. Skipping default-profile update.' -ForegroundColor Yellow
+::         Write-Host (T 'Windows Terminal settings.json not found. Skipping default-profile update.' 'settings.json de Windows Terminal introuvable. Mise a jour du profil par defaut ignoree.') -ForegroundColor Yellow
 ::         return
 ::     }
 ::
@@ -1266,190 +1424,212 @@ exit /b %errorlevel%
 ::     }
 ::
 ::     Set-Content -LiteralPath $wtPath -Value $raw -Encoding utf8
-::     Write-Host 'Windows Terminal default profile set to PowerShell.' -ForegroundColor Green
+::     Write-Host (T 'Windows Terminal default profile set to PowerShell.' 'Le profil par defaut de Windows Terminal a ete defini sur PowerShell.') -ForegroundColor Green
 :: }
 ::
-:: Write-Stage 'Install PowerShell 7'
+:: Write-Stage 'Install PowerShell 7' 'Installer PowerShell 7'
 :: if (-not (Get-Command winget.exe -ErrorAction SilentlyContinue)) {
-::     throw 'winget.exe is not available on this Windows system.'
+::     throw (T 'winget.exe is not available on this Windows system.' 'winget.exe n''est pas disponible sur ce systeme Windows.')
 :: }
 ::
 :: winget install --id Microsoft.PowerShell --source winget --accept-package-agreements --accept-source-agreements
 ::
-:: Write-Stage 'Verify pwsh'
+:: Write-Stage 'Verify pwsh' 'Verifier pwsh'
 :: $pwsh = Get-Command pwsh.exe -ErrorAction Stop
 :: & $pwsh.Source -NoLogo -NoProfile -Command '$PSVersionTable.PSVersion.ToString()'
 ::
-:: Write-Stage 'Set Windows Terminal default profile'
+:: Write-Stage 'Set Windows Terminal default profile' 'Definir le profil par defaut Windows Terminal'
 :: Set-WindowsTerminalDefaultPowerShellProfile
 ::
 :: Write-Host ''
-:: Write-Host 'PowerShell 7 install flow completed.' -ForegroundColor Green
+:: Write-Host (T 'PowerShell 7 install flow completed.' 'Flux d''installation PowerShell 7 termine.') -ForegroundColor Green
+::
 ::END:syta-install-powershell7.ps1
 ::BEGIN:syta-wsl-session.sh
 :: #!/usr/bin/env bash
 :: set -u
-:: 
+::
 :: script_dir="$(cd -- "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 :: mode="${1:-}"
 :: tool_key="${2:-}"
-:: 
+:: lang_raw="${3:-${SYTA_LANGUAGE:-${SYTA_LANG:-auto}}}"
+::
+:: normalize_lang() {
+::   case "${1:-auto}" in
+::     fr*|FR*) printf 'fr\n' ;;
+::     en*|EN*) printf 'en\n' ;;
+::     *) printf 'en\n' ;;
+::   esac
+:: }
+::
+:: msg() {
+::   local key="$1"
+::   local value="${2:-}"
+::   if [ "$lang" = 'fr' ]; then
+::     case "$key" in
+::       missing_agent) printf 'Cle agent manquante.\n' ;;
+::       missing_install) printf 'Cible d''installation manquante.\n' ;;
+::       unknown_mode) printf 'Mode de session inconnu : %s\n' "$value" ;;
+::       leaving_shell) printf 'Le shell %s reste ouvert pour le workspace.\n' "$value" ;;
+::       session_exit) printf 'Code de sortie de session : %s\n' "$value" ;;
+::     esac
+::   else
+::     case "$key" in
+::       missing_agent) printf 'Missing agent key.\n' ;;
+::       missing_install) printf 'Missing install target.\n' ;;
+::       unknown_mode) printf 'Unknown session mode: %s\n' "$value" ;;
+::       leaving_shell) printf 'Leaving %s open for the workspace.\n' "$value" ;;
+::       session_exit) printf 'Session exit code: %s\n' "$value" ;;
+::     esac
+::   fi
+:: }
+::
 :: detect_shell() {
 ::   local detected=""
 ::   if command -v getent >/dev/null 2>&1; then
 ::     detected="$(getent passwd "$USER" | awk -F: '{print $7}')"
 ::   fi
-:: 
+::
 ::   if [ -z "$detected" ] || [ ! -x "$detected" ]; then
 ::     detected="${SHELL:-/bin/bash}"
 ::   fi
-:: 
+::
 ::   case "$(basename "$detected")" in
-::     bash|zsh|sh)
-::       printf '%s\n' "$detected"
-::       ;;
-::     *)
-::       printf '/bin/bash\n'
-::       ;;
+::     bash|zsh|sh) printf '%s\n' "$detected" ;;
+::     *) printf '/bin/bash\n' ;;
 ::   esac
 :: }
-:: 
+::
+:: lang="$(normalize_lang "$lang_raw")"
+:: export SYTA_LANG="$lang"
+:: export SYTA_LANGUAGE="$lang"
+::
 :: shell_bin="$(detect_shell)"
 :: shell_name="$(basename "$shell_bin")"
-:: 
+::
 :: run_in_shell() {
 ::   local payload="$1"
 ::   case "$shell_name" in
-::     bash|zsh|sh)
-::       exec "$shell_bin" -ic "$payload"
-::       ;;
-::     *)
-::       exec /bin/bash -ic "$payload"
-::       ;;
+::     bash|zsh|sh) exec "$shell_bin" -ic "$payload" ;;
+::     *) exec /bin/bash -ic "$payload" ;;
 ::   esac
 :: }
-:: 
+::
 :: quote_arg() {
 ::   printf '%q' "$1"
 :: }
-:: 
+::
 :: runner_cmd=""
-:: 
 :: case "$mode" in
 ::   code)
-::     if [ -z "$tool_key" ]; then
-::       printf 'Missing agent key.\n'
-::       exit 64
-::     fi
-::     runner_cmd="bash $(quote_arg "$script_dir/syta-run-agent.sh") $(quote_arg "$tool_key")"
+::     if [ -z "$tool_key" ]; then msg missing_agent; exit 64; fi
+::     runner_cmd="export SYTA_LANG=$(quote_arg "$lang"); export SYTA_LANGUAGE=$(quote_arg "$lang"); bash $(quote_arg "$script_dir/syta-run-agent.sh") $(quote_arg "$tool_key")"
 ::     ;;
 ::   install)
-::     if [ -z "$tool_key" ]; then
-::       printf 'Missing install target.\n'
-::       exit 64
-::     fi
-::     runner_cmd="bash $(quote_arg "$script_dir/syta-install-tool.sh") $(quote_arg "$tool_key")"
+::     if [ -z "$tool_key" ]; then msg missing_install; exit 64; fi
+::     runner_cmd="export SYTA_LANG=$(quote_arg "$lang"); export SYTA_LANGUAGE=$(quote_arg "$lang"); bash $(quote_arg "$script_dir/syta-install-tool.sh") $(quote_arg "$tool_key")"
 ::     ;;
 ::   update)
-::     runner_cmd="bash $(quote_arg "$script_dir/update-wsl-coding-tools.sh")"
+::     runner_cmd="export SYTA_LANG=$(quote_arg "$lang"); export SYTA_LANGUAGE=$(quote_arg "$lang"); bash $(quote_arg "$script_dir/update-wsl-coding-tools.sh")"
 ::     ;;
 ::   update-light)
-::     runner_cmd="bash $(quote_arg "$script_dir/update-ai-cli-tools.sh")"
+::     runner_cmd="export SYTA_LANG=$(quote_arg "$lang"); export SYTA_LANGUAGE=$(quote_arg "$lang"); bash $(quote_arg "$script_dir/update-ai-cli-tools.sh")"
 ::     ;;
 ::   *)
-::     printf 'Unknown session mode: %s\n' "$mode"
+::     msg unknown_mode "$mode"
 ::     exit 64
 ::     ;;
 :: esac
-:: 
-:: keep_open="printf '\n'; printf 'Leaving %s open for the workspace.\n' $(quote_arg "$shell_bin"); exec $(quote_arg "$shell_bin") -i"
-:: payload="$runner_cmd; syta_rc=\$?; printf '\nSession exit code: %s\n' \"\$syta_rc\"; $keep_open"
-:: 
+::
+:: payload="$runner_cmd; syta_rc=\$?; printf '\n'; msg session_exit \"\$syta_rc\"; printf '\n'; msg leaving_shell $(quote_arg "$shell_bin"); exec $(quote_arg "$shell_bin") -i"
 :: run_in_shell "$payload"
+::
 ::END:syta-wsl-session.sh
 ::BEGIN:syta-run-agent.sh
 :: #!/usr/bin/env bash
 :: set -u
-:: 
+::
 :: agent_key="${1:-}"
-:: 
+:: lang="${SYTA_LANG:-en}"
+::
+:: msg() {
+::   local key="$1"
+::   local value="${2:-}"
+::   if [ "$lang" = 'fr' ]; then
+::     case "$key" in
+::       workspace) printf ' Espace de travail : %s\n' "$value" ;;
+::       missing_bash) printf 'bash n''est pas disponible dans cet environnement WSL.\n' ;;
+::       current_path) printf 'PATH actuel : %s\n' "$value" ;;
+::       codex_missing) printf 'codex n''est pas disponible dans le PATH.\n' ;;
+::       omx_missing) printf 'omx n''est pas disponible dans le PATH.\n' ;;
+::       opencode_missing) printf 'opencode n''est pas disponible dans le PATH.\n' ;;
+::       claude_missing) printf 'claude n''est pas disponible dans le PATH.\n' ;;
+::       gemini_missing) printf 'gemini n''est pas disponible dans le PATH.\n' ;;
+::       launch_codex) printf 'Lancement de Codex YOLO...\n\n' ;;
+::       launch_omx) printf 'Lancement de OMX MADMAX HIGH...\n\n' ;;
+::       launch_opencode) printf 'Lancement de OpenCode...\n\n' ;;
+::       launch_claude) printf 'Lancement de Claude Code...\n\n' ;;
+::       launch_gemini) printf 'Lancement de Gemini CLI...\n\n' ;;
+::       unknown_agent) printf 'Cle agent inconnue : %s\n' "$value" ;;
+::       agent_exit) printf '\nL''agent s''est termine avec le code %s.\n' "$value" ;;
+::       session_end) printf '\nSession agent terminee.\n' ;;
+::     esac
+::   else
+::     case "$key" in
+::       workspace) printf ' Workspace: %s\n' "$value" ;;
+::       missing_bash) printf 'bash is not available in this WSL environment.\n' ;;
+::       current_path) printf 'Current PATH: %s\n' "$value" ;;
+::       codex_missing) printf 'codex is not available in PATH.\n' ;;
+::       omx_missing) printf 'omx is not available in PATH.\n' ;;
+::       opencode_missing) printf 'opencode is not available in PATH.\n' ;;
+::       claude_missing) printf 'claude is not available in PATH.\n' ;;
+::       gemini_missing) printf 'gemini is not available in PATH.\n' ;;
+::       launch_codex) printf 'Launching Codex YOLO...\n\n' ;;
+::       launch_omx) printf 'Launching OMX MADMAX HIGH...\n\n' ;;
+::       launch_opencode) printf 'Launching OpenCode...\n\n' ;;
+::       launch_claude) printf 'Launching Claude Code...\n\n' ;;
+::       launch_gemini) printf 'Launching Gemini CLI...\n\n' ;;
+::       unknown_agent) printf 'Unknown agent key: %s\n' "$value" ;;
+::       agent_exit) printf '\nAgent exited with status %s.\n' "$value" ;;
+::       session_end) printf '\nAgent session ended.\n' ;;
+::     esac
+::   fi
+:: }
+::
 :: show_header() {
 ::   printf '\n'
 ::   printf '============================================================\n'
-::   printf ' SYTA Agentic Launcher\n'
-::   printf ' Workspace: %s\n' "$PWD"
-::   printf '============================================================\n'
-::   printf '\n'
+::   printf ' SYTA Super Launcher\n'
+::   msg workspace "$PWD"
+::   printf '============================================================\n\n'
 :: }
-:: 
+::
 :: run_agent() {
 ::   case "$agent_key" in
 ::     codex-yolo)
-::       if ! command -v codex >/dev/null 2>&1; then
-::         printf 'codex is not available in PATH.\n'
-::         printf 'Current PATH: %s\n' "$PATH"
-::         return 127
-::       fi
-::       printf 'Launching Codex YOLO...\n\n'
-::       codex --yolo
-::       ;;
+::       if ! command -v codex >/dev/null 2>&1; then msg codex_missing; msg current_path "$PATH"; return 127; fi
+::       msg launch_codex; codex --yolo ;;
 ::     omx-madmax-high)
-::       if ! command -v omx >/dev/null 2>&1; then
-::         printf 'omx is not available in PATH.\n'
-::         printf 'Current PATH: %s\n' "$PATH"
-::         return 127
-::       fi
-::       printf 'Launching OMX MADMAX HIGH...\n\n'
-::       omx --madmax --high
-::       ;;
+::       if ! command -v omx >/dev/null 2>&1; then msg omx_missing; msg current_path "$PATH"; return 127; fi
+::       msg launch_omx; omx --madmax --high ;;
 ::     opencode)
-::       if ! command -v opencode >/dev/null 2>&1; then
-::         printf 'opencode is not available in PATH.\n'
-::         printf 'Current PATH: %s\n' "$PATH"
-::         return 127
-::       fi
-::       printf 'Launching OpenCode...\n\n'
-::       opencode
-::       ;;
+::       if ! command -v opencode >/dev/null 2>&1; then msg opencode_missing; msg current_path "$PATH"; return 127; fi
+::       msg launch_opencode; opencode ;;
 ::     claude-code)
-::       if ! command -v claude >/dev/null 2>&1; then
-::         printf 'claude is not available in PATH.\n'
-::         printf 'Current PATH: %s\n' "$PATH"
-::         return 127
-::       fi
-::       printf 'Launching Claude Code...\n\n'
-::       claude
-::       ;;
+::       if ! command -v claude >/dev/null 2>&1; then msg claude_missing; msg current_path "$PATH"; return 127; fi
+::       msg launch_claude; claude ;;
 ::     gemini-cli)
-::       if ! command -v gemini >/dev/null 2>&1; then
-::         printf 'gemini is not available in PATH.\n'
-::         printf 'Current PATH: %s\n' "$PATH"
-::         return 127
-::       fi
-::       printf 'Launching Gemini CLI...\n\n'
-::       gemini
-::       ;;
-::     *)
-::       printf 'Unknown agent key: %s\n' "$agent_key"
-::       return 64
-::       ;;
+::       if ! command -v gemini >/dev/null 2>&1; then msg gemini_missing; msg current_path "$PATH"; return 127; fi
+::       msg launch_gemini; gemini ;;
+::     *) msg unknown_agent "$agent_key"; return 64 ;;
 ::   esac
 :: }
-:: 
+::
 :: show_header
-:: 
-:: if ! command -v bash >/dev/null 2>&1; then
-::   printf 'bash is not available in this WSL environment.\n'
-::   exit 1
-:: fi
-:: 
-:: if ! run_agent; then
-::   rc=$?
-::   printf '\nAgent exited with status %s.\n' "$rc"
-::   exit "$rc"
-:: fi
-:: 
-:: printf '\nAgent session ended.\n'
+:: if ! command -v bash >/dev/null 2>&1; then msg missing_bash; exit 1; fi
+:: if ! run_agent; then rc=$?; msg agent_exit "$rc"; exit "$rc"; fi
+:: msg session_end
+::
 ::END:syta-run-agent.sh
 ::BEGIN:syta-install-tool.sh
 :: #!/usr/bin/env bash

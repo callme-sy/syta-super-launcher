@@ -1,35 +1,30 @@
 # SYTA Super Launcher
 
-`syta-super-launcher.bat` est un lanceur Windows mono-fichier pour un environnement de code assisté par IA orienté WSL.
+Lanceur Windows mono-fichier pour un setup de code IA orienté WSL.
 
-Il ouvre une interface interactive en terminal, gère les projets dans `C:\.CODEX`, et lance plusieurs outils IA dans WSL avec un flux cohérent.
+`syta-super-launcher.bat` fournit une interface unique pour créer des projets, lancer des agents de code, installer les outils manquants et exécuter des mises à jour dans un workflow Windows + WSL cohérent.
 
-## Ce Que C'est
+## Points Forts
 
-Ce dépôt publie volontairement un seul fichier portable :
+- Distribution mono-fichier : un seul `.bat`, aucun dossier auxiliaire à partager
+- Workflow orienté WSL : projets rangés dans `C:\.CODEX`
+- Interface interactive avec diagnostics et projets récents
+- Flux d’installation intégrés pour plusieurs CLI IA de code
+- Modes de mise à jour légère et complète
+- Runtime portable : les helpers sont extraits dans `%TEMP%` au lancement
 
-- `syta-super-launcher.bat`
+## Modes Inclus
 
-Ce fichier embarque son propre runtime et extrait ses scripts temporaires au lancement. Ces fichiers extraits servent uniquement au fonctionnement du lanceur. Les vrais outils sont installés dans l'environnement Windows ou WSL de l'utilisateur, pas dans le dossier temporaire.
+| Mode | Rôle |
+| --- | --- |
+| `Code` | Créer/ouvrir un projet et lancer une CLI IA dans WSL |
+| `Install` | Installer ou réparer WSL, PowerShell et les outils pris en charge |
+| `Light update` | Mettre à jour uniquement les CLI IA de code |
+| `Update all` | Lancer une mise à jour plus large de la chaîne d’outils |
 
-## Objectif Principal
+## Outils Pris En Charge
 
-Le but est de simplifier un environnement IA de développement autour de WSL.
-
-Le lanceur peut :
-
-- créer et ouvrir des dossiers projet dans `C:\.CODEX`
-- lancer plusieurs CLI de code IA depuis un menu unique
-- installer les outils manquants
-- lancer des mises à jour légères ou complètes
-- mémoriser les projets récents
-- afficher un pré-diagnostic avant les lancements
-
-## Modes Principaux
-
-### Code
-
-Crée ou ouvre un dossier projet dans `C:\.CODEX`, puis lance un des outils suivants dans WSL :
+Depuis le menu `Code`, le lanceur peut démarrer :
 
 - `Codex`
 - `OMX`
@@ -37,19 +32,7 @@ Crée ou ouvre un dossier projet dans `C:\.CODEX`, puis lance un des outils suiv
 - `Claude Code`
 - `Gemini CLI`
 
-Avant le lancement, le lanceur affiche un panneau de préflight avec :
-
-- le chemin du projet
-- l'état d'installation détecté
-- la version détectée
-- l'indice d'auth/config
-- le chemin binaire ou config quand disponible
-
-### Install
-
-Installe ou répare l'environnement.
-
-Cibles actuelles :
+Depuis le menu `Install`, le lanceur prend en charge :
 
 - `WSL Ubuntu`
 - `PowerShell 7`
@@ -61,34 +44,6 @@ Cibles actuelles :
 - `Gemini CLI`
 - `Oh My OpenCode Slim`
 
-Pour les outils basés sur Node, l'installateur privilégie `nvm` et tente de préserver la version Node déjà utilisée au lieu de basculer brutalement vers une nouvelle version vide qui ferait disparaître les CLI globales existantes.
-
-Il tente aussi de corriger un problème Linux fréquent en installant `libatomic1` sur les distributions apt lorsque c'est nécessaire.
-
-### Light Update
-
-Met à jour uniquement les CLI IA de code :
-
-- `Codex`
-- `OMX`
-- `OpenCode`
-- `Claude Code`
-- `Gemini CLI`
-
-### Update All
-
-Lance une mise à jour plus large de la chaîne d'outils :
-
-- `apt`
-- `Homebrew`
-- `npm`
-- `pnpm`
-- `pipx`
-- `uv`
-- `rustup`
-- `cargo-install-update`
-- `dotnet` global tools
-
 ## Racine Des Projets
 
 Le lanceur utilise toujours :
@@ -97,123 +52,84 @@ Le lanceur utilise toujours :
 C:\.CODEX
 ```
 
-Si ce dossier n'existe pas, il est créé automatiquement.
+Si ce dossier n’existe pas, il est créé automatiquement.
 
-Les projets récents sont stockés ici :
+Les projets récents sont stockés dans :
 
 ```text
 C:\.CODEX\.syta-launcher-state.json
 ```
 
-## Fonctionnement Technique
+## Fonctionnement
 
-Au démarrage, `syta-super-launcher.bat` extrait ses scripts embarqués dans un dossier runtime temporaire unique.
+`syta-super-launcher.bat` embarque son propre runtime dans le fichier batch lui-même.
 
-Ce runtime alimente :
+Au lancement, il extrait ses helpers dans un répertoire temporaire unique, puis exécute le lanceur depuis cet emplacement. Ce runtime temporaire ne sert qu’au fonctionnement du lanceur.
 
-- l'interface interactive
-- les flux d'installation
-- les flux de mise à jour
-- le pont WSL
-- la couche de diagnostic
+Les vraies installations se font dans l’environnement utilisateur :
 
-L'intérêt est de garder un seul fichier portable tout en conservant un comportement proche d'une petite application.
+- outils Windows côté Windows
+- outils Linux côté WSL
+- CLI Node généralement sous `nvm` dans le home WSL
+
+## Philosophie D’Installation
+
+Le lanceur cherche à être utile sur de vraies machines, pas seulement théoriquement élégant.
+
+Comportements importants :
+
+- Il privilégie `nvm` pour les CLI basées sur Node.
+- Il essaie de préserver la version Node déjà utilisée par l’utilisateur au lieu de basculer brutalement vers une nouvelle version vide.
+- Il tente de réparer `libatomic.so.1` sur les distributions apt lorsque c’est nécessaire pour certains runtimes Node.
+- Il distingue autant que possible `Installed`, `Configured only` et `Missing`.
+
+## Diagnostics
+
+L’interface affiche des diagnostics de préflight avant les lancements et les installations.
+
+Ces diagnostics essaient de montrer :
+
+- l’état d’installation
+- la version détectée
+- les indices d’auth/config
+- l’origine de l’installation, par exemple `nvm`, `system`, `user-local` ou `config-only`
+
+Ces vérifications sont heuristiques par nature. Elles sont conçues pour être pratiques et utiles, pas pour remplacer une vérification parfaite de l’authentification réelle auprès de chaque fournisseur.
 
 ## Prérequis
 
-Environnement recommandé :
+Configuration recommandée :
 
 - Windows 10 ou Windows 11
 - WSL disponible
 - Ubuntu dans WSL
 - Windows Terminal recommandé
 
-L'expérience visée est :
+Le lanceur peut réparer certains éléments manquants, mais l’environnement cible reste :
 
-- lanceur côté Windows
-- outils côté Linux dans WSL
-- installations utilisateur dans le `$HOME` WSL
+- un lanceur Windows côté hôte
+- des outils de code côté Linux dans WSL
+- des installations utilisateur autant que possible
 
-## Détails D'Installation
-
-### Outils Côté WSL
-
-Les outils Linux sont installés dans l'environnement utilisateur WSL.
-
-Exemples :
-
-- `nvm` dans `~/.nvm`
-- CLI npm globales dans la version Node active sous `nvm`
-- configuration OpenCode dans `~/.config/opencode`
-
-Ils ne sont pas installés dans le dossier temporaire d'extraction du lanceur.
-
-### Node et npm
-
-L'installateur utilise `nvm` quand c'est possible.
-
-Point important :
-
-- les CLI npm globales dépendent de la version Node active
-- changer de version Node peut donner l'impression que des outils ont disparu
-
-Pour éviter cela, le lanceur tente maintenant de conserver et réutiliser la version `nvm` déjà active ou par défaut.
-
-### OpenCode
-
-OpenCode est géré à part car il peut être configuré sans que le binaire soit réellement disponible dans le `PATH`.
-
-Le lanceur essaie de distinguer :
-
-- `Installed`
-- `Configured only`
-- `Missing`
-
-## Diagnostic
-
-L'interface affiche des diagnostics heuristiques sur :
-
-- l'état installé/manquant
-- la version détectée
-- les indices d'auth/config
-- l'origine de l'installation comme `nvm`, `system`, `user-local` ou `config-only`
-
-Ces diagnostics sont pratiques mais ne constituent pas une vérification parfaite de l'authentification réelle auprès des fournisseurs.
-
-## PowerShell 7
-
-Le lanceur inclut un chemin d'installation Windows pour PowerShell 7.
-
-Ce chemin vise à :
-
-- installer PowerShell 7 via `winget`
-- vérifier `pwsh.exe`
-- définir le `defaultProfile` de Windows Terminal sur `PowerShell`
-
-## Build Stamp
-
-Le lanceur affiche un identifiant de build dans l'interface et dans `SmokeTest`, afin de confirmer facilement que l'utilisateur exécute bien la bonne version du fichier.
-
-## Pourquoi Un Seul Fichier
-
-Le dépôt se concentre sur la portabilité.
-
-Au lieu de publier un dossier complet de scripts auxiliaires, tout est embarqué dans un seul fichier pour le partage et l'utilisation rapide.
-
-## Limites
-
-Limites actuelles :
-
-- les diagnostics restent heuristiques
-- certains flux dépendent de la présence correcte des composants Windows et WSL sur la machine cible
-- `super.ps1` n'est pas publié ici, car ce dépôt se concentre volontairement sur l'expérience mono-fichier
-
-## Utilisation
+## Démarrage Rapide
 
 1. Téléchargez `syta-super-launcher.bat`.
 2. Double-cliquez dessus.
-3. Choisissez un mode.
-4. Suivez les menus interactifs.
+3. Utilisez `Install` d’abord si votre environnement n’est pas prêt.
+4. Utilisez `Code` pour créer ou ouvrir un projet puis lancer un outil.
+
+## Portée Du Dépôt
+
+Ce dépôt reste volontairement minimal.
+
+Fichiers publiés :
+
+- `syta-super-launcher.bat`
+- `README.md`
+- `README.fr.md`
+- `LICENSE`
+
+Les scripts auxiliaires extraits ne sont pas publiés séparément, car l’objectif est précisément de conserver une distribution mono-fichier.
 
 ## Auteur
 
@@ -221,6 +137,4 @@ Made by Sylvain T.
 
 ## Licence
 
-Aucun fichier de licence n'est inclus pour le moment.
-
-Si vous voulez publier ce projet plus largement, ajoutez une licence explicite.
+MIT. Voir [LICENSE](./LICENSE).

@@ -1,35 +1,30 @@
 # SYTA Super Launcher
 
-`syta-super-launcher.bat` is a single-file Windows launcher for an opinionated AI coding workspace setup.
+Single-file Windows launcher for a WSL-first AI coding setup.
 
-It opens a terminal-based interactive UI, manages project folders under `C:\.CODEX`, and launches AI coding tools inside WSL with a consistent workflow.
+`syta-super-launcher.bat` gives you one interactive command deck for creating projects, launching coding agents, installing missing tools, and running update flows from a consistent Windows + WSL workflow.
 
-## What It Is
+## Highlights
 
-This repository publishes one portable launcher file:
+- Single-file distribution: one `.bat`, no helper files to ship
+- WSL-first workflow: projects live under `C:\.CODEX`
+- Interactive launcher UI with diagnostics and recent projects
+- Built-in install flows for major AI coding CLIs
+- Light and full update modes
+- Portable runtime: embedded helpers extract to `%TEMP%` at launch time
 
-- `syta-super-launcher.bat`
+## Included Modes
 
-That file embeds its own runtime helpers and extracts them to a temporary folder at launch time. The extracted files are only runtime helpers. The real tools are installed in the user's Windows or WSL environment, not in the temporary extraction folder.
+| Mode | Purpose |
+| --- | --- |
+| `Code` | Create/open a project and launch a coding CLI in WSL |
+| `Install` | Install or repair WSL, PowerShell, and supported AI tools |
+| `Light update` | Update AI coding CLIs only |
+| `Update all` | Run a broader toolchain update pass |
 
-## Main Goals
+## Supported Coding Tools
 
-The launcher is built to make a WSL-based AI coding setup easier to use.
-
-It can:
-
-- create and open project folders under `C:\.CODEX`
-- launch multiple AI coding CLIs from a unified menu
-- install missing tools
-- run light or full update flows
-- keep recent projects
-- surface diagnostic hints before launch
-
-## Main Modes
-
-### Code
-
-Creates or opens a project folder in `C:\.CODEX`, then launches one of these tools inside WSL:
+From the `Code` menu, the launcher can start:
 
 - `Codex`
 - `OMX`
@@ -37,19 +32,7 @@ Creates or opens a project folder in `C:\.CODEX`, then launches one of these too
 - `Claude Code`
 - `Gemini CLI`
 
-Before launching, the UI shows a preflight panel with:
-
-- project path
-- detected install state
-- version detection
-- auth/config hint
-- resolved binary or config path
-
-### Install
-
-Installs or repairs the environment.
-
-Current install targets include:
+From the `Install` menu, the launcher supports:
 
 - `WSL Ubuntu`
 - `PowerShell 7`
@@ -61,34 +44,6 @@ Current install targets include:
 - `Gemini CLI`
 - `Oh My OpenCode Slim`
 
-For Node-based tooling, the installer prefers `nvm` and tries to preserve an existing Node version instead of blindly switching users to a fresh version that would hide previously installed global CLIs.
-
-The installer also tries to repair a common Linux runtime dependency issue by installing `libatomic1` on apt-based systems when required.
-
-### Light Update
-
-Updates AI coding CLIs only:
-
-- `Codex`
-- `OMX`
-- `OpenCode`
-- `Claude Code`
-- `Gemini CLI`
-
-### Update All
-
-Runs a broader toolchain update pass, including:
-
-- `apt`
-- `Homebrew`
-- `npm`
-- `pnpm`
-- `pipx`
-- `uv`
-- `rustup`
-- `cargo-install-update`
-- `dotnet` global tools
-
 ## Project Root
 
 The launcher always uses:
@@ -97,9 +52,9 @@ The launcher always uses:
 C:\.CODEX
 ```
 
-If that folder does not exist, it creates it automatically.
+If it does not exist, it is created automatically.
 
-Recent projects are stored here:
+Recent projects are stored in:
 
 ```text
 C:\.CODEX\.syta-launcher-state.json
@@ -107,115 +62,74 @@ C:\.CODEX\.syta-launcher-state.json
 
 ## How It Works
 
-At startup, `syta-super-launcher.bat` extracts embedded helper scripts to a unique temporary runtime folder.
+`syta-super-launcher.bat` embeds its runtime inside the batch file itself.
 
-That runtime then powers:
+At launch it extracts helper scripts to a unique temporary runtime directory and runs from there. That temporary runtime is only for the launcher internals.
 
-- the interactive UI
-- the installer flows
-- the updater flows
-- the WSL session bridge
-- the diagnostics layer
+Actual tool installs happen in the user environment:
 
-This means the launcher stays portable while still acting like a small application.
+- Windows-side tools in Windows
+- Linux-side tools in WSL
+- Node-based CLIs typically under `nvm` in the WSL home directory
+
+## Installation Philosophy
+
+The launcher is designed to be practical on real machines, not just clean on paper.
+
+Notable behavior:
+
+- It prefers `nvm` for Node-based CLI installs.
+- It tries to preserve the user’s existing/default Node version instead of blindly switching to a new one.
+- It attempts to repair `libatomic.so.1` on apt-based systems when required for Node runtimes.
+- It distinguishes between `Installed`, `Configured only`, and `Missing` where possible.
+
+## Diagnostics
+
+The UI surfaces preflight diagnostics before launch and install actions.
+
+These diagnostics try to show:
+
+- install state
+- version detection
+- auth/config hints
+- install source, such as `nvm`, `system`, `user-local`, or `config-only`
+
+These checks are heuristic by design. They are intended to be helpful and operationally useful, not a perfect provider-auth verification layer.
 
 ## Requirements
 
-Recommended environment:
+Recommended setup:
 
 - Windows 10 or Windows 11
 - WSL available
 - Ubuntu in WSL
 - Windows Terminal recommended
 
-The intended experience is:
+The launcher can repair some missing pieces, but the intended target environment is:
 
-- Windows-side launcher
-- Linux-side tooling in WSL
-- user-level installs inside the WSL home directory
+- Windows launcher on the host
+- Linux-side coding tools inside WSL
+- user-scoped installs where possible
 
-## Installation Behavior
-
-### WSL Tooling
-
-Linux-side tools are installed into the user's WSL environment.
-
-Examples:
-
-- `nvm` under `~/.nvm`
-- npm global CLIs inside the active `nvm` Node version
-- OpenCode-related config under `~/.config/opencode`
-
-They are not installed into the temporary launcher extraction folder.
-
-### Node and npm
-
-The installer uses `nvm` where possible.
-
-Important detail:
-
-- global npm CLIs are tied to the active Node version
-- switching Node versions can make existing CLIs appear to disappear
-
-Because of that, the launcher now tries to preserve and reuse the current/default `nvm` version before installing or updating npm-based tools.
-
-### OpenCode
-
-OpenCode is handled separately because it may be installed through its own installer path or end up configured without a runnable binary on `PATH`.
-
-The launcher tries to detect the difference between:
-
-- `Installed`
-- `Configured only`
-- `Missing`
-
-## Diagnostics
-
-The UI includes a diagnostics layer that tries to show:
-
-- whether a tool appears installed
-- detected version
-- auth/config hints
-- install source such as `nvm`, `system`, `user-local`, or `config-only`
-
-These diagnostics are heuristic, not perfect provider-auth verification.
-
-They are intended to be useful and practical rather than authoritative.
-
-## PowerShell 7
-
-The launcher includes a Windows-side PowerShell 7 installer path.
-
-That path is intended to:
-
-- install PowerShell 7 through `winget`
-- verify `pwsh.exe`
-- set Windows Terminal `defaultProfile` to `PowerShell`
-
-## Build Stamp
-
-The launcher exposes a visible build id in the UI and in `SmokeTest`, so users can confirm they are really running the latest file.
-
-## Why Only One File
-
-The point of this repository is portability.
-
-Instead of publishing a folder full of helper scripts, the runtime is embedded into a single launcher file so it can be copied and shared more easily.
-
-## Limitations
-
-Current known limitations:
-
-- diagnostics are still heuristic
-- some install/update paths depend on the target system having the expected Windows and WSL components available
-- `super.ps1` is not published here because this repo intentionally focuses on the single-file launcher experience
-
-## Usage
+## Quick Start
 
 1. Download `syta-super-launcher.bat`.
 2. Double-click it.
-3. Choose a mode.
-4. Follow the interactive menus.
+3. Choose `Install` first if your environment is incomplete.
+4. Choose `Code` to create or open a project and launch a tool.
+
+## Repository Scope
+
+This repository intentionally stays minimal.
+
+Published files:
+
+- `syta-super-launcher.bat`
+- `README.md`
+- `README.fr.md`
+- `LICENSE`
+
+It does not publish the extracted helper scripts separately because the whole point is to keep distribution to a single launcher file.
 
 ## Author
 
@@ -223,6 +137,4 @@ Made by Sylvain T.
 
 ## License
 
-No license file is included yet.
-
-If you want to publish this broadly, add an explicit license.
+MIT. See [LICENSE](./LICENSE).

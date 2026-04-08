@@ -1,30 +1,57 @@
+<div align="center">
+
 # SYTA Super Launcher
 
-Single-file Windows launcher for a WSL-first AI coding setup.
+**Single-file Windows launcher for a WSL-first AI coding setup**
 
-`syta-super-launcher.bat` gives you one interactive command deck for creating projects, launching coding agents, installing missing tools, and running update flows from a consistent Windows + WSL workflow.
+<p>
+  <img src="https://img.shields.io/badge/Windows-10%2F11-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Windows 10/11" />
+  <img src="https://img.shields.io/badge/WSL-Ubuntu-0EAD69?style=for-the-badge&logo=ubuntu&logoColor=white" alt="WSL Ubuntu" />
+  <img src="https://img.shields.io/badge/Distribution-Single%20File-111111?style=for-the-badge" alt="Single file" />
+  <img src="https://img.shields.io/badge/License-MIT-4CAF50?style=for-the-badge" alt="MIT License" />
+</p>
 
-## Highlights
+<p>
+  <img src="https://img.shields.io/badge/Interface-Interactive%20TUI-6A5ACD?style=flat-square" alt="Interactive TUI" />
+  <img src="https://img.shields.io/badge/Projects-C%3A%5C.CODEX-5C6BC0?style=flat-square" alt="Projects root" />
+  <img src="https://img.shields.io/badge/Runtime-Portable-455A64?style=flat-square" alt="Portable runtime" />
+  <img src="https://img.shields.io/badge/Made%20by-Sylvain%20T.-D81B60?style=flat-square" alt="Made by Sylvain T." />
+</p>
 
-- Single-file distribution: one `.bat`, no helper files to ship
-- WSL-first workflow: projects live under `C:\.CODEX`
-- Interactive launcher UI with diagnostics and recent projects
-- Built-in install flows for major AI coding CLIs
-- Light and full update modes
-- Portable runtime: embedded helpers extract to `%TEMP%` at launch time
+</div>
 
-## Included Modes
+---
 
-| Mode | Purpose |
+## Overview
+
+`syta-super-launcher.bat` is a **portable, single-file command deck** for launching and maintaining an AI coding environment on Windows with WSL.
+
+It gives you one interactive entry point to:
+
+- create and reopen projects under `C:\.CODEX`
+- launch AI coding CLIs inside WSL
+- install missing tools
+- run light or full update flows
+- surface diagnostics before launch
+
+The entire runtime is embedded into the batch file itself. At launch, it extracts helper scripts into a temporary runtime directory, runs the UI from there, and keeps the actual installs in the user environment where they belong.
+
+## At A Glance
+
+| Capability | What it does |
 | --- | --- |
-| `Code` | Create/open a project and launch a coding CLI in WSL |
-| `Install` | Install or repair WSL, PowerShell, and supported AI tools |
-| `Light update` | Update AI coding CLIs only |
-| `Update all` | Run a broader toolchain update pass |
+| `Code` | Opens a project and launches a coding CLI in WSL |
+| `Install` | Installs or repairs the environment and supported tools |
+| `Light update` | Updates AI coding CLIs only |
+| `Update all` | Runs a broader toolchain update pass |
+| Diagnostics | Shows install, version, and auth/config hints |
+| Portability | Ships as one `.bat` file |
 
-## Supported Coding Tools
+## Supported Tools
 
-From the `Code` menu, the launcher can start:
+### Code Menu
+
+The launcher can start these tools in WSL:
 
 - `Codex`
 - `OMX`
@@ -32,7 +59,9 @@ From the `Code` menu, the launcher can start:
 - `Claude Code`
 - `Gemini CLI`
 
-From the `Install` menu, the launcher supports:
+### Install Menu
+
+The installer currently supports:
 
 - `WSL Ubuntu`
 - `PowerShell 7`
@@ -44,97 +73,111 @@ From the `Install` menu, the launcher supports:
 - `Gemini CLI`
 - `Oh My OpenCode Slim`
 
-## Project Root
+## Project Layout
 
-The launcher always uses:
+All projects are managed under:
 
 ```text
 C:\.CODEX
 ```
 
-If it does not exist, it is created automatically.
+If the folder does not exist, the launcher creates it automatically.
 
-Recent projects are stored in:
+Recent projects are tracked in:
 
 ```text
 C:\.CODEX\.syta-launcher-state.json
 ```
 
-## How It Works
+## Runtime Model
 
-`syta-super-launcher.bat` embeds its runtime inside the batch file itself.
+The launcher works in two distinct layers:
 
-At launch it extracts helper scripts to a unique temporary runtime directory and runs from there. That temporary runtime is only for the launcher internals.
+### Distribution layer
 
-Actual tool installs happen in the user environment:
+The published file is only:
 
-- Windows-side tools in Windows
-- Linux-side tools in WSL
-- Node-based CLIs typically under `nvm` in the WSL home directory
+```text
+syta-super-launcher.bat
+```
+
+### Runtime layer
+
+At execution time, the launcher extracts its embedded helper scripts into `%TEMP%` and runs from there.
+
+This keeps the distribution portable while still allowing:
+
+- a richer interactive UI
+- installer flows
+- updater flows
+- WSL session bridging
+- preflight diagnostics
 
 ## Installation Philosophy
 
-The launcher is designed to be practical on real machines, not just clean on paper.
+This launcher is designed for real-world machines, not idealized clean-room setups.
 
-Notable behavior:
+Important behaviors:
 
 - It prefers `nvm` for Node-based CLI installs.
-- It tries to preserve the user’s existing/default Node version instead of blindly switching to a new one.
-- It attempts to repair `libatomic.so.1` on apt-based systems when required for Node runtimes.
-- It distinguishes between `Installed`, `Configured only`, and `Missing` where possible.
+- It tries to preserve the user’s active/default Node version instead of blindly switching to a fresh one.
+- It attempts to repair `libatomic.so.1` automatically on apt-based systems when required by Node runtimes.
+- It distinguishes between `Installed`, `Configured only`, and `Missing` when possible.
 
 ## Diagnostics
 
-The UI surfaces preflight diagnostics before launch and install actions.
-
-These diagnostics try to show:
+Before launching or installing, the UI can surface:
 
 - install state
 - version detection
 - auth/config hints
 - install source, such as `nvm`, `system`, `user-local`, or `config-only`
 
-These checks are heuristic by design. They are intended to be helpful and operationally useful, not a perfect provider-auth verification layer.
+These diagnostics are intentionally pragmatic. They are useful operational signals, not perfect provider-auth verification.
 
-## Requirements
+## Recommended Environment
 
-Recommended setup:
+Best experience:
 
 - Windows 10 or Windows 11
-- WSL available
+- WSL enabled
 - Ubuntu in WSL
-- Windows Terminal recommended
+- Windows Terminal installed
 
-The launcher can repair some missing pieces, but the intended target environment is:
+The intended deployment model is:
 
-- Windows launcher on the host
-- Linux-side coding tools inside WSL
-- user-scoped installs where possible
+- Windows-side launcher
+- Linux-side coding tools in WSL
+- user-scoped installs when possible
 
 ## Quick Start
 
-1. Download `syta-super-launcher.bat`.
-2. Double-click it.
-3. Choose `Install` first if your environment is incomplete.
-4. Choose `Code` to create or open a project and launch a tool.
+```text
+1. Download syta-super-launcher.bat
+2. Double-click it
+3. Use Install if the environment is incomplete
+4. Use Code to create or open a project and launch a tool
+```
 
-## Repository Scope
+## Why This Repo Stays Minimal
 
-This repository intentionally stays minimal.
+This repository intentionally publishes only the portable launcher and its documentation.
 
-Published files:
+Included files:
 
 - `syta-super-launcher.bat`
 - `README.md`
 - `README.fr.md`
 - `LICENSE`
 
-It does not publish the extracted helper scripts separately because the whole point is to keep distribution to a single launcher file.
+It does not publish the extracted helper scripts separately because the point of the project is to keep distribution down to a **single launcher file**.
 
 ## Author
 
-Made by Sylvain T.
+**Made by Sylvain T.**
 
 ## License
 
-MIT. See [LICENSE](./LICENSE).
+Released under the **MIT License**.
+
+See [LICENSE](./LICENSE).

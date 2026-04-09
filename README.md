@@ -31,6 +31,7 @@ It gives you one interactive entry point to:
 - create and reopen projects under `C:\.CODEX`
 - launch AI coding CLIs inside WSL
 - install missing tools
+- run the cleaner helper directly from the main menu
 - run light or full update flows
 - surface diagnostics before launch
 
@@ -42,6 +43,7 @@ The entire runtime is embedded into the batch file itself. At launch, it extract
 | --- | --- |
 | `Code` | Opens a project and launches a coding CLI in WSL |
 | `Install` | Installs or repairs the environment and supported tools |
+| `Cleaner helper` | Scans stale AI CLI installs and duplicate PATH hits from the main menu |
 | `Light update` | Updates AI coding CLIs only |
 | `Update all` | Runs a broader toolchain update pass |
 | Diagnostics | Shows install, version, and auth/config hints |
@@ -80,7 +82,7 @@ The installer currently supports:
 
 `First install` is the beginner lane: it starts WSL Ubuntu when needed, asks whether PowerShell 7 should be installed or repaired, then runs the all-in-one AI CLI installer once Ubuntu is ready. If Ubuntu still needs a reboot or first-run account setup, SYTA tells the user to rerun `First install` afterward.
 
-`Cleaner helper` scans for tracked AI CLI installs left behind in older `nvm` Node versions, plus duplicate PATH hits, then asks before removing stale npm globals it can safely clean.
+`Cleaner helper` is available directly from the main menu and also in the install menu. It scans for tracked AI CLI installs left behind in older `nvm` Node versions, plus duplicate PATH hits, then asks before removing stale npm globals it can safely clean.
 
 ## Language
 
@@ -148,7 +150,7 @@ This launcher is designed for real-world machines, not idealized clean-room setu
 Important behaviors:
 
 - `First install` guides a new machine through WSL Ubuntu, optional PowerShell 7, then the full AI CLI toolchain when Ubuntu is ready.
-- `Cleaner helper` checks for stale npm-based AI CLI installs across older `nvm` versions before cleanup.
+- `Cleaner helper` is reachable from the main menu for faster maintenance and still checks stale npm-based AI CLI installs across older `nvm` versions before cleanup.
 - Menus use a cleaner focused-detail layout and loading progress when project or tool data takes time to prepare.
 - The launcher can check for a newer GitHub release and offer an in-place launcher update.
 - It prefers `nvm` for Node-based CLI installs.

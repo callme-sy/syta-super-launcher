@@ -31,6 +31,7 @@ Il offre un point d’entrée unique pour :
 - créer et rouvrir des projets dans `C:\.CODEX`
 - lancer des CLI IA de code dans WSL
 - installer les outils manquants
+- lancer directement l'assistant de nettoyage depuis le menu principal
 - exécuter des mises à jour légères ou complètes
 - afficher des diagnostics avant lancement
 
@@ -42,6 +43,7 @@ Tout le runtime est embarqué dans le fichier batch lui-même. Au lancement, il 
 | --- | --- |
 | `Code` | Ouvre un projet et lance une CLI de code dans WSL |
 | `Install` | Installe ou répare l’environnement et les outils pris en charge |
+| `Cleaner helper` | Analyse les anciennes CLI IA et les doublons du PATH depuis le menu principal |
 | `Light update` | Met à jour uniquement les CLI IA de code |
 | `Update all` | Lance une mise à jour plus large de la chaîne d’outils |
 | Diagnostics | Affiche l’état d’installation, la version et des indices d’auth/config |
@@ -80,7 +82,7 @@ Le menu d’installation prend actuellement en charge :
 
 `First install` est le parcours debutant : il lance WSL Ubuntu si besoin, demande s'il faut installer ou reparer PowerShell 7, puis lance l'installation groupee des CLI IA quand Ubuntu est pret. Si Ubuntu demande encore un redemarrage ou la creation initiale du compte Linux, SYTA indique de relancer `First install` ensuite.
 
-`Cleaner helper` analyse les installations des CLI IA laissees dans d'anciennes versions Node gerees par `nvm`, ainsi que les doublons du PATH, puis demande avant de supprimer les npm globaux obsoletes qu'il peut nettoyer sans risque.
+`Cleaner helper` est disponible directement depuis le menu principal et aussi dans le menu d'installation. Il analyse les installations des CLI IA laissees dans d'anciennes versions Node gerees par `nvm`, ainsi que les doublons du PATH, puis demande avant de supprimer les npm globaux obsoletes qu'il peut nettoyer sans risque.
 
 ## Langue
 
@@ -148,7 +150,7 @@ Le lanceur est pensé pour des machines réelles, pas pour un environnement parf
 Comportements importants :
 
 - `First install` guide une nouvelle machine a travers WSL Ubuntu, PowerShell 7 en option, puis toutes les CLI IA une fois Ubuntu pret.
-- `Cleaner helper` verifie les anciennes installations npm des CLI IA dans les versions `nvm` plus vieilles avant nettoyage.
+- `Cleaner helper` reste un raccourci de maintenance depuis le menu principal tout en verifiant les anciennes installations npm des CLI IA dans les versions `nvm` plus vieilles avant nettoyage.
 - Les menus utilisent un affichage plus lisible avec un panneau de detail et une progression pendant la preparation des donnees projet ou outil.
 - Le lanceur peut verifier si une nouvelle release GitHub est disponible et proposer une mise a jour du lanceur sur place.
 - Il privilégie `nvm` pour les CLI basées sur Node.

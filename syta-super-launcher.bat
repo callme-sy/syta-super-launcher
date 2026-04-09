@@ -32,7 +32,7 @@ exit /b %errorlevel%
 
 ::BEGIN:syta-agentic-launcher.ps1
 :: param(
-::     [ValidateSet('Code', 'Install', 'UpdateAll', 'UpdateLight')]
+::     [ValidateSet('Code', 'Install', 'CleanerHelper', 'UpdateAll', 'UpdateLight')]
 ::     [string]$Mode,
 ::     [ValidateSet('codex-yolo', 'omx-madmax-high', 'opencode', 'claude-code', 'gemini-cli')]
 ::     [string]$Agent,
@@ -58,8 +58,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-09-053639Z'
-:: $script:ReleaseTag = 'v1.4.0'
+:: $script:BuildId = 'SYTA-build-2026-04-09-161448Z'
+:: $script:ReleaseTag = 'v1.4.1'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -1905,6 +1905,14 @@ exit /b %errorlevel%
 ::     exit 0
 :: }
 ::
+:: if ($Mode -eq 'CleanerHelper') {
+::     $result = Invoke-CleanerHelperFlow
+::     if ($DryRun) {
+::         $result | ConvertTo-Json -Depth 4
+::     }
+::     exit 0
+:: }
+::
 :: if ($Mode -eq 'UpdateLight') {
 ::     Launch-UpdateLightMode
 ::     exit 0
@@ -1919,6 +1927,7 @@ exit /b %errorlevel%
 ::     $modeChoice = Read-Menu -Title 'Mode Selector' -Subtitle 'Choose what SYTA should do.' -Items @(
 ::         [pscustomobject]@{ Title = 'Code'; Subtitle = 'Launch an agent with project selection, diagnostics, and recent-project support.'; Accent = 'Cyan'; Key = 'Code' }
 ::         [pscustomobject]@{ Title = 'Install'; Subtitle = 'Install WSL Ubuntu or supported coding CLIs with preflight diagnostics.'; Accent = 'Green'; Key = 'Install' }
+::         [pscustomobject]@{ Title = 'Cleaner helper'; Subtitle = 'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.'; Accent = 'Cyan'; Key = 'CleanerHelper' }
 ::         [pscustomobject]@{ Title = 'Light update'; Subtitle = 'Update AI coding CLIs only: Codex, OMX, OpenCode, Claude Code, Gemini CLI.'; Accent = 'Green'; Key = 'UpdateLight' }
 ::         [pscustomobject]@{ Title = 'Update all'; Subtitle = 'Run the broader toolchain update pass, including system package managers.'; Accent = 'Yellow'; Key = 'UpdateAll' }
 ::         [pscustomobject]@{ Title = 'Exit'; Subtitle = 'Close the launcher.'; Accent = 'DarkGray'; Key = 'Exit' }
@@ -1931,6 +1940,7 @@ exit /b %errorlevel%
 ::     switch ($modeChoice.Key) {
 ::         'Code' { Launch-CodeMode }
 ::         'Install' { Launch-InstallMode }
+::         'CleanerHelper' { Invoke-CleanerHelperFlow }
 ::         'UpdateLight' { Launch-UpdateLightMode }
 ::         'UpdateAll' { Launch-UpdateMode }
 ::     }

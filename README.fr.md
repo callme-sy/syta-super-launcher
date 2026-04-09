@@ -64,15 +64,21 @@ Le lanceur peut démarrer dans WSL :
 
 Le menu d’installation prend actuellement en charge :
 
+- `First install` pour un parcours debutant guide
 - `WSL Ubuntu`
 - `PowerShell 7`
 - `Install all AI CLI tools`
+- `Cleaner helper`
 - `Codex CLI`
 - `OpenCode`
 - `Oh My Codex / OMX`
 - `Claude Code`
 - `Gemini CLI`
 - `Oh My OpenCode Slim`
+
+`First install` est le parcours debutant : il lance WSL Ubuntu si besoin, demande s'il faut installer ou reparer PowerShell 7, puis lance l'installation groupee des CLI IA quand Ubuntu est pret. Si Ubuntu demande encore un redemarrage ou la creation initiale du compte Linux, SYTA indique de relancer `First install` ensuite.
+
+`Cleaner helper` analyse les installations des CLI IA laissees dans d'anciennes versions Node gerees par `nvm`, ainsi que les doublons du PATH, puis demande avant de supprimer les npm globaux obsoletes qu'il peut nettoyer sans risque.
 
 ## Langue
 
@@ -139,6 +145,8 @@ Le lanceur est pensé pour des machines réelles, pas pour un environnement parf
 
 Comportements importants :
 
+- `First install` guide une nouvelle machine a travers WSL Ubuntu, PowerShell 7 en option, puis toutes les CLI IA une fois Ubuntu pret.
+- `Cleaner helper` verifie les anciennes installations npm des CLI IA dans les versions `nvm` plus vieilles avant nettoyage.
 - Il privilégie `nvm` pour les CLI basées sur Node.
 - Il essaie de préserver la version Node active ou par défaut de l’utilisateur.
 - Il tente de réparer `libatomic.so.1` automatiquement sur les systèmes apt si nécessaire.
@@ -175,7 +183,7 @@ Le modèle cible est :
 ```text
 1. Télécharger syta-super-launcher.bat
 2. Double-cliquer dessus
-3. Utiliser Install si l’environnement n’est pas prêt
+3. Utiliser Install -> First install sur une nouvelle machine, ou une autre entree Install si vous n'avez besoin que d'un composant précis
 4. Utiliser Code pour créer ou ouvrir un projet puis lancer un outil
 ```
 

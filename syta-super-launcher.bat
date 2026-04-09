@@ -36,7 +36,7 @@ exit /b %errorlevel%
 ::     [string]$Mode,
 ::     [ValidateSet('codex-yolo', 'omx-madmax-high', 'opencode', 'claude-code', 'gemini-cli')]
 ::     [string]$Agent,
-::     [ValidateSet('wsl-ubuntu', 'powershell-7', 'all-ai-cli-tools', 'codex', 'opencode', 'omx', 'claude-code', 'gemini-cli', 'oh-my-opencode-slim')]
+::     [ValidateSet('first-install', 'wsl-ubuntu', 'powershell-7', 'all-ai-cli-tools', 'cleaner-helper', 'codex', 'opencode', 'omx', 'claude-code', 'gemini-cli', 'oh-my-opencode-slim')]
 ::     [string]$InstallTarget,
 ::     [string]$ProjectName,
 ::     [switch]$NoAnimation,
@@ -57,7 +57,7 @@ exit /b %errorlevel%
 :: }
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
-:: $script:BuildId = 'SYTA-build-2026-04-08-102049Z'
+:: $script:BuildId = 'SYTA-build-2026-04-09-022024Z'
 :: $script:Language = 'en'
 ::
 :: function Resolve-Language {
@@ -139,6 +139,24 @@ exit /b %errorlevel%
 ::         'Mode Selector' = 'Selection du mode'
 ::         'Choose what SYTA should do.' = 'Choisissez ce que SYTA doit faire.'
 ::         'Install or repair WSL Ubuntu and supported coding CLIs.' = 'Installer ou reparer WSL Ubuntu et les CLI de codage prises en charge.'
+::         'First install' = 'Premiere installation'
+::         'Guided setup for WSL Ubuntu, optional PowerShell 7, and all AI CLI tools.' = 'Parcours guide pour WSL Ubuntu, PowerShell 7 en option, et toutes les CLI IA.'
+::         'PowerShell 7 is already installed. Reinstall or repair it now?' = 'PowerShell 7 est deja installe. Le reinstaller ou le reparer maintenant ?'
+::         'Would you like SYTA to install PowerShell 7 too?' = 'Voulez-vous aussi que SYTA installe PowerShell 7 ?'
+::         'Skip PowerShell 7 for now' = 'Ignorer PowerShell 7 pour le moment'
+::         'Continue without changing the Windows Terminal default profile.' = 'Continuer sans modifier le profil par defaut de Windows Terminal.'
+::         'Install PowerShell 7 now' = 'Installer PowerShell 7 maintenant'
+::         'Reinstall or repair PowerShell 7' = 'Reinstaller ou reparer PowerShell 7'
+::         'Install all AI CLI tools' = 'Installer toutes les CLI IA'
+::         'Run Codex, OMX, OpenCode, Claude Code, Gemini CLI, and Oh My OpenCode Slim in one pass.' = 'Lancer Codex, OMX, OpenCode, Claude Code, Gemini CLI et Oh My OpenCode Slim en une seule passe.'
+::         'Cleaner helper' = 'Assistant de nettoyage'
+::         'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.' = 'Analyser les anciennes installations nvm/npm des CLI IA et les doublons du PATH avant nettoyage.'
+::         'SYTA Install - Cleaner Helper' = 'SYTA Installation - Assistant de nettoyage'
+::         'Target  : Cleaner helper' = 'Cible   : Assistant de nettoyage'
+::         'Action  : Scan stale AI CLI installs and ask before removing old npm globals' = 'Action  : analyser les CLI IA obsoletes et demander avant de supprimer les npm globaux anciens'
+::         'Scope   : Older nvm Node versions, duplicate PATH entries, user-scoped npm installs' = 'Portee  : anciennes versions Node nvm, doublons du PATH, installations npm utilisateur'
+::         'Install PowerShell 7 with winget and set Windows Terminal default profile to PowerShell' = 'Installer PowerShell 7 avec winget et definir PowerShell comme profil par defaut de Windows Terminal'
+::         'Install via winget and set Windows Terminal default profile to PowerShell.' = 'Installer via winget et definir PowerShell comme profil par defaut de Windows Terminal.'
 ::         'Return to the main menu.' = 'Revenir au menu principal.'
 ::         'Return to the previous menu.' = 'Revenir au menu precedent.'
 ::         'Launch Preflight' = 'Pre-verification avant lancement'
@@ -149,8 +167,20 @@ exit /b %errorlevel%
 ::         'A PowerShell tab opens immediately after this screen' = 'Un onglet PowerShell s''ouvre juste apres cet ecran'
 ::         'SYTA WSL Ubuntu Install' = 'SYTA Installation WSL Ubuntu'
 ::         'SYTA PowerShell 7 Install' = 'SYTA Installation PowerShell 7'
+::         'SYTA Install - All AI CLI Tools' = 'SYTA Installation - Toutes les CLI IA'
 ::         'SYTA Light Updater' = 'SYTA Mise a jour legere'
 ::         'SYTA Updater' = 'SYTA Mise a jour complete'
+::         'Continue later' = 'Continuer plus tard'
+::         'Target  : First install' = 'Cible   : Premiere installation'
+::         'WSL     : Ubuntu already installed' = 'WSL     : Ubuntu deja installe'
+::         'WSL     : Will run wsl --install -d Ubuntu' = 'WSL     : executera wsl --install -d Ubuntu'
+::         'Power   : SYTA will ask whether to install PowerShell 7' = 'Power   : SYTA demandera s''il faut installer PowerShell 7'
+::         'Power   : PowerShell 7 already installed; SYTA can repair it if needed' = 'Power   : PowerShell 7 deja installe ; SYTA peut le reparer si besoin'
+::         'CLI     : Install all AI CLI tools once Ubuntu is ready' = 'CLI     : installer toutes les CLI IA une fois Ubuntu pret'
+::         'Note    : Ubuntu setup may require a reboot or first-run Linux account creation before CLI installs can continue' = 'Note    : l''installation d''Ubuntu peut necessiter un redemarrage ou la creation initiale du compte Linux avant de poursuivre les CLI'
+::         'Ubuntu setup was started in a separate PowerShell window.' = 'L''installation d''Ubuntu a ete lancee dans une fenetre PowerShell separee.'
+::         'After Ubuntu finishes installing, rerun First install to continue with AI CLI tools.' = 'Une fois Ubuntu installe, relancez Premiere installation pour continuer avec les CLI IA.'
+::         'You can also use Install all AI CLI tools later if Ubuntu is already ready.' = 'Vous pourrez aussi utiliser Installer toutes les CLI IA plus tard si Ubuntu est deja pret.'
 ::         'Unknown tool' = 'Outil inconnu'
 ::         'Auth via env key' = 'Auth via cle d''environnement'
 ::         'Auth/config detected' = 'Auth/config detectee'
@@ -158,6 +188,7 @@ exit /b %errorlevel%
 ::         'WSL Ubuntu missing' = 'WSL Ubuntu absent'
 ::         'Auth not detected' = 'Auth non detectee'
 ::         'Auth unknown' = 'Auth inconnue'
+::         'Installed' = 'Installe'
 ::         'Configured only' = 'Configuration detectee seulement'
 ::         'Missing' = 'Absent'
 ::         'version not detected' = 'version non detectee'
@@ -810,6 +841,33 @@ exit /b %errorlevel%
 ::     }
 :: }
 ::
+:: function Prompt-PowerShell7Choice {
+::     param([bool]$Installed)
+::
+::     $selection = Read-Menu -Title 'First Install' -Subtitle (
+::         if ($Installed) {
+::             'PowerShell 7 is already installed. Reinstall or repair it now?'
+::         } else {
+::             'Would you like SYTA to install PowerShell 7 too?'
+::         }
+::     ) -Items @(
+::         [pscustomobject]@{
+::             Title = 'Skip PowerShell 7 for now'
+::             Subtitle = 'Continue without changing the Windows Terminal default profile.'
+::             Accent = 'DarkGray'
+::             Key = 'skip'
+::         }
+::         [pscustomobject]@{
+::             Title = if ($Installed) { 'Reinstall or repair PowerShell 7' } else { 'Install PowerShell 7 now' }
+::             Subtitle = 'Install via winget and set Windows Terminal default profile to PowerShell.'
+::             Accent = 'Yellow'
+::             Key = 'install'
+::         }
+::     )
+::
+::     return ($selection -and $selection.Key -eq 'install')
+:: }
+::
 :: function Get-ProjectDirectories {
 ::     Get-ChildItem -LiteralPath $script:ProjectsRoot -Directory -ErrorAction SilentlyContinue |
 ::         Where-Object { $_.Name -ne 'discussion' -and $_.Name -ne '.omx' } |
@@ -1003,6 +1061,12 @@ exit /b %errorlevel%
 ::
 ::     return @(
 ::         [pscustomobject]@{
+::             Title = 'First install'
+::             Subtitle = 'Guided setup for WSL Ubuntu, optional PowerShell 7, and all AI CLI tools.'
+::             Accent = if ($ubuntuInstalled -and $pwshInfo.Installed) { 'Green' } else { 'Yellow' }
+::             Key = 'first-install'
+::         }
+::         [pscustomobject]@{
 ::             Title = 'WSL Ubuntu'
 ::             Subtitle = if ($ubuntuInstalled) { "Installed | distros: $(@(Get-WslDistros).Count)" } else { 'Missing | runs wsl --install -d Ubuntu' }
 ::             Accent = if ($ubuntuInstalled) { 'Green' } else { 'Yellow' }
@@ -1010,6 +1074,7 @@ exit /b %errorlevel%
 ::         }
 ::         [pscustomobject]@{ Title = 'PowerShell 7'; Subtitle = $pwshInfo.MenuText; Accent = if ($pwshInfo.Installed) { 'Green' } else { 'Yellow' }; Key = 'powershell-7' }
 ::         [pscustomobject]@{ Title = 'Install all AI CLI tools'; Subtitle = 'Run Codex, OMX, OpenCode, Claude Code, Gemini CLI, and Oh My OpenCode Slim in one pass.'; Accent = 'Green'; Key = 'all-ai-cli-tools' }
+::         [pscustomobject]@{ Title = 'Cleaner helper'; Subtitle = 'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.'; Accent = 'Cyan'; Key = 'cleaner-helper' }
 ::         [pscustomobject]@{ Title = 'Codex CLI'; Subtitle = $codexDiag.MenuText; Accent = if ($codexDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'codex' }
 ::         [pscustomobject]@{ Title = 'OpenCode'; Subtitle = $opencodeDiag.MenuText; Accent = if ($opencodeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'opencode' }
 ::         [pscustomobject]@{ Title = 'Oh My Codex / OMX'; Subtitle = $omxDiag.MenuText; Accent = if ($omxDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'omx' }
@@ -1035,6 +1100,148 @@ exit /b %errorlevel%
 ::     })
 :: }
 ::
+:: function Invoke-WslUbuntuInstallFlow {
+::     Show-InfoBox -Title 'Install Preflight' -Accent Yellow -Hint 'A PowerShell tab opens immediately after this screen' -Lines @(
+::         'Target  : WSL Ubuntu',
+::         'Action  : Run wsl --install -d Ubuntu',
+::         'Impact  : Installs Ubuntu into Windows Subsystem for Linux'
+::     )
+::     $result = Open-WindowsPowerShellWindow -Title (Localize-Text 'SYTA WSL Ubuntu Install') -Command 'wsl --install -d Ubuntu'
+::     if ($DryRun) {
+::         return $result
+::     }
+::     Start-Sleep -Milliseconds 500
+::     return $null
+:: }
+::
+:: function Invoke-PowerShell7InstallFlow {
+::     $pwshInfo = Get-PwshInfo
+::     $pwshStatus = if ($pwshInfo.Installed) { 'Installed' } else { 'Missing' }
+::     Show-InfoBox -Title 'Install Preflight' -Accent Yellow -Hint 'A PowerShell tab opens immediately after this screen' -Lines @(
+::         'Target  : PowerShell 7',
+::         "Current : $pwshStatus",
+::         "Version : $($pwshInfo.Version)",
+::         'Action  : Install PowerShell 7 with winget and set Windows Terminal default profile to PowerShell'
+::     )
+::     $scriptPath = Join-Path $script:ScriptDir 'syta-install-powershell7.ps1'
+::     $result = Open-WindowsPowerShellWindow -Title (Localize-Text 'SYTA PowerShell 7 Install') -Command ("& '$scriptPath'")
+::     if ($DryRun) {
+::         return $result
+::     }
+::     Start-Sleep -Milliseconds 500
+::     return $null
+:: }
+::
+:: function Invoke-AllAiCliInstallFlow {
+::     Show-InfoBox -Title 'Install Preflight' -Accent Cyan -Hint 'A new terminal tab opens immediately after this screen' -Lines (@(
+::         'Target  : Install all AI CLI tools',
+::         'Scope   : Codex, OMX, OpenCode, Claude Code, Gemini CLI, Oh My OpenCode Slim'
+::     ) + (Get-CodingCliSummaryLines))
+::
+::     $result = Open-WslWindow `
+::         -Title (Localize-Text 'SYTA Install - All AI CLI Tools') `
+::         -WindowsDirectory $script:ScriptDir `
+::         -WindowsScriptPath (Join-Path $script:ScriptDir 'syta-wsl-session.sh') `
+::         -ScriptArguments @('install', 'all-ai-cli-tools', $script:Language)
+::
+::     if ($DryRun) {
+::         return $result
+::     }
+::
+::     Start-Sleep -Milliseconds 500
+::     return $null
+:: }
+::
+:: function Invoke-CleanerHelperFlow {
+::     Show-InfoBox -Title 'Install Preflight' -Accent Cyan -Hint 'A new terminal tab opens immediately after this screen' -Lines @(
+::         'Target  : Cleaner helper',
+::         'Action  : Scan stale AI CLI installs and ask before removing old npm globals',
+::         'Scope   : Older nvm Node versions, duplicate PATH entries, user-scoped npm installs'
+::     )
+::
+::     $result = Open-WslWindow `
+::         -Title (Localize-Text 'SYTA Install - Cleaner Helper') `
+::         -WindowsDirectory $script:ScriptDir `
+::         -WindowsScriptPath (Join-Path $script:ScriptDir 'syta-wsl-session.sh') `
+::         -ScriptArguments @('install', 'cleaner-helper', $script:Language)
+::
+::     if ($DryRun) {
+::         return $result
+::     }
+::
+::     Start-Sleep -Milliseconds 500
+::     return $null
+:: }
+::
+:: function Invoke-FirstInstallFlow {
+::     $ubuntuInstalled = Test-UbuntuInstalled
+::     $pwshInfo = Get-PwshInfo
+::     $wslLine = if ($ubuntuInstalled) { 'WSL     : Ubuntu already installed' } else { 'WSL     : Will run wsl --install -d Ubuntu' }
+::     $powerLine = if ($pwshInfo.Installed) { 'Power   : PowerShell 7 already installed; SYTA can repair it if needed' } else { 'Power   : SYTA will ask whether to install PowerShell 7' }
+::
+::     $lines = @(
+::         'Target  : First install',
+::         $wslLine,
+::         $powerLine,
+::         'CLI     : Install all AI CLI tools once Ubuntu is ready'
+::     )
+::     if (-not $ubuntuInstalled) {
+::         $lines += 'Note    : Ubuntu setup may require a reboot or first-run Linux account creation before CLI installs can continue'
+::     }
+::
+::     Show-InfoBox -Title 'First Install' -Accent Yellow -Hint 'SYTA keeps this selector open while new tabs launch' -Lines $lines
+::
+::     $result = [ordered]@{
+::         WslInstall = $null
+::         PowerShellInstall = $null
+::         CliInstall = $null
+::         RequiresRerunAfterUbuntuSetup = -not $ubuntuInstalled
+::     }
+::
+::     if ($DryRun) {
+::         $scriptPath = Join-Path $script:ScriptDir 'syta-install-powershell7.ps1'
+::         if (-not $ubuntuInstalled) {
+::             $result.WslInstall = Open-WindowsPowerShellWindow -Title (Localize-Text 'SYTA WSL Ubuntu Install') -Command 'wsl --install -d Ubuntu'
+::         }
+::
+::         $result.PowerShellPrompt = if ($pwshInfo.Installed) {
+::             'would-ask-repair-or-skip'
+::         } else {
+::             'would-ask-install-or-skip'
+::         }
+::         $result.PowerShellInstall = Open-WindowsPowerShellWindow -Title (Localize-Text 'SYTA PowerShell 7 Install') -Command ("& '$scriptPath'")
+::
+::         if ($ubuntuInstalled) {
+::             $result.CliInstall = Open-WslWindow `
+::                 -Title (Localize-Text 'SYTA Install - All AI CLI Tools') `
+::                 -WindowsDirectory $script:ScriptDir `
+::                 -WindowsScriptPath (Join-Path $script:ScriptDir 'syta-wsl-session.sh') `
+::                 -ScriptArguments @('install', 'all-ai-cli-tools', $script:Language)
+::         }
+::
+::         return [pscustomobject]$result
+::     }
+::
+::     if (-not $ubuntuInstalled) {
+::         $result.WslInstall = Invoke-WslUbuntuInstallFlow
+::     }
+::
+::     if (Prompt-PowerShell7Choice -Installed $pwshInfo.Installed) {
+::         $result.PowerShellInstall = Invoke-PowerShell7InstallFlow
+::     }
+::
+::     if (-not $ubuntuInstalled) {
+::         Show-InfoBox -Title 'Continue later' -Accent Yellow -Hint 'Back' -Lines @(
+::             'Ubuntu setup was started in a separate PowerShell window.',
+::             'After Ubuntu finishes installing, rerun First install to continue with AI CLI tools.',
+::             'You can also use Install all AI CLI tools later if Ubuntu is already ready.'
+::         )
+::         Start-Sleep -Milliseconds 1500
+::         return
+::     }
+::
+::     $result.CliInstall = Invoke-AllAiCliInstallFlow
+:: }
 :: function Launch-CodeMode {
 ::     $project = Select-Project
 ::     if (-not $project) {
@@ -1126,44 +1333,49 @@ exit /b %errorlevel%
 ::         return
 ::     }
 ::
-::     if ($selection.Key -eq 'wsl-ubuntu') {
-::         Show-InfoBox -Title 'Install Preflight' -Accent Yellow -Hint 'A PowerShell tab opens immediately after this screen' -Lines @(
-::             'Target  : WSL Ubuntu',
-::             'Action  : Run wsl --install -d Ubuntu',
-::             'Impact  : Installs Ubuntu into Windows Subsystem for Linux'
-::         )
-::         $result = Open-WindowsPowerShellWindow -Title (Localize-Text 'SYTA WSL Ubuntu Install') -Command 'wsl --install -d Ubuntu'
+::     if ($selection.Key -eq 'first-install') {
+::         $result = Invoke-FirstInstallFlow
 ::         if ($DryRun) {
 ::             $result | ConvertTo-Json -Depth 4
 ::             return
 ::         }
-::         Start-Sleep -Milliseconds 500
+::         return
+::     }
+::
+::     if ($selection.Key -eq 'wsl-ubuntu') {
+::         $result = Invoke-WslUbuntuInstallFlow
+::         if ($DryRun) {
+::             $result | ConvertTo-Json -Depth 4
+::             return
+::         }
 ::         return
 ::     }
 ::
 ::     if ($selection.Key -eq 'powershell-7') {
-::         $pwshInfo = Get-PwshInfo
-::         Show-InfoBox -Title 'Install Preflight' -Accent Yellow -Hint 'A PowerShell tab opens immediately after this screen' -Lines @(
-::             'Target  : PowerShell 7',
-::             "Current : $((if ($pwshInfo.Installed) { 'Installed' } else { 'Missing' }))",
-::             "Version : $($pwshInfo.Version)",
-::             'Action  : Install PowerShell 7 with winget and set Windows Terminal default profile to PowerShell'
-::         )
-::         $scriptPath = Join-Path $script:ScriptDir 'syta-install-powershell7.ps1'
-::         $result = Open-WindowsPowerShellWindow -Title (Localize-Text 'SYTA PowerShell 7 Install') -Command ("& '$scriptPath'")
+::         $result = Invoke-PowerShell7InstallFlow
 ::         if ($DryRun) {
 ::             $result | ConvertTo-Json -Depth 4
 ::             return
 ::         }
-::         Start-Sleep -Milliseconds 500
 ::         return
 ::     }
 ::
 ::     if ($selection.Key -eq 'all-ai-cli-tools') {
-::         Show-InfoBox -Title 'Install Preflight' -Accent Cyan -Hint 'A new terminal tab opens immediately after this screen' -Lines (@(
-::             'Target  : Install all AI CLI tools',
-::             'Scope   : Codex, OMX, OpenCode, Claude Code, Gemini CLI, Oh My OpenCode Slim'
-::         ) + (Get-CodingCliSummaryLines))
+::         $result = Invoke-AllAiCliInstallFlow
+::         if ($DryRun) {
+::             $result | ConvertTo-Json -Depth 4
+::             return
+::         }
+::         return
+::     }
+::
+::     if ($selection.Key -eq 'cleaner-helper') {
+::         $result = Invoke-CleanerHelperFlow
+::         if ($DryRun) {
+::             $result | ConvertTo-Json -Depth 4
+::             return
+::         }
+::         return
 ::     } else {
 ::         $diag = Get-ToolDiagnostics -Key $selection.Key -Refresh
 ::         Show-InfoBox -Title 'Install Preflight' -Accent Cyan -Hint 'A new terminal tab opens immediately after this screen' -Lines @(
@@ -1688,6 +1900,10 @@ exit /b %errorlevel%
 ::   hash -r 2>/dev/null || true
 :: }
 ::
+:: have_nvm() {
+::   [ -s "${NVM_DIR:-$HOME/.nvm}/nvm.sh" ]
+:: }
+::
 :: nvm_preferred_target() {
 ::   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 ::   [ -s "$NVM_DIR/nvm.sh" ] || return 1
@@ -1720,6 +1936,32 @@ exit /b %errorlevel%
 ::   fi
 ::
 ::   return 1
+:: }
+::
+:: prompt_yes_no() {
+::   local prompt="$1"
+::   local reply=""
+::   printf '%s [y/N] ' "$prompt"
+::   IFS= read -r reply || return 1
+::   case "$reply" in
+::     y|Y|yes|YES)
+::       return 0
+::       ;;
+::     *)
+::       return 1
+::       ;;
+::   esac
+:: }
+::
+:: cleaner_specs() {
+::   cat <<'EOF'
+:: codex|@openai/codex
+:: omx|oh-my-codex
+:: opencode|opencode-ai
+:: claude|@anthropic-ai/claude-code
+:: gemini|@google/gemini-cli
+:: comment-checker|@code-yeongyu/comment-checker
+:: EOF
 :: }
 ::
 :: ensure_sudo() {
@@ -1912,12 +2154,153 @@ exit /b %errorlevel%
 ::   return "$overall"
 :: }
 ::
+:: run_cleaner_helper() {
+::   local preferred=""
+::   local version=""
+::   local binary=""
+::   local package=""
+::   local version_text=""
+::   local bin_path=""
+::   local current_path=""
+::   local hit=""
+::   local overall=0
+::   local key=""
+::   local found=""
+::   local existing=""
+::   local joined_packages=""
+::   local -a versions=()
+::   local -a stale_actions=()
+::   local -a duplicate_paths=()
+::   local -a version_packages=()
+::
+::   printf 'Scanning for stale npm-based AI CLI installs and duplicate PATH entries.\n'
+::   printf 'Only tracked npm globals in older nvm Node versions are eligible for automatic cleanup.\n\n'
+::
+::   if have_nvm; then
+::     preferred="$(nvm_preferred_target 2>/dev/null || true)"
+::     while IFS= read -r version; do
+::       [ -n "$version" ] && versions+=("$version")
+::     done < <(find "${NVM_DIR:-$HOME/.nvm}/versions/node" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null | sort -V)
+::
+::     if [ -n "$preferred" ]; then
+::       printf 'Preferred nvm Node version: %s\n' "$preferred"
+::     else
+::       printf 'nvm was detected, but no preferred/default Node version was resolved.\n'
+::     fi
+::
+::     for version in "${versions[@]}"; do
+::       while IFS='|' read -r binary package; do
+::         [ -n "$binary" ] || continue
+::         bin_path="${NVM_DIR:-$HOME/.nvm}/versions/node/$version/bin/$binary"
+::         if [ -x "$bin_path" ] && [ "$version" != "$preferred" ]; then
+::           version_text="$("$bin_path" --version 2>/dev/null | head -n 1 || true)"
+::           stale_actions+=("$version|$binary|$package|$version_text")
+::         fi
+::       done < <(cleaner_specs)
+::     done
+::   else
+::     printf 'nvm was not detected. Cleaner helper will only inspect duplicate PATH entries.\n'
+::   fi
+::
+::   if command -v which >/dev/null 2>&1; then
+::     while IFS='|' read -r binary package; do
+::       [ -n "$binary" ] || continue
+::       current_path="$(command -v "$binary" 2>/dev/null || true)"
+::       while IFS= read -r hit; do
+::         [ -n "$hit" ] || continue
+::         [ "$hit" = "$current_path" ] && continue
+::         key="$binary|$hit"
+::         found=0
+::         for existing in "${duplicate_paths[@]}"; do
+::           if [ "$existing" = "$key" ]; then
+::             found=1
+::             break
+::           fi
+::         done
+::         if [ "$found" -eq 0 ]; then
+::           duplicate_paths+=("$key")
+::         fi
+::       done < <(which -a "$binary" 2>/dev/null | awk '!seen[$0]++')
+::     done < <(cleaner_specs)
+::   fi
+::
+::   if [ ${#stale_actions[@]} -eq 0 ]; then
+::     printf '\nNo stale tracked npm globals were found in older nvm Node versions.\n'
+::   else
+::     printf '\nStale tracked npm globals found in older nvm Node versions:\n'
+::     for found in "${stale_actions[@]}"; do
+::       IFS='|' read -r version binary package version_text <<< "$found"
+::       if [ -n "$version_text" ]; then
+::         printf ' - Node %s: %s (%s) -> %s\n' "$version" "$binary" "$package" "$version_text"
+::       else
+::         printf ' - Node %s: %s (%s)\n' "$version" "$binary" "$package"
+::       fi
+::     done
+::   fi
+::
+::   if [ ${#duplicate_paths[@]} -gt 0 ]; then
+::     printf '\nAdditional PATH hits detected outside the active command location:\n'
+::     for found in "${duplicate_paths[@]}"; do
+::       IFS='|' read -r binary hit <<< "$found"
+::       printf ' - %s: %s\n' "$binary" "$hit"
+::     done
+::     printf 'These are shown for review. Automatic cleanup only targets tracked npm globals in older nvm Node versions.\n'
+::   fi
+::
+::   if [ ${#stale_actions[@]} -eq 0 ]; then
+::     printf '\nCleaner helper found nothing it can safely auto-clean.\n'
+::     return 0
+::   fi
+::
+::   if have_nvm && [ -z "$preferred" ]; then
+::     printf '\nCleaner helper stayed in report-only mode because no preferred/default nvm Node version was resolved.\n'
+::     printf 'Set an nvm default first, then rerun the cleaner if you want automated stale-package removal.\n'
+::     return 0
+::   fi
+::
+::   printf '\n'
+::   if ! prompt_yes_no "Remove tracked npm globals from older nvm Node versions now?"; then
+::     printf '\nCleanup skipped.\n'
+::     return 0
+::   fi
+::
+::   for version in "${versions[@]}"; do
+::     version_packages=()
+::     for found in "${stale_actions[@]}"; do
+::       IFS='|' read -r found_version binary package version_text <<< "$found"
+::       if [ "$found_version" = "$version" ]; then
+::         version_packages+=("$package")
+::       fi
+::     done
+::     if [ ${#version_packages[@]} -eq 0 ]; then
+::       continue
+::     fi
+::
+::     joined_packages=""
+::     for package in "${version_packages[@]}"; do
+::       joined_packages="$joined_packages '$package'"
+::     done
+::
+::     printf '\nCleaning Node %s\n' "$version"
+::     run_step "Remove tracked npm globals from Node $version" bash -lc "export PATH=\"\$HOME/.local/bin:\$HOME/bin:\$PATH\"; export NVM_DIR=\"\${NVM_DIR:-\$HOME/.nvm}\"; [ -f \"\$HOME/.profile\" ] && . \"\$HOME/.profile\" >/dev/null 2>&1 || true; [ -f \"\$HOME/.bashrc\" ] && . \"\$HOME/.bashrc\" >/dev/null 2>&1 || true; . \"\$NVM_DIR/nvm.sh\"; nvm use '$version' >/dev/null; npm uninstall -g$joined_packages" || overall=1
+::   done
+::
+::   load_user_env
+::   if [ "$overall" -eq 0 ]; then
+::     printf 'Cleanup completed.\n'
+::   else
+::     printf 'Cleanup completed with failures.\n'
+::   fi
+::   return "$overall"
+:: }
+::
 :: show_header
 :: load_user_env
 ::
 :: status=0
 :: case "$tool_key" in
 ::   all-ai-cli-tools) install_all_ai_cli_tools || status=$? ;;
+::   cleaner-helper) run_cleaner_helper || status=$? ;;
 ::   codex) install_codex || status=$? ;;
 ::   opencode) install_opencode || status=$? ;;
 ::   omx) install_omx || status=$? ;;

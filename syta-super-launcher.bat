@@ -32,7 +32,7 @@ exit /b %errorlevel%
 
 ::BEGIN:syta-agentic-launcher.ps1
 :: param(
-::     [ValidateSet('Code', 'Install', 'CleanerHelper', 'UpdateAll', 'UpdateLight')]
+::     [ValidateSet('Code', 'Install', 'Explanations', 'CleanerHelper', 'UpdateAll', 'UpdateLight')]
 ::     [string]$Mode,
 ::     [ValidateSet('codex-yolo', 'omx-madmax-high', 'opencode', 'claude-code', 'gemini-cli')]
 ::     [string]$Agent,
@@ -58,8 +58,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-09-165531Z'
-:: $script:ReleaseTag = 'v1.4.6'
+:: $script:BuildId = 'SYTA-build-2026-04-09-170816Z'
+:: $script:ReleaseTag = 'v1.4.7'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -711,6 +711,41 @@ exit /b %errorlevel%
 ::     }
 :: }
 ::
+:: function Get-LatestReleaseInfoFromRedirect {
+::     try {
+::         $request = [System.Net.HttpWebRequest]::Create('https://github.com/callme-sy/syta-super-launcher/releases/latest')
+::         $request.Method = 'HEAD'
+::         $request.AllowAutoRedirect = $false
+::         $request.UserAgent = 'SYTA Super Launcher'
+::
+::         try {
+::             $response = $request.GetResponse()
+::         } catch [System.Net.WebException] {
+::             $response = $_.Exception.Response
+::         }
+::
+::         if ($null -eq $response) {
+::             return $null
+::         }
+::
+::         $location = "$($response.Headers['Location'])"
+::         if ([string]::IsNullOrWhiteSpace($location) -or $location -notmatch '/releases/tag/(?<Tag>v[^/]+)$') {
+::             return $null
+::         }
+::
+::         $tag = $Matches.Tag
+::         return [pscustomobject]@{
+::             Tag = $tag
+::             Url = $location
+::             AssetUrl = "https://github.com/callme-sy/syta-super-launcher/releases/download/$tag/syta-super-launcher.bat"
+::             Digest = ''
+::             PublishedAt = ''
+::         }
+::     } catch {
+::         return $null
+::     }
+:: }
+::
 :: function Get-LatestReleaseInfo {
 ::     param([switch]$ForceRefresh)
 ::
@@ -768,6 +803,20 @@ exit /b %errorlevel%
 ::
 ::         return $info
 ::     } catch {
+::         $redirectInfo = Get-LatestReleaseInfoFromRedirect
+::         if ($redirectInfo) {
+::             Update-StateFields @{
+::                 updateLastCheckedUtc = (Get-Date).ToUniversalTime().ToString('o')
+::                 latestReleaseTag = $redirectInfo.Tag
+::                 latestReleaseUrl = $redirectInfo.Url
+::                 latestReleaseAssetUrl = $redirectInfo.AssetUrl
+::                 latestReleaseAssetDigest = $redirectInfo.Digest
+::                 latestReleasePublishedAt = $redirectInfo.PublishedAt
+::             } | Out-Null
+::
+::             return $redirectInfo
+::         }
+::
 ::         if ($cachedTag -and $cachedAssetUrl) {
 ::             return [pscustomobject]@{
 ::                 Tag = $cachedTag
@@ -1271,6 +1320,64 @@ exit /b %errorlevel%
 ::     }
 ::
 ::     return $selection.Key
+:: }
+::
+:: function Show-ExplanationPanel {
+::     param(
+::         [Parameter(Mandatory = $true)][string]$Title,
+::         [Parameter(Mandatory = $true)][string[]]$Lines
+::     )
+::
+::     Show-InfoBox -Title $Title -Accent Cyan -Hint 'Back' -Lines $Lines
+::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
+::     Write-BoxLine -Content 'Press any key to return.' -Color Gray
+::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
+::     [void][Console]::ReadKey($true)
+:: }
+::
+:: function Launch-ExplanationsMode {
+::     while ($true) {
+::         $selection = Read-Menu -Title 'Explanations' -Subtitle 'Learn what the tools are, who they are for, and what SYTA recommends.' -Items @(
+::             [pscustomobject]@{ Title = 'Beginner guide'; Subtitle = 'Ultra-beginner explanation of each tool and the easiest path through SYTA.'; Accent = 'Cyan'; Key = 'beginner' }
+::             [pscustomobject]@{ Title = 'Advanced guide'; Subtitle = 'Higher-level tradeoffs, workflows, and why you might pick one tool over another.'; Accent = 'Yellow'; Key = 'advanced' }
+::             [pscustomobject]@{ Title = 'What should I install?'; Subtitle = 'Straight recommendation based on simplicity, budget, and how hands-off you want setup to be.'; Accent = 'Green'; Key = 'recommend' }
+::             [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the main menu.'; Accent = 'DarkGray'; Key = 'back' }
+::         )
+::
+::         if (-not $selection -or $selection.Key -eq 'back') {
+::             return
+::         }
+::
+::         switch ($selection.Key) {
+::             'beginner' {
+::                 Show-ExplanationPanel -Title 'Beginner guide' -Lines @(
+::                     'Codex: OpenAI coding agent with strong editing and reasoning.',
+::                     'OMX: power-user wrapper around Codex for planning, orchestration, and heavier workflows.',
+::                     'OpenCode: lightweight coding CLI and usually the easiest first start.',
+::                     'Claude Code and Gemini CLI: best if you already use those ecosystems.',
+::                     'Best beginner path: Install -> First install, then start with OpenCode or Codex.',
+::                     'Oh My OpenCode Slim is an OpenCode add-on. It is separate from OpenAgent.'
+::                 )
+::             }
+::             'advanced' {
+::                 Show-ExplanationPanel -Title 'Advanced guide' -Lines @(
+::                     'Codex is the direct OpenAI lane; OMX adds more opinionated automation and orchestration.',
+::                     'OpenCode is often the lightest workflow; Codex and OMX are better when you want stronger guided execution.',
+::                     'Install only the CLIs you will actually use. More tools means more auth, updates, and overlap.',
+::                     'Oh My OpenCode Slim stays focused on OpenCode helpers. It is not Oh My OpenAgent, which is heavier and more token-expensive.'
+::                 )
+::             }
+::             'recommend' {
+::                 Show-ExplanationPanel -Title 'What should I install?' -Lines @(
+::                     'Brand-new Windows machine: Install -> First install.',
+::                     'Lowest-friction start: OpenCode.',
+::                     'Best OpenAI-first path: Codex, then OMX if you want deeper automation.',
+::                     'Install Oh My OpenCode Slim only if you already like OpenCode and want extra helpers.',
+::                     'Skip tools you do not have keys, subscriptions, or a real workflow for.'
+::                 )
+::             }
+::         }
+::     }
 :: }
 ::
 :: function Start-LauncherSelfUpdate {
@@ -1913,6 +2020,11 @@ exit /b %errorlevel%
 ::     exit 0
 :: }
 ::
+:: if ($Mode -eq 'Explanations') {
+::     Launch-ExplanationsMode
+::     exit 0
+:: }
+::
 :: if ($Mode -eq 'CleanerHelper') {
 ::     $result = Invoke-CleanerHelperFlow
 ::     if ($DryRun) {
@@ -1935,6 +2047,7 @@ exit /b %errorlevel%
 ::     $modeChoice = Read-Menu -Title 'Mode Selector' -Subtitle 'Choose what SYTA should do.' -Items @(
 ::         [pscustomobject]@{ Title = 'Code'; Subtitle = 'Launch an agent with project selection, diagnostics, and recent-project support.'; Accent = 'Cyan'; Key = 'Code' }
 ::         [pscustomobject]@{ Title = 'Install'; Subtitle = 'Install WSL Ubuntu or supported coding CLIs with preflight diagnostics.'; Accent = 'Green'; Key = 'Install' }
+::         [pscustomobject]@{ Title = 'Explanations'; Subtitle = 'Learn what the tools are, what SYTA recommends, and how to choose a setup.'; Accent = 'Blue'; Key = 'Explanations' }
 ::         [pscustomobject]@{ Title = 'Cleaner helper'; Subtitle = 'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.'; Accent = 'Cyan'; Key = 'CleanerHelper' }
 ::         [pscustomobject]@{ Title = 'Light update'; Subtitle = 'Update AI coding CLIs only: Codex, OMX, OpenCode, Claude Code, Gemini CLI.'; Accent = 'Green'; Key = 'UpdateLight' }
 ::         [pscustomobject]@{ Title = 'Update all'; Subtitle = 'Run the broader toolchain update pass, including system package managers.'; Accent = 'Yellow'; Key = 'UpdateAll' }
@@ -1948,6 +2061,7 @@ exit /b %errorlevel%
 ::     switch ($modeChoice.Key) {
 ::         'Code' { Launch-CodeMode }
 ::         'Install' { Launch-InstallMode }
+::         'Explanations' { Launch-ExplanationsMode }
 ::         'CleanerHelper' { Invoke-CleanerHelperFlow }
 ::         'UpdateLight' { Launch-UpdateLightMode }
 ::         'UpdateAll' { Launch-UpdateMode }

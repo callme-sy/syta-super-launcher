@@ -58,8 +58,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-09-161448Z'
-:: $script:ReleaseTag = 'v1.4.1'
+:: $script:BuildId = 'SYTA-build-2026-04-09-162721Z'
+:: $script:ReleaseTag = 'v1.4.2'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -261,7 +261,7 @@ exit /b %errorlevel%
 ::     return $Text
 :: }
 ::
-:: $script:Language = if (("$UiLanguage" -match '^fr') -or ("$env:SYTA_LANGUAGE" -match '^fr') -or ("$env:SYTA_LANG" -match '^fr')) { 'fr' } elseif (("$UiLanguage" -match '^en') -or ("$env:SYTA_LANGUAGE" -match '^en') -or ("$env:SYTA_LANG" -match '^en')) { 'en' } elseif ([System.Globalization.CultureInfo]::CurrentUICulture.Name -match '^fr') { 'fr' } else { 'en' }
+:: $script:Language = Resolve-Language -Requested $UiLanguage
 :: function Ensure-MaximizedWindow {
 ::     if ($NoMaximize) {
 ::         return

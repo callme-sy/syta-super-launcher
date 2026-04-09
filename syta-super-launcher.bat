@@ -58,8 +58,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-09-162721Z'
-:: $script:ReleaseTag = 'v1.4.2'
+:: $script:BuildId = 'SYTA-build-2026-04-09-163456Z'
+:: $script:ReleaseTag = 'v1.4.3'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -787,13 +787,21 @@ exit /b %errorlevel%
 ::         return $null
 ::     }
 ::
+::     $currentVersion = Convert-ReleaseTagToVersion $script:ReleaseTag
 ::     $release = Get-LatestReleaseInfo
 ::     if (-not $release) {
 ::         return $null
 ::     }
 ::
-::     $currentVersion = Convert-ReleaseTagToVersion $script:ReleaseTag
 ::     $latestVersion = Convert-ReleaseTagToVersion $release.Tag
+::     if ($currentVersion -and $latestVersion -and $latestVersion -le $currentVersion) {
+::         $refreshedRelease = Get-LatestReleaseInfo -ForceRefresh
+::         if ($refreshedRelease) {
+::             $release = $refreshedRelease
+::             $latestVersion = Convert-ReleaseTagToVersion $release.Tag
+::         }
+::     }
+::
 ::     if (-not $currentVersion -or -not $latestVersion -or $latestVersion -le $currentVersion) {
 ::         return $null
 ::     }

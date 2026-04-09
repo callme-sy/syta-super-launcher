@@ -45,6 +45,7 @@ Tout le runtime est embarqué dans le fichier batch lui-même. Au lancement, il 
 | `Light update` | Met à jour uniquement les CLI IA de code |
 | `Update all` | Lance une mise à jour plus large de la chaîne d’outils |
 | Diagnostics | Affiche l’état d’installation, la version et des indices d’auth/config |
+| Menus plus reactifs | Regroupe les diagnostics et affiche des barres de chargement pendant les ecrans plus lents |
 | Portabilité | Distribution en un seul `.bat` |
 | Langue | Détecte automatiquement le français/anglais pour l'interface du lanceur |
 

@@ -45,6 +45,7 @@ The entire runtime is embedded into the batch file itself. At launch, it extract
 | `Light update` | Updates AI coding CLIs only |
 | `Update all` | Runs a broader toolchain update pass |
 | Diagnostics | Shows install, version, and auth/config hints |
+| Responsive menus | Batches diagnostics and shows loading bars during slower menu preparation |
 | Portability | Ships as one `.bat` file |
 | Language | Auto-detects French/English for the launcher UI |
 

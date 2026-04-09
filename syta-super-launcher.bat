@@ -57,7 +57,8 @@ exit /b %errorlevel%
 :: }
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
-:: $script:BuildId = 'SYTA-build-2026-04-09-022024Z'
+:: $script:RecentProjectCountCache = $null
+:: $script:BuildId = 'SYTA-build-2026-04-09-031945Z'
 :: $script:Language = 'en'
 ::
 :: function Resolve-Language {
@@ -155,6 +156,9 @@ exit /b %errorlevel%
 ::         'Target  : Cleaner helper' = 'Cible   : Assistant de nettoyage'
 ::         'Action  : Scan stale AI CLI installs and ask before removing old npm globals' = 'Action  : analyser les CLI IA obsoletes et demander avant de supprimer les npm globaux anciens'
 ::         'Scope   : Older nvm Node versions, duplicate PATH entries, user-scoped npm installs' = 'Portee  : anciennes versions Node nvm, doublons du PATH, installations npm utilisateur'
+::         'Loading live tool diagnostics' = 'Chargement des diagnostics des outils'
+::         'Checking Windows prerequisites' = 'Verification des prerequis Windows'
+::         'Loading WSL tool diagnostics' = 'Chargement des diagnostics WSL'
 ::         'Install PowerShell 7 with winget and set Windows Terminal default profile to PowerShell' = 'Installer PowerShell 7 avec winget et definir PowerShell comme profil par defaut de Windows Terminal'
 ::         'Install via winget and set Windows Terminal default profile to PowerShell.' = 'Installer via winget et definir PowerShell comme profil par defaut de Windows Terminal.'
 ::         'Return to the main menu.' = 'Revenir au menu principal.'
@@ -228,6 +232,7 @@ exit /b %errorlevel%
 ::     if ($Text -match '^Current : (.+)$') { return "Actuel  : $(Localize-Text $Matches[1])" }
 ::     if ($Text -match '^Action  : (.+)$') { return "Action  : $(Localize-Text $Matches[1])" }
 ::     if ($Text -match '^Impact  : (.+)$') { return "Impact  : $(Localize-Text $Matches[1])" }
+::     if ($Text -match '^Step (\d+)/(\d+)$') { return "Etape $($Matches[1])/$($Matches[2])" }
 ::     if ($Text -match '^Items: (\d+) \| Selected: (\d+)/(\d+)$') { return "Elements : $($Matches[1]) | Selection : $($Matches[2])/$($Matches[3])" }
 ::     if ($Text -match '^Installed \((.+)\)$') { return "Installe ($($Matches[1]))" }
 ::     return $Text
@@ -451,6 +456,87 @@ exit /b %errorlevel%
 ::     return $map
 :: }
 ::
+:: function Invoke-ToolDiagnosticsBatchScript {
+::     param([string[]]$Keys)
+::
+::     if (-not (Test-UbuntuInstalled) -or -not $Keys -or $Keys.Count -eq 0) {
+::         return @{}
+::     }
+::
+::     $scriptPath = Join-Path $script:ScriptDir 'syta-tool-diagnostics.sh'
+::     $wslScriptPath = Get-WslPath -WindowsPath $scriptPath
+::     $wslDir = Get-WslPath -WindowsPath $script:ScriptDir
+::     $output = & wsl.exe --cd $wslDir --exec bash $wslScriptPath @Keys 2>$null
+::     if ($LASTEXITCODE -ne 0 -or -not $output) {
+::         return @{}
+::     }
+::
+::     $records = @{}
+::     $current = @{}
+::     $currentKey = $null
+::     foreach ($line in $output) {
+::         if ($line -match '^__SYTA_DIAG_BEGIN__=(.+)$') {
+::             $current = @{}
+::             $currentKey = $Matches[1]
+::             continue
+::         }
+::
+::         if ($line -match '^__SYTA_DIAG_END__=(.+)$') {
+::             if ($currentKey) {
+::                 $records[$currentKey] = $current
+::             }
+::             $current = @{}
+::             $currentKey = $null
+::             continue
+::         }
+::
+::         if ($line -match '^(?<Name>[^=]+)=(?<Value>.*)$') {
+::             $current[$Matches.Name] = $Matches.Value
+::         }
+::     }
+::
+::     return $records
+:: }
+::
+:: function Get-RecentProjectCount {
+::     if ($null -eq $script:RecentProjectCountCache) {
+::         $script:RecentProjectCountCache = @(Get-RecentProjects).Count
+::     }
+::
+::     return [int]$script:RecentProjectCountCache
+:: }
+::
+:: function Show-LoadProgress {
+::     param(
+::         [string]$Title,
+::         [string]$Status,
+::         [int]$Current = 1,
+::         [int]$Total = 1,
+::         [ConsoleColor]$Accent = [ConsoleColor]::Cyan
+::     )
+::
+::     $safeTotal = [Math]::Max(1, $Total)
+::     $safeCurrent = [Math]::Min($safeTotal, [Math]::Max(0, $Current))
+::     $filled = [Math]::Floor(($safeCurrent / $safeTotal) * 24)
+::     if ($filled -le 0) {
+::         $barCore = '>' + ('.' * 23)
+::     } elseif ($filled -ge 24) {
+::         $barCore = '=' * 24
+::     } else {
+::         $barCore = ('=' * ($filled - 1)) + '>' + ('.' * (24 - $filled))
+::     }
+::     $bar = '[' + $barCore + ']'
+::
+::     Clear-Host
+::     Write-Banner -Tagline $Title -Hint 'Please wait'
+::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
+::     Write-BoxLine -Content $Status -Color $Accent
+::     Write-BoxLine -Content ("Step {0}/{1}" -f $safeCurrent, $safeTotal) -Color DarkGray
+::     Write-BoxLine -Content $bar -Color $Accent
+::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
+::     Write-Host ''
+:: }
+::
 :: function Shorten-Text {
 ::     param(
 ::         [string]$Text,
@@ -514,6 +600,7 @@ exit /b %errorlevel%
 ::             }
 ::         }
 ::     }
+::     $script:RecentProjectCountCache = $projects.Count
 ::     return $projects
 :: }
 ::
@@ -528,6 +615,7 @@ exit /b %errorlevel%
 ::     }
 ::
 ::     Save-StateObject ([pscustomobject]@{ recentProjects = $updated })
+::     $script:RecentProjectCountCache = $updated.Count
 :: }
 ::
 :: function Format-AuthStatus {
@@ -595,11 +683,23 @@ exit /b %errorlevel%
 ::     }
 ::
 ::     $raw = Invoke-ToolDiagnosticsScript -Key $resolvedKey
-::     $installed = ($raw.installed -eq '1')
-::     $path = if ($raw.path) { $raw.path } else { $null }
-::     $version = if ($raw.version) { $raw.version } else { $null }
-::     $authRaw = if ($raw.auth) { $raw.auth } else { 'not-detected' }
-::     $installSource = if ($raw.install_source) { $raw.install_source } else { 'unknown' }
+::     $diag = Convert-ToolDiagnosticsRawToObject -ResolvedKey $resolvedKey -Raw $raw
+::     $script:ToolDiagCache[$resolvedKey] = $diag
+::     return $diag
+:: }
+::
+:: function Convert-ToolDiagnosticsRawToObject {
+::     param(
+::         [Parameter(Mandatory = $true)][string]$ResolvedKey,
+::         [Parameter(Mandatory = $true)]$Raw
+::     )
+::
+::     $spec = $script:ToolSpecs[$ResolvedKey]
+::     $installed = ($Raw.installed -eq '1')
+::     $path = if ($Raw.path) { $Raw.path } else { $null }
+::     $version = if ($Raw.version) { $Raw.version } else { $null }
+::     $authRaw = if ($Raw.auth) { $Raw.auth } else { 'not-detected' }
+::     $installSource = if ($Raw.install_source) { $Raw.install_source } else { 'unknown' }
 ::
 ::     $sourceLabel = switch ($installSource) {
 ::         'nvm' { Localize-Text 'via nvm' }
@@ -610,11 +710,11 @@ exit /b %errorlevel%
 ::         default { Localize-Text 'unknown source' }
 ::     }
 ::
-::     $configPath = if ($raw.config) { $raw.config } else { $null }
+::     $configPath = if ($Raw.config) { $Raw.config } else { $null }
 ::     $statusText = if ($installed) { Localize-Text "Installed ($sourceLabel)" } elseif ($configPath) { Localize-Text 'Configured only' } else { Localize-Text 'Missing' }
 ::
 ::     $diag = [pscustomobject]@{
-::         Key = $resolvedKey
+::         Key = $ResolvedKey
 ::         Installed = $installed
 ::         Path = $path
 ::         PathText = if ($path) { $path } elseif ($configPath) { $configPath } else { $spec.InstallHint }
@@ -626,12 +726,42 @@ exit /b %errorlevel%
 ::         InstallText = $statusText
 ::     }
 ::     $diag | Add-Member -NotePropertyName MenuText -NotePropertyValue (Shorten-Text -Text ("$($diag.InstallText) | $($diag.VersionText) | $($diag.AuthText)"))
-::     $script:ToolDiagCache[$resolvedKey] = $diag
 ::     return $diag
+:: }
+::
+:: function Warm-ToolDiagnosticsCache {
+::     param([string[]]$Keys)
+::
+::     $resolvedKeys = @($Keys | ForEach-Object { Resolve-ToolKey $_ } | Select-Object -Unique)
+::     if ($resolvedKeys.Count -eq 0) {
+::         return
+::     }
+::
+::     if (-not (Test-UbuntuInstalled)) {
+::         foreach ($key in $resolvedKeys) {
+::             $null = Get-ToolDiagnostics -Key $key
+::         }
+::         return
+::     }
+::
+::     $rawMap = Invoke-ToolDiagnosticsBatchScript -Keys $resolvedKeys
+::     foreach ($key in $resolvedKeys) {
+::         if ($script:ToolDiagCache.ContainsKey($key)) {
+::             continue
+::         }
+::
+::         if ($rawMap.ContainsKey($key)) {
+::             $script:ToolDiagCache[$key] = Convert-ToolDiagnosticsRawToObject -ResolvedKey $key -Raw $rawMap[$key]
+::         } else {
+::             $null = Get-ToolDiagnostics -Key $key -Refresh
+::         }
+::     }
 :: }
 ::
 :: function Get-AgentMenuItems {
 ::     $script:ToolDiagCache = @{}
+::     Show-LoadProgress -Title 'Agent Selector' -Status 'Loading live tool diagnostics' -Current 1 -Total 1 -Accent Cyan
+::     Warm-ToolDiagnosticsCache -Keys @($script:AgentOptions | Select-Object -ExpandProperty Key)
 ::     return @($script:AgentOptions | ForEach-Object {
 ::         $diag = Get-ToolDiagnostics -Key $_.Key
 ::         [pscustomobject]@{
@@ -662,7 +792,7 @@ exit /b %errorlevel%
 ::         [string]$Hint = 'Arrows move, Enter selects, Esc goes back'
 ::     )
 ::
-::     $recentCount = @(Get-RecentProjects).Count
+::     $recentCount = Get-RecentProjectCount
 ::     Write-Host ''
 ::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkCyan
 ::     Write-BoxLine -Content 'SYTA AGENTIC LAUNCHER' -Color Cyan
@@ -1052,6 +1182,7 @@ exit /b %errorlevel%
 ::     $script:ToolDiagCache = @{}
 ::     $ubuntuInstalled = Test-UbuntuInstalled
 ::     $pwshInfo = Get-PwshInfo
+::     Warm-ToolDiagnosticsCache -Keys @('codex', 'omx', 'opencode', 'claude-code', 'gemini-cli', 'oh-my-opencode-slim')
 ::     $codexDiag = Get-ToolDiagnostics -Key 'codex'
 ::     $omxDiag = Get-ToolDiagnostics -Key 'omx'
 ::     $opencodeDiag = Get-ToolDiagnostics -Key 'opencode'
@@ -1327,6 +1458,10 @@ exit /b %errorlevel%
 ::     $selection = if ($InstallTarget) {
 ::         (Get-InstallItems | Where-Object Key -eq $InstallTarget | Select-Object -First 1)
 ::     } else {
+::         Show-LoadProgress -Title 'Installer' -Status 'Checking Windows prerequisites' -Current 1 -Total 2 -Accent Yellow
+::         $null = Test-UbuntuInstalled
+::         $null = Get-PwshInfo
+::         Show-LoadProgress -Title 'Installer' -Status 'Loading WSL tool diagnostics' -Current 2 -Total 2 -Accent Cyan
 ::         Read-Menu -Title 'Installer' -Subtitle 'Install or repair WSL Ubuntu and supported coding CLIs.' -Items (Get-InstallItems)
 ::     }
 ::     if (-not $selection -or $selection.Key -eq 'back') {
@@ -1467,8 +1602,6 @@ exit /b %errorlevel%
 :: #!/usr/bin/env bash
 :: set -u
 ::
-:: key="${1:-}"
-::
 :: load_user_env() {
 ::   export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 ::   [ -f "$HOME/.profile" ] && . "$HOME/.profile" >/dev/null 2>&1 || true
@@ -1513,95 +1646,107 @@ exit /b %errorlevel%
 :: ' "$1" "$2"
 :: }
 ::
+:: emit_tool_diagnostics() {
+::   local key="$1"
+::   local command_name=''
+::   local version=''
+::   local auth='not-detected'
+::   local config=''
+::   local path=''
+::   local installed=0
+::   local install_source='unknown'
+::
+::   case "$key" in
+::     codex)
+::       command_name='codex'
+::       [ -n "${OPENAI_API_KEY:-}" ] && auth='env-key'
+::       [ "$auth" = 'not-detected' ] && [ -f "$HOME/.codex/config.toml" ] && auth='config-present'
+::       ;;
+::     omx)
+::       command_name='omx'
+::       [ -n "${OPENAI_API_KEY:-}" ] && auth='env-key'
+::       [ "$auth" = 'not-detected' ] && [ -f "$HOME/.codex/config.toml" ] && auth='config-present'
+::       ;;
+::     opencode)
+::       command_name='opencode'
+::       [ -f "$HOME/.config/opencode/opencode.json" ] && config="$HOME/.config/opencode/opencode.json" && auth='config-present'
+::       [ "$auth" = 'not-detected' ] && [ -n "${OPENAI_API_KEY:-}" ] && auth='env-key'
+::       ;;
+::     claude-code)
+::       command_name='claude'
+::       [ -n "${ANTHROPIC_API_KEY:-}" ] && auth='env-key'
+::       [ "$auth" = 'not-detected' ] && { [ -d "$HOME/.config/claude" ] || [ -f "$HOME/.claude.json" ]; } && auth='config-present'
+::       ;;
+::     gemini-cli)
+::       command_name='gemini'
+::       { [ -n "${GEMINI_API_KEY:-}" ] || [ -n "${GOOGLE_API_KEY:-}" ]; } && auth='env-key'
+::       [ "$auth" = 'not-detected' ] && { [ -d "$HOME/.config/gemini" ] || [ -d "$HOME/.config/google" ]; } && auth='config-present'
+::       ;;
+::     oh-my-opencode-slim)
+::       [ -f "$HOME/.config/opencode/oh-my-opencode-slim.json" ] && config="$HOME/.config/opencode/oh-my-opencode-slim.json" && auth='config-present'
+::       [ "$auth" = 'not-detected' ] && [ -f "$HOME/.config/opencode/opencode.json" ] && config="$HOME/.config/opencode/opencode.json" && auth='config-present'
+::       ;;
+::     *)
+::       print_kv key "$key"
+::       print_kv installed 0
+::       print_kv path ''
+::       print_kv version ''
+::       print_kv auth 'not-detected'
+::       print_kv config ''
+::       print_kv install_source 'unknown'
+::       return 0
+::       ;;
+::   esac
+::
+::   if [ -n "$command_name" ]; then
+::     if command -v "$command_name" >/dev/null 2>&1; then
+::       path="$(command -v "$command_name")"
+::       installed=1
+::     else
+::       path="$(find_nvm_binary "$command_name" 2>/dev/null || true)"
+::       [ -n "$path" ] && installed=1
+::     fi
+::
+::     if [ "$installed" -eq 1 ]; then
+::       case "$path" in
+::         *"/.nvm/"*) install_source='nvm' ;;
+::         *"/.local/"*|*"/bin/"*) install_source='user' ;;
+::         /usr/*|/bin/*|/sbin/*) install_source='system' ;;
+::         *) install_source='custom' ;;
+::       esac
+::     fi
+::   fi
+::
+::   if [ "$key" = 'oh-my-opencode-slim' ] && [ -n "$config" ]; then
+::     installed=1
+::     path="$config"
+::     install_source='config'
+::   fi
+::
+::   if [ "$installed" -eq 1 ] && [ -n "$command_name" ] && [ -x "$path" ]; then
+::     version="$($path --version 2>/dev/null | head -n 1)"
+::   fi
+::
+::   print_kv key "$key"
+::   print_kv installed "$installed"
+::   print_kv path "$path"
+::   print_kv version "$version"
+::   print_kv auth "$auth"
+::   print_kv config "$config"
+::   print_kv install_source "$install_source"
+:: }
+::
 :: load_user_env
 ::
-:: command_name=''
-:: version=''
-:: auth='not-detected'
-:: config=''
-::
-:: case "$key" in
-::   codex)
-::     command_name='codex'
-::     [ -n "${OPENAI_API_KEY:-}" ] && auth='env-key'
-::     [ "$auth" = 'not-detected' ] && [ -f "$HOME/.codex/config.toml" ] && auth='config-present'
-::     ;;
-::   omx)
-::     command_name='omx'
-::     [ -n "${OPENAI_API_KEY:-}" ] && auth='env-key'
-::     [ "$auth" = 'not-detected' ] && [ -f "$HOME/.codex/config.toml" ] && auth='config-present'
-::     ;;
-::   opencode)
-::     command_name='opencode'
-::     [ -f "$HOME/.config/opencode/opencode.json" ] && config="$HOME/.config/opencode/opencode.json" && auth='config-present'
-::     [ "$auth" = 'not-detected' ] && [ -n "${OPENAI_API_KEY:-}" ] && auth='env-key'
-::     ;;
-::   claude-code)
-::     command_name='claude'
-::     [ -n "${ANTHROPIC_API_KEY:-}" ] && auth='env-key'
-::     [ "$auth" = 'not-detected' ] && { [ -d "$HOME/.config/claude" ] || [ -f "$HOME/.claude.json" ]; } && auth='config-present'
-::     ;;
-::   gemini-cli)
-::     command_name='gemini'
-::     { [ -n "${GEMINI_API_KEY:-}" ] || [ -n "${GOOGLE_API_KEY:-}" ]; } && auth='env-key'
-::     [ "$auth" = 'not-detected' ] && { [ -d "$HOME/.config/gemini" ] || [ -d "$HOME/.config/google" ]; } && auth='config-present'
-::     ;;
-::   oh-my-opencode-slim)
-::     [ -f "$HOME/.config/opencode/oh-my-opencode-slim.json" ] && config="$HOME/.config/opencode/oh-my-opencode-slim.json" && auth='config-present'
-::     [ "$auth" = 'not-detected' ] && [ -f "$HOME/.config/opencode/opencode.json" ] && config="$HOME/.config/opencode/opencode.json" && auth='config-present'
-::     ;;
-::   *)
-::     print_kv key "$key"
-::     print_kv installed 0
-::     print_kv path ''
-::     print_kv version ''
-::     print_kv auth 'not-detected'
-::     print_kv config ''
-::     print_kv install_source 'unknown'
-::     exit 0
-::     ;;
-:: esac
-::
-:: path=''
-:: installed=0
-:: install_source='unknown'
-::
-:: if [ -n "$command_name" ]; then
-::   if command -v "$command_name" >/dev/null 2>&1; then
-::     path="$(command -v "$command_name")"
-::     installed=1
-::   else
-::     path="$(find_nvm_binary "$command_name" 2>/dev/null || true)"
-::     [ -n "$path" ] && installed=1
-::   fi
-::
-::   if [ "$installed" -eq 1 ]; then
-::     case "$path" in
-::       *"/.nvm/"*) install_source='nvm' ;;
-::       *"/.local/"*|*"/bin/"*) install_source='user' ;;
-::       /usr/*|/bin/*|/sbin/*) install_source='system' ;;
-::       *) install_source='custom' ;;
-::     esac
-::   fi
+:: if [ "$#" -eq 0 ]; then
+::   set -- unknown
 :: fi
 ::
-:: if [ "$key" = 'oh-my-opencode-slim' ] && [ -n "$config" ]; then
-::   installed=1
-::   path="$config"
-::   install_source='config'
-:: fi
-::
-:: if [ "$installed" -eq 1 ] && [ -n "$command_name" ] && [ -x "$path" ]; then
-::   version="$($path --version 2>/dev/null | head -n 1)"
-:: fi
-::
-:: print_kv key "$key"
-:: print_kv installed "$installed"
-:: print_kv path "$path"
-:: print_kv version "$version"
-:: print_kv auth "$auth"
-:: print_kv config "$config"
-:: print_kv install_source "$install_source"
+:: for key in "$@"; do
+::   printf '__SYTA_DIAG_BEGIN__=%s\n' "$key"
+::   emit_tool_diagnostics "$key"
+::   printf '__SYTA_DIAG_END__=%s\n' "$key"
+:: done
 ::END:syta-tool-diagnostics.sh
 ::BEGIN:syta-install-powershell7.ps1
 :: $ErrorActionPreference = 'Stop'

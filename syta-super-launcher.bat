@@ -159,6 +159,10 @@ exit /b %errorlevel%
 ::         'Loading live tool diagnostics' = 'Chargement des diagnostics des outils'
 ::         'Checking Windows prerequisites' = 'Verification des prerequis Windows'
 ::         'Loading WSL tool diagnostics' = 'Chargement des diagnostics WSL'
+::         'Preparing install options' = 'Preparation des options d''installation'
+::         'Ubuntu is missing, so SYTA will show safe setup choices only.' = 'Ubuntu est absent, SYTA affiche donc uniquement des options d''installation sures.'
+::         'Live diagnostics were unavailable, so SYTA switched to a safe fallback install menu.' = 'Les diagnostics live etaient indisponibles, SYTA a bascule vers un menu d''installation de secours.'
+::         'You can still install WSL Ubuntu or PowerShell 7 from here.' = 'Vous pouvez toujours installer WSL Ubuntu ou PowerShell 7 depuis ici.'
 ::         'Loading recent projects' = 'Chargement des projets recents'
 ::         'Scanning project folders' = 'Analyse des dossiers projet'
 ::         'Selected item' = 'Element selectionne'
@@ -733,6 +737,27 @@ exit /b %errorlevel%
 ::     return $diag
 :: }
 ::
+:: function New-WslMissingToolDiagnostics {
+::     param([Parameter(Mandatory = $true)][string]$Key)
+::
+::     $resolvedKey = Resolve-ToolKey $Key
+::     $spec = $script:ToolSpecs[$resolvedKey]
+::     $diag = [pscustomobject]@{
+::         Key = $resolvedKey
+::         Installed = $false
+::         Path = $null
+::         PathText = $spec.InstallHint
+::         Version = $null
+::         VersionText = (Localize-Text 'WSL Ubuntu missing')
+::         AuthRaw = 'wsl-missing'
+::         AuthText = (Localize-Text 'WSL Ubuntu missing')
+::         InstallSource = 'unknown'
+::         InstallText = (Localize-Text 'Missing')
+::         MenuText = (Localize-Text 'WSL Ubuntu missing')
+::     }
+::     return $diag
+:: }
+::
 :: function Warm-ToolDiagnosticsCache {
 ::     param([string[]]$Keys)
 ::
@@ -1210,13 +1235,22 @@ exit /b %errorlevel%
 ::     $script:ToolDiagCache = @{}
 ::     $ubuntuInstalled = Test-UbuntuInstalled
 ::     $pwshInfo = Get-PwshInfo
-::     Warm-ToolDiagnosticsCache -Keys @('codex', 'omx', 'opencode', 'claude-code', 'gemini-cli', 'oh-my-opencode-slim')
-::     $codexDiag = Get-ToolDiagnostics -Key 'codex'
-::     $omxDiag = Get-ToolDiagnostics -Key 'omx'
-::     $opencodeDiag = Get-ToolDiagnostics -Key 'opencode'
-::     $claudeDiag = Get-ToolDiagnostics -Key 'claude-code'
-::     $geminiDiag = Get-ToolDiagnostics -Key 'gemini-cli'
-::     $omoDiag = Get-ToolDiagnostics -Key 'oh-my-opencode-slim'
+::     if ($ubuntuInstalled) {
+::         Warm-ToolDiagnosticsCache -Keys @('codex', 'omx', 'opencode', 'claude-code', 'gemini-cli', 'oh-my-opencode-slim')
+::         $codexDiag = Get-ToolDiagnostics -Key 'codex'
+::         $omxDiag = Get-ToolDiagnostics -Key 'omx'
+::         $opencodeDiag = Get-ToolDiagnostics -Key 'opencode'
+::         $claudeDiag = Get-ToolDiagnostics -Key 'claude-code'
+::         $geminiDiag = Get-ToolDiagnostics -Key 'gemini-cli'
+::         $omoDiag = Get-ToolDiagnostics -Key 'oh-my-opencode-slim'
+::     } else {
+::         $codexDiag = New-WslMissingToolDiagnostics -Key 'codex'
+::         $omxDiag = New-WslMissingToolDiagnostics -Key 'omx'
+::         $opencodeDiag = New-WslMissingToolDiagnostics -Key 'opencode'
+::         $claudeDiag = New-WslMissingToolDiagnostics -Key 'claude-code'
+::         $geminiDiag = New-WslMissingToolDiagnostics -Key 'gemini-cli'
+::         $omoDiag = New-WslMissingToolDiagnostics -Key 'oh-my-opencode-slim'
+::     }
 ::
 ::     return @(
 ::         [pscustomobject]@{
@@ -1232,8 +1266,8 @@ exit /b %errorlevel%
 ::             Key = 'wsl-ubuntu'
 ::         }
 ::         [pscustomobject]@{ Title = 'PowerShell 7'; Subtitle = $pwshInfo.MenuText; Accent = if ($pwshInfo.Installed) { 'Green' } else { 'Yellow' }; Key = 'powershell-7' }
-::         [pscustomobject]@{ Title = 'Install all AI CLI tools'; Subtitle = 'Run Codex, OMX, OpenCode, Claude Code, Gemini CLI, and Oh My OpenCode Slim in one pass.'; Accent = 'Green'; Key = 'all-ai-cli-tools' }
-::         [pscustomobject]@{ Title = 'Cleaner helper'; Subtitle = 'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.'; Accent = 'Cyan'; Key = 'cleaner-helper' }
+::         [pscustomobject]@{ Title = 'Install all AI CLI tools'; Subtitle = if ($ubuntuInstalled) { 'Run Codex, OMX, OpenCode, Claude Code, Gemini CLI, and Oh My OpenCode Slim in one pass.' } else { 'WSL Ubuntu missing | install Ubuntu first.' }; Accent = if ($ubuntuInstalled) { 'Green' } else { 'Yellow' }; Key = 'all-ai-cli-tools' }
+::         [pscustomobject]@{ Title = 'Cleaner helper'; Subtitle = if ($ubuntuInstalled) { 'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.' } else { 'WSL Ubuntu missing | install Ubuntu first.' }; Accent = if ($ubuntuInstalled) { 'Cyan' } else { 'Yellow' }; Key = 'cleaner-helper' }
 ::         [pscustomobject]@{ Title = 'Codex CLI'; Subtitle = $codexDiag.MenuText; Accent = if ($codexDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'codex' }
 ::         [pscustomobject]@{ Title = 'OpenCode'; Subtitle = $opencodeDiag.MenuText; Accent = if ($opencodeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'opencode' }
 ::         [pscustomobject]@{ Title = 'Oh My Codex / OMX'; Subtitle = $omxDiag.MenuText; Accent = if ($omxDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'omx' }
@@ -1486,11 +1520,27 @@ exit /b %errorlevel%
 ::     $selection = if ($InstallTarget) {
 ::         (Get-InstallItems | Where-Object Key -eq $InstallTarget | Select-Object -First 1)
 ::     } else {
-::         Show-LoadProgress -Title 'Installer' -Status 'Checking Windows prerequisites' -Current 1 -Total 2 -Accent Yellow
-::         $null = Test-UbuntuInstalled
-::         $null = Get-PwshInfo
-::         Show-LoadProgress -Title 'Installer' -Status 'Loading WSL tool diagnostics' -Current 2 -Total 2 -Accent Cyan
-::         Read-Menu -Title 'Installer' -Subtitle 'Install or repair WSL Ubuntu and supported coding CLIs.' -Items (Get-InstallItems)
+::         try {
+::             Show-LoadProgress -Title 'Installer' -Status 'Checking Windows prerequisites' -Current 1 -Total 2 -Accent Yellow
+::             $ubuntuInstalled = Test-UbuntuInstalled
+::             $null = Get-PwshInfo
+::             if ($ubuntuInstalled) {
+::                 Show-LoadProgress -Title 'Installer' -Status 'Loading WSL tool diagnostics' -Current 2 -Total 2 -Accent Cyan
+::             } else {
+::                 Show-LoadProgress -Title 'Installer' -Status 'Preparing install options' -Detail 'Ubuntu is missing, so SYTA will show safe setup choices only.' -Current 2 -Total 2 -Accent Yellow
+::             }
+::             Read-Menu -Title 'Installer' -Subtitle 'Install or repair WSL Ubuntu and supported coding CLIs.' -Items (Get-InstallItems)
+::         } catch {
+::             Show-InfoBox -Title 'Installer' -Accent Yellow -Hint 'Back' -Lines @(
+::                 'Live diagnostics were unavailable, so SYTA switched to a safe fallback install menu.',
+::                 'You can still install WSL Ubuntu or PowerShell 7 from here.'
+::             )
+::             Read-Menu -Title 'Installer' -Subtitle 'Install or repair WSL Ubuntu and supported coding CLIs.' -Items @(
+::                 [pscustomobject]@{ Title = 'WSL Ubuntu'; Subtitle = 'Missing | runs wsl --install -d Ubuntu'; Accent = 'Yellow'; Key = 'wsl-ubuntu' }
+::                 [pscustomobject]@{ Title = 'PowerShell 7'; Subtitle = 'Missing | install via winget and set as Windows Terminal default.'; Accent = 'Yellow'; Key = 'powershell-7' }
+::                 [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the main menu.'; Accent = 'DarkGray'; Key = 'back' }
+::             )
+::         }
 ::     }
 ::     if (-not $selection -or $selection.Key -eq 'back') {
 ::         return

@@ -58,8 +58,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-09-164233Z'
-:: $script:ReleaseTag = 'v1.4.5'
+:: $script:BuildId = 'SYTA-build-2026-04-09-165531Z'
+:: $script:ReleaseTag = 'v1.4.6'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -362,8 +362,8 @@ exit /b %errorlevel%
 ::     'oh-my-opencode-slim' = [pscustomobject]@{
 ::         Command = ''
 ::         VersionScript = ''
-::         DetectScript = 'if [ -f "$HOME/.config/opencode/oh-my-opencode-slim.json" ]; then echo "$HOME/.config/opencode/oh-my-opencode-slim.json"; elif [ -f "$HOME/.config/opencode/opencode.json" ]; then echo "$HOME/.config/opencode/opencode.json"; fi'
-::         AuthScript = 'if [ -f "$HOME/.config/opencode/oh-my-opencode-slim.json" ] || [ -f "$HOME/.config/opencode/opencode.json" ]; then echo config-present; else echo not-detected; fi'
+::         DetectScript = 'if [ -f "$HOME/.config/opencode/oh-my-opencode-slim.json" ]; then echo "$HOME/.config/opencode/oh-my-opencode-slim.json"; fi'
+::         AuthScript = 'if [ -f "$HOME/.config/opencode/oh-my-opencode-slim.json" ]; then echo config-present; else echo not-detected; fi'
 ::         InstallHint = 'Install from Install -> Oh My OpenCode Slim.'
 ::     }
 :: }
@@ -1961,6 +1961,7 @@ exit /b %errorlevel%
 ::
 :: load_user_env() {
 ::   export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+::   [ -d "$HOME/.opencode/bin" ] && export PATH="$HOME/.opencode/bin:$PATH"
 ::   [ -f "$HOME/.profile" ] && . "$HOME/.profile" >/dev/null 2>&1 || true
 ::   [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc" >/dev/null 2>&1 || true
 ::   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
@@ -2041,7 +2042,6 @@ exit /b %errorlevel%
 ::       ;;
 ::     oh-my-opencode-slim)
 ::       [ -f "$HOME/.config/opencode/oh-my-opencode-slim.json" ] && config="$HOME/.config/opencode/oh-my-opencode-slim.json" && auth='config-present'
-::       [ "$auth" = 'not-detected' ] && [ -f "$HOME/.config/opencode/opencode.json" ] && config="$HOME/.config/opencode/opencode.json" && auth='config-present'
 ::       ;;
 ::     *)
 ::       print_kv key "$key"
@@ -2266,6 +2266,14 @@ exit /b %errorlevel%
 :: agent_key="${1:-}"
 :: lang="${SYTA_LANG:-en}"
 ::
+:: load_user_env() {
+::   export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+::   [ -d "$HOME/.opencode/bin" ] && export PATH="$HOME/.opencode/bin:$PATH"
+::   [ -f "$HOME/.profile" ] && . "$HOME/.profile" >/dev/null 2>&1 || true
+::   [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc" >/dev/null 2>&1 || true
+::   hash -r 2>/dev/null || true
+:: }
+::
 :: msg() {
 ::   local key="$1"
 ::   local value="${2:-}"
@@ -2340,6 +2348,7 @@ exit /b %errorlevel%
 :: }
 ::
 :: show_header
+:: load_user_env
 :: if ! command -v bash >/dev/null 2>&1; then msg missing_bash; exit 1; fi
 :: if ! run_agent; then rc=$?; msg agent_exit "$rc"; exit "$rc"; fi
 :: msg session_end
@@ -2387,6 +2396,7 @@ exit /b %errorlevel%
 ::
 :: load_user_env() {
 ::   export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+::   [ -d "$HOME/.opencode/bin" ] && export PATH="$HOME/.opencode/bin:$PATH"
 ::   [ -f "$HOME/.profile" ] && . "$HOME/.profile" >/dev/null 2>&1 || true
 ::   [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc" >/dev/null 2>&1 || true
 ::   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
@@ -2525,6 +2535,7 @@ exit /b %errorlevel%
 :: with_nvm() {
 ::   bash -lc '
 ::     export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+::     [ -d "$HOME/.opencode/bin" ] && export PATH="$HOME/.opencode/bin:$PATH"
 ::     export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 ::     [ -f "$HOME/.profile" ] && . "$HOME/.profile" >/dev/null 2>&1 || true
 ::     [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc" >/dev/null 2>&1 || true
@@ -2848,6 +2859,7 @@ exit /b %errorlevel%
 ::
 :: load_user_env() {
 ::   export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+::   [ -d "$HOME/.opencode/bin" ] && export PATH="$HOME/.opencode/bin:$PATH"
 ::   [ -f "$HOME/.profile" ] && . "$HOME/.profile" >/dev/null 2>&1 || true
 ::   [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc" >/dev/null 2>&1 || true
 ::   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
@@ -2877,7 +2889,7 @@ exit /b %errorlevel%
 :: }
 ::
 :: with_nvm() {
-::   bash -lc 'export PATH="$HOME/.local/bin:$HOME/bin:$PATH"; export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"; [ -f "$HOME/.profile" ] && . "$HOME/.profile" >/dev/null 2>&1 || true; [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc" >/dev/null 2>&1 || true; . "$NVM_DIR/nvm.sh"; nvm use default >/dev/null 2>&1 || true; "$@"' bash "$@"
+::   bash -lc 'export PATH="$HOME/.local/bin:$HOME/bin:$PATH"; [ -d "$HOME/.opencode/bin" ] && export PATH="$HOME/.opencode/bin:$PATH"; export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"; [ -f "$HOME/.profile" ] && . "$HOME/.profile" >/dev/null 2>&1 || true; [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc" >/dev/null 2>&1 || true; . "$NVM_DIR/nvm.sh"; nvm use default >/dev/null 2>&1 || true; "$@"' bash "$@"
 :: }
 ::
 :: load_user_env
@@ -3007,6 +3019,7 @@ exit /b %errorlevel%
 ::
 :: load_user_env() {
 ::   export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+::   [ -d "$HOME/.opencode/bin" ] && export PATH="$HOME/.opencode/bin:$PATH"
 ::   [ -f "$HOME/.profile" ] && . "$HOME/.profile" >/dev/null 2>&1 || true
 ::   [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc" >/dev/null 2>&1 || true
 ::   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"

@@ -59,6 +59,9 @@ exit /b %errorlevel%
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
 :: $script:BuildId = 'SYTA-build-2026-04-09-031945Z'
+:: $script:ReleaseTag = 'v1.3.3'
+:: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
+:: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
 ::
 :: function Resolve-Language {
@@ -167,6 +170,18 @@ exit /b %errorlevel%
 ::         'Scanning project folders' = 'Analyse des dossiers projet'
 ::         'Selected item' = 'Element selectionne'
 ::         'Press Enter to choose the focused item.' = 'Appuyez sur Entree pour choisir l''element selectionne.'
+::         'Launcher Update Available' = 'Mise a jour du lanceur disponible'
+::         'Update now' = 'Mettre a jour maintenant'
+::         'Later' = 'Plus tard'
+::         'Skip this version' = 'Ignorer cette version'
+::         'Download the latest portable batch and replace the current launcher.' = 'Telecharger le dernier batch portable et remplacer le lanceur actuel.'
+::         'Keep using this version and check again later.' = 'Continuer avec cette version et reverifier plus tard.'
+::         'Do not prompt again for' = 'Ne plus proposer pour'
+::         'Download' = 'Telechargement'
+::         'Verify download' = 'Verification du telechargement'
+::         'Replace launcher' = 'Remplacement du lanceur'
+::         'Relaunch updated launcher' = 'Relance du lanceur mis a jour'
+::         'SYTA was updated to' = 'SYTA a ete mis a jour vers'
 ::         'Install PowerShell 7 with winget and set Windows Terminal default profile to PowerShell' = 'Installer PowerShell 7 avec winget et definir PowerShell comme profil par defaut de Windows Terminal'
 ::         'Install via winget and set Windows Terminal default profile to PowerShell.' = 'Installer via winget et definir PowerShell comme profil par defaut de Windows Terminal.'
 ::         'Return to the main menu.' = 'Revenir au menu principal.'
@@ -591,6 +606,21 @@ exit /b %errorlevel%
 ::     $State | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $script:StateFile -Encoding utf8
 :: }
 ::
+:: function Update-StateFields {
+::     param([hashtable]$Fields)
+::
+::     $state = Get-StateObject
+::     foreach ($key in $Fields.Keys) {
+::         if ($state.PSObject.Properties.Match($key).Count) {
+::             $state.$key = $Fields[$key]
+::         } else {
+::             $state | Add-Member -NotePropertyName $key -NotePropertyValue $Fields[$key]
+::         }
+::     }
+::     Save-StateObject $state
+::     return $state
+:: }
+::
 :: function Get-RecentProjects {
 ::     $state = Get-StateObject
 ::     $projects = @()
@@ -622,8 +652,307 @@ exit /b %errorlevel%
 ::         $updated = $updated[0..11]
 ::     }
 ::
-::     Save-StateObject ([pscustomobject]@{ recentProjects = $updated })
+::     if ($state.PSObject.Properties.Match('recentProjects').Count) {
+::         $state.recentProjects = $updated
+::     } else {
+::         $state | Add-Member -NotePropertyName recentProjects -NotePropertyValue $updated
+::     }
+::     Save-StateObject $state
 ::     $script:RecentProjectCountCache = $updated.Count
+:: }
+::
+:: function Update-StateFields {
+::     param([hashtable]$Fields)
+::
+::     $state = Get-StateObject
+::     foreach ($key in $Fields.Keys) {
+::         if ($state.PSObject.Properties.Match($key).Count) {
+::             $state.$key = $Fields[$key]
+::         } else {
+::             $state | Add-Member -NotePropertyName $key -NotePropertyValue $Fields[$key]
+::         }
+::     }
+::     Save-StateObject $state
+::     return $state
+:: }
+::
+:: function Get-LauncherBatchPath {
+::     $candidates = @(
+::         $env:SYTA_SELF,
+::         (Join-Path $script:ScriptDir 'syta-super-launcher.bat'),
+::         (Join-Path $script:ScriptDir 'super.bat')
+::     ) | Where-Object { $_ }
+::
+::     foreach ($candidate in $candidates) {
+::         if (Test-Path -LiteralPath $candidate) {
+::             return [System.IO.Path]::GetFullPath($candidate)
+::         }
+::     }
+::
+::     return $null
+:: }
+::
+:: function Convert-ReleaseTagToVersion {
+::     param([string]$Tag)
+::
+::     if ([string]::IsNullOrWhiteSpace($Tag)) {
+::         return $null
+::     }
+::
+::     $normalized = $Tag.Trim()
+::     if ($normalized.StartsWith('v')) {
+::         $normalized = $normalized.Substring(1)
+::     }
+::
+::     try {
+::         return [version]$normalized
+::     } catch {
+::         return $null
+::     }
+:: }
+::
+:: function Get-LatestReleaseInfo {
+::     param([switch]$ForceRefresh)
+::
+::     $state = Get-StateObject
+::     $cachedTag = if ($state.PSObject.Properties.Match('latestReleaseTag').Count) { "$($state.latestReleaseTag)" } else { '' }
+::     $cachedUrl = if ($state.PSObject.Properties.Match('latestReleaseUrl').Count) { "$($state.latestReleaseUrl)" } else { '' }
+::     $cachedAssetUrl = if ($state.PSObject.Properties.Match('latestReleaseAssetUrl').Count) { "$($state.latestReleaseAssetUrl)" } else { '' }
+::     $cachedDigest = if ($state.PSObject.Properties.Match('latestReleaseAssetDigest').Count) { "$($state.latestReleaseAssetDigest)" } else { '' }
+::     $cachedPublishedAt = if ($state.PSObject.Properties.Match('latestReleasePublishedAt').Count) { "$($state.latestReleasePublishedAt)" } else { '' }
+::     $lastCheckedRaw = if ($state.PSObject.Properties.Match('updateLastCheckedUtc').Count) { "$($state.updateLastCheckedUtc)" } else { '' }
+::
+::     if (-not $ForceRefresh -and $lastCheckedRaw) {
+::         try {
+::             $lastChecked = [datetime]::Parse($lastCheckedRaw).ToUniversalTime()
+::             if (((Get-Date).ToUniversalTime() - $lastChecked).TotalHours -lt $script:UpdateCheckTtlHours -and $cachedTag -and $cachedAssetUrl) {
+::                 return [pscustomobject]@{
+::                     Tag = $cachedTag
+::                     Url = $cachedUrl
+::                     AssetUrl = $cachedAssetUrl
+::                     Digest = $cachedDigest
+::                     PublishedAt = $cachedPublishedAt
+::                 }
+::             }
+::         } catch {
+::             # fall through to refresh
+::         }
+::     }
+::
+::     try {
+::         $response = Invoke-RestMethod -Uri $script:ReleaseApiUrl -Headers @{
+::             'User-Agent' = 'SYTA Super Launcher'
+::             'Accept' = 'application/vnd.github+json'
+::         } -Method Get -TimeoutSec 3
+::         $asset = @($response.assets | Where-Object { $_.name -eq 'syta-super-launcher.bat' } | Select-Object -First 1)
+::         if (-not $asset) {
+::             return $null
+::         }
+::
+::         $digest = if ($asset.PSObject.Properties.Match('digest').Count) { "$($asset.digest)" } else { '' }
+::         $info = [pscustomobject]@{
+::             Tag = "$($response.tag_name)"
+::             Url = "$($response.html_url)"
+::             AssetUrl = "$($asset.browser_download_url)"
+::             Digest = $digest
+::             PublishedAt = "$($response.published_at)"
+::         }
+::
+::         Update-StateFields @{
+::             updateLastCheckedUtc = (Get-Date).ToUniversalTime().ToString('o')
+::             latestReleaseTag = $info.Tag
+::             latestReleaseUrl = $info.Url
+::             latestReleaseAssetUrl = $info.AssetUrl
+::             latestReleaseAssetDigest = $info.Digest
+::             latestReleasePublishedAt = $info.PublishedAt
+::         } | Out-Null
+::
+::         return $info
+::     } catch {
+::         if ($cachedTag -and $cachedAssetUrl) {
+::             return [pscustomobject]@{
+::                 Tag = $cachedTag
+::                 Url = $cachedUrl
+::                 AssetUrl = $cachedAssetUrl
+::                 Digest = $cachedDigest
+::                 PublishedAt = $cachedPublishedAt
+::             }
+::         }
+::         return $null
+::     }
+:: }
+::
+:: function Get-AvailableLauncherUpdate {
+::     $launcherPath = Get-LauncherBatchPath
+::     if (-not $launcherPath) {
+::         return $null
+::     }
+::
+::     $release = Get-LatestReleaseInfo
+::     if (-not $release) {
+::         return $null
+::     }
+::
+::     $currentVersion = Convert-ReleaseTagToVersion $script:ReleaseTag
+::     $latestVersion = Convert-ReleaseTagToVersion $release.Tag
+::     if (-not $currentVersion -or -not $latestVersion -or $latestVersion -le $currentVersion) {
+::         return $null
+::     }
+::
+::     $state = Get-StateObject
+::     $dismissedTag = if ($state.PSObject.Properties.Match('dismissedReleaseTag').Count) { "$($state.dismissedReleaseTag)" } else { '' }
+::     if ($dismissedTag -and $dismissedTag -eq $release.Tag) {
+::         return $null
+::     }
+::
+::     return [pscustomobject]@{
+::         CurrentTag = $script:ReleaseTag
+::         LatestTag = $release.Tag
+::         ReleaseUrl = $release.Url
+::         AssetUrl = $release.AssetUrl
+::         Digest = $release.Digest
+::         PublishedAt = $release.PublishedAt
+::         LauncherPath = $launcherPath
+::     }
+:: }
+::
+:: function Get-LauncherBatchPath {
+::     $candidates = @(
+::         $env:SYTA_SELF,
+::         (Join-Path $script:ScriptDir 'syta-super-launcher.bat'),
+::         (Join-Path $script:ScriptDir 'super.bat')
+::     ) | Where-Object { $_ }
+::
+::     foreach ($candidate in $candidates) {
+::         if (Test-Path -LiteralPath $candidate) {
+::             return [System.IO.Path]::GetFullPath($candidate)
+::         }
+::     }
+::
+::     return $null
+:: }
+::
+:: function Convert-ReleaseTagToVersion {
+::     param([string]$Tag)
+::
+::     if ([string]::IsNullOrWhiteSpace($Tag)) {
+::         return $null
+::     }
+::
+::     $normalized = $Tag.Trim()
+::     if ($normalized.StartsWith('v')) {
+::         $normalized = $normalized.Substring(1)
+::     }
+::
+::     try {
+::         return [version]$normalized
+::     } catch {
+::         return $null
+::     }
+:: }
+::
+:: function Get-LatestReleaseInfo {
+::     param([switch]$ForceRefresh)
+::
+::     $state = Get-StateObject
+::     $cachedTag = if ($state.PSObject.Properties.Match('latestReleaseTag').Count) { "$($state.latestReleaseTag)" } else { '' }
+::     $cachedUrl = if ($state.PSObject.Properties.Match('latestReleaseUrl').Count) { "$($state.latestReleaseUrl)" } else { '' }
+::     $cachedAssetUrl = if ($state.PSObject.Properties.Match('latestReleaseAssetUrl').Count) { "$($state.latestReleaseAssetUrl)" } else { '' }
+::     $cachedDigest = if ($state.PSObject.Properties.Match('latestReleaseAssetDigest').Count) { "$($state.latestReleaseAssetDigest)" } else { '' }
+::     $cachedPublishedAt = if ($state.PSObject.Properties.Match('latestReleasePublishedAt').Count) { "$($state.latestReleasePublishedAt)" } else { '' }
+::     $lastCheckedRaw = if ($state.PSObject.Properties.Match('updateLastCheckedUtc').Count) { "$($state.updateLastCheckedUtc)" } else { '' }
+::
+::     if (-not $ForceRefresh -and $lastCheckedRaw) {
+::         try {
+::             $lastChecked = [datetime]::Parse($lastCheckedRaw).ToUniversalTime()
+::             if (((Get-Date).ToUniversalTime() - $lastChecked).TotalHours -lt $script:UpdateCheckTtlHours -and $cachedTag -and $cachedAssetUrl) {
+::                 return [pscustomobject]@{
+::                     Tag = $cachedTag
+::                     Url = $cachedUrl
+::                     AssetUrl = $cachedAssetUrl
+::                     Digest = $cachedDigest
+::                     PublishedAt = $cachedPublishedAt
+::                 }
+::             }
+::         } catch {
+::         }
+::     }
+::
+::     try {
+::         $response = Invoke-RestMethod -Uri $script:ReleaseApiUrl -Headers @{
+::             'User-Agent' = 'SYTA Super Launcher'
+::             'Accept' = 'application/vnd.github+json'
+::         } -Method Get -TimeoutSec 3
+::         $asset = @($response.assets | Where-Object { $_.name -eq 'syta-super-launcher.bat' } | Select-Object -First 1)
+::         if (-not $asset) {
+::             return $null
+::         }
+::
+::         $digest = if ($asset.PSObject.Properties.Match('digest').Count) { "$($asset.digest)" } else { '' }
+::         $info = [pscustomobject]@{
+::             Tag = "$($response.tag_name)"
+::             Url = "$($response.html_url)"
+::             AssetUrl = "$($asset.browser_download_url)"
+::             Digest = $digest
+::             PublishedAt = "$($response.published_at)"
+::         }
+::
+::         Update-StateFields @{
+::             updateLastCheckedUtc = (Get-Date).ToUniversalTime().ToString('o')
+::             latestReleaseTag = $info.Tag
+::             latestReleaseUrl = $info.Url
+::             latestReleaseAssetUrl = $info.AssetUrl
+::             latestReleaseAssetDigest = $info.Digest
+::             latestReleasePublishedAt = $info.PublishedAt
+::         } | Out-Null
+::
+::         return $info
+::     } catch {
+::         if ($cachedTag -and $cachedAssetUrl) {
+::             return [pscustomobject]@{
+::                 Tag = $cachedTag
+::                 Url = $cachedUrl
+::                 AssetUrl = $cachedAssetUrl
+::                 Digest = $cachedDigest
+::                 PublishedAt = $cachedPublishedAt
+::             }
+::         }
+::         return $null
+::     }
+:: }
+::
+:: function Get-AvailableLauncherUpdate {
+::     $launcherPath = Get-LauncherBatchPath
+::     if (-not $launcherPath) {
+::         return $null
+::     }
+::
+::     $release = Get-LatestReleaseInfo
+::     if (-not $release) {
+::         return $null
+::     }
+::
+::     $currentVersion = Convert-ReleaseTagToVersion $script:ReleaseTag
+::     $latestVersion = Convert-ReleaseTagToVersion $release.Tag
+::     if (-not $currentVersion -or -not $latestVersion -or $latestVersion -le $currentVersion) {
+::         return $null
+::     }
+::
+::     $state = Get-StateObject
+::     $dismissedTag = if ($state.PSObject.Properties.Match('dismissedReleaseTag').Count) { "$($state.dismissedReleaseTag)" } else { '' }
+::     if ($dismissedTag -and $dismissedTag -eq $release.Tag) {
+::         return $null
+::     }
+::
+::     return [pscustomobject]@{
+::         CurrentTag = $script:ReleaseTag
+::         LatestTag = $release.Tag
+::         ReleaseUrl = $release.Url
+::         AssetUrl = $release.AssetUrl
+::         Digest = $release.Digest
+::         PublishedAt = $release.PublishedAt
+::         LauncherPath = $launcherPath
+::     }
 :: }
 ::
 :: function Format-AuthStatus {
@@ -1003,6 +1332,7 @@ exit /b %errorlevel%
 ::             $detail = if ($item.PSObject.Properties.Match('Subtitle').Count) { $item.Subtitle } else { '' }
 ::
 ::             $label = Localize-Text $label
+::             $detail = Localize-Text $detail
 ::             Write-Host ('  ' + $prefix + (Shorten-Text -Text $label -Max 76)) -ForegroundColor $titleColor
 ::             if ($detail) {
 ::                 Write-Host ('     ' + (Shorten-Text -Text $detail -Max 74)) -ForegroundColor $detailColor
@@ -1057,6 +1387,61 @@ exit /b %errorlevel%
 ::     )
 ::
 ::     return ($selection -and $selection.Key -eq 'install')
+:: }
+::
+:: function Prompt-LauncherUpdateChoice {
+::     param([Parameter(Mandatory = $true)]$Update)
+::
+::     $selection = Read-Menu -Title 'Launcher Update Available' -Subtitle "SYTA $($Update.LatestTag) is available. Current version: $($Update.CurrentTag)." -Items @(
+::         [pscustomobject]@{ Title = 'Update now'; Subtitle = 'Download the latest portable batch and replace the current launcher.'; Accent = 'Green'; Key = 'update' }
+::         [pscustomobject]@{ Title = 'Later'; Subtitle = 'Keep using this version and check again later.'; Accent = 'Yellow'; Key = 'later' }
+::         [pscustomobject]@{ Title = 'Skip this version'; Subtitle = "Do not prompt again for $($Update.LatestTag)."; Accent = 'DarkGray'; Key = 'skip' }
+::     )
+::
+::     if (-not $selection) {
+::         return 'later'
+::     }
+::
+::     return $selection.Key
+:: }
+::
+:: function Start-LauncherSelfUpdate {
+::     param([Parameter(Mandatory = $true)]$Update)
+::
+::     $helperPath = Join-Path $script:ScriptDir 'syta-self-update.ps1'
+::     $escapedPath = $Update.LauncherPath.Replace("'", "''")
+::     $escapedUrl = $Update.AssetUrl.Replace("'", "''")
+::     $escapedTag = $Update.LatestTag.Replace("'", "''")
+::     $digestValue = if ($null -ne $Update.Digest) { "$($Update.Digest)" } else { '' }
+::     $escapedDigest = $digestValue.Replace("'", "''")
+::     $command = "& '$helperPath' -TargetPath '$escapedPath' -DownloadUrl '$escapedUrl' -ReleaseTag '$escapedTag' -ExpectedDigest '$escapedDigest'"
+::     return Open-WindowsPowerShellWindow -Title 'SYTA Self Update' -Command $command -UseWindowsTerminal:$false
+:: }
+::
+:: function HandleLauncherUpdatePrompt {
+::     if ($Mode -or $DryRun -or $SmokeTest) {
+::         return $false
+::     }
+::
+::     $update = Get-AvailableLauncherUpdate
+::     if (-not $update) {
+::         return $false
+::     }
+::
+::     $choice = Prompt-LauncherUpdateChoice -Update $update
+::     switch ($choice) {
+::         'update' {
+::             $null = Start-LauncherSelfUpdate -Update $update
+::             return $true
+::         }
+::         'skip' {
+::             Update-StateFields @{ dismissedReleaseTag = $update.LatestTag } | Out-Null
+::             return $false
+::         }
+::         default {
+::             return $false
+::         }
+::     }
 :: }
 ::
 :: function Get-ProjectDirectories {
@@ -1631,6 +2016,7 @@ exit /b %errorlevel%
 ::         ProjectsRoot = $script:ProjectsRoot
 ::         StateFile = $script:StateFile
 ::         BuildId = $script:BuildId
+::         ReleaseTag = $script:ReleaseTag
 ::         Language = $script:Language
 ::         RecentProjects = @((Get-RecentProjects | Select-Object -ExpandProperty Name))
 ::         Agents = $script:AgentOptions.Key
@@ -1644,6 +2030,10 @@ exit /b %errorlevel%
 ::
 :: Ensure-MaximizedWindow
 :: Show-IntroAnimation
+::
+:: if (HandleLauncherUpdatePrompt) {
+::     exit 0
+:: }
 ::
 :: if ($Mode -eq 'Code') {
 ::     Launch-CodeMode
@@ -2907,3 +3297,68 @@ exit /b %errorlevel%
 :: Write-Host ''
 :: Write-Host 'WSL Ubuntu install command completed.' -ForegroundColor Green
 ::END:syta-install-wsl-ubuntu.ps1
+::BEGIN:syta-self-update.ps1
+:: param(
+::     [Parameter(Mandatory = $true)][string]$TargetPath,
+::     [Parameter(Mandatory = $true)][string]$DownloadUrl,
+::     [Parameter(Mandatory = $true)][string]$ReleaseTag,
+::     [string]$ExpectedDigest
+:: )
+::
+:: $ErrorActionPreference = 'Stop'
+::
+:: function Write-Stage {
+::     param([string]$Text)
+::     Write-Host ''
+::     Write-Host ("== " + $Text + " ==") -ForegroundColor Cyan
+:: }
+::
+:: function Get-TempDownloadPath {
+::     param([string]$Tag)
+::     return Join-Path $env:TEMP ("syta-super-launcher-" + $Tag + ".bat")
+:: }
+::
+:: function Get-ExpectedSha256 {
+::     param([string]$Digest)
+::     if ([string]::IsNullOrWhiteSpace($Digest)) {
+::         return ''
+::     }
+::     if ($Digest -match '^sha256:(.+)$') {
+::         return $Matches[1].ToLowerInvariant()
+::     }
+::     return $Digest.ToLowerInvariant()
+:: }
+::
+:: $tempPath = Get-TempDownloadPath -Tag $ReleaseTag
+:: $expectedSha256 = Get-ExpectedSha256 -Digest $ExpectedDigest
+::
+:: Write-Stage "Download $ReleaseTag"
+:: Invoke-WebRequest -Uri $DownloadUrl -OutFile $tempPath -UseBasicParsing
+::
+:: if ($expectedSha256) {
+::     Write-Stage 'Verify download'
+::     $actualHash = (Get-FileHash -LiteralPath $tempPath -Algorithm SHA256).Hash.ToLowerInvariant()
+::     if ($actualHash -ne $expectedSha256) {
+::         throw "Downloaded launcher digest mismatch. Expected $expectedSha256 but got $actualHash."
+::     }
+:: }
+::
+:: Write-Stage 'Install update'
+:: for ($attempt = 1; $attempt -le 6; $attempt++) {
+::     try {
+::         Copy-Item -LiteralPath $tempPath -Destination $TargetPath -Force
+::         break
+::     } catch {
+::         if ($attempt -eq 6) {
+::             throw
+::         }
+::         Start-Sleep -Milliseconds 500
+::     }
+:: }
+::
+:: Write-Stage 'Relaunch updated launcher'
+:: Start-Process -FilePath $TargetPath | Out-Null
+::
+:: Write-Host ''
+:: Write-Host "Updated to $ReleaseTag." -ForegroundColor Green
+::END:syta-self-update.ps1

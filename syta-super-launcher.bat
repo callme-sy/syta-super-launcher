@@ -58,8 +58,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-09-163456Z'
-:: $script:ReleaseTag = 'v1.4.3'
+:: $script:BuildId = 'SYTA-build-2026-04-09-164106Z'
+:: $script:ReleaseTag = 'v1.4.4'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -1025,7 +1025,7 @@ exit /b %errorlevel%
 ::     Write-BoxLine -Content 'Made by Sylvain T.' -Color Magenta
 ::     Write-BoxLine -Content $Tagline -Color Gray
 ::     Write-BoxLine -Content "Projects root: $script:ProjectsRoot" -Color White
-::     Write-BoxLine -Content "Build: $script:BuildId" -Color DarkGray
+::     Write-BoxLine -Content "Version : $script:ReleaseTag" -Color DarkGray
 ::     Write-BoxLine -Content "Recent projects tracked: $recentCount" -Color DarkGray
 ::     Write-BoxLine -Content "Hint: $Hint" -Color Gray
 ::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkCyan

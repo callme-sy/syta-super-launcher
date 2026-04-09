@@ -159,6 +159,10 @@ exit /b %errorlevel%
 ::         'Loading live tool diagnostics' = 'Chargement des diagnostics des outils'
 ::         'Checking Windows prerequisites' = 'Verification des prerequis Windows'
 ::         'Loading WSL tool diagnostics' = 'Chargement des diagnostics WSL'
+::         'Loading recent projects' = 'Chargement des projets recents'
+::         'Scanning project folders' = 'Analyse des dossiers projet'
+::         'Selected item' = 'Element selectionne'
+::         'Press Enter to choose the focused item.' = 'Appuyez sur Entree pour choisir l''element selectionne.'
 ::         'Install PowerShell 7 with winget and set Windows Terminal default profile to PowerShell' = 'Installer PowerShell 7 avec winget et definir PowerShell comme profil par defaut de Windows Terminal'
 ::         'Install via winget and set Windows Terminal default profile to PowerShell.' = 'Installer via winget et definir PowerShell comme profil par defaut de Windows Terminal.'
 ::         'Return to the main menu.' = 'Revenir au menu principal.'
@@ -852,7 +856,6 @@ exit /b %errorlevel%
 ::         Write-Host ''
 ::         Write-Host ("   " + $frame.Bar + "  " + (Localize-Text $frame.Status)) -ForegroundColor $frame.Accent
 ::         Write-Host '   Made by Sylvain T.' -ForegroundColor Magenta
-::         Write-Host '   Made by Sylvain T.' -ForegroundColor Cyan
 ::         Write-Host ('   ' + (Localize-Text 'telemetry: launcher online, diagnostics cache cold, routes ready')) -ForegroundColor DarkGray
 ::         Start-Sleep -Milliseconds 90
 ::     }
@@ -876,6 +879,23 @@ exit /b %errorlevel%
 ::     }
 ::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
 ::     Write-Host ''
+:: }
+::
+:: function Show-DetailPanel {
+::     param(
+::         [string]$Label,
+::         [string]$Title,
+::         [string]$Detail = '',
+::         [ConsoleColor]$Accent = [ConsoleColor]::Cyan
+::     )
+::
+::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
+::     $localizedLabel = Localize-Text $Label
+::     Write-BoxLine -Content ("{0}: {1}" -f $localizedLabel, $Title) -Color $Accent
+::     if ($Detail) {
+::         Write-BoxLine -Content $Detail -Color Gray
+::     }
+::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
 :: }
 ::
 :: function Show-StatusPanel {
@@ -942,21 +962,22 @@ exit /b %errorlevel%
 ::             } else {
 ::                 'Gray'
 ::             }
-::             $detailColor = if ($selected) { 'White' } else { 'DarkGray' }
 ::             $prefix = if ($selected) { '> ' } else { '  ' }
 ::             $label = if ($item.PSObject.Properties.Match('Title').Count) { $item.Title } else { [string]$item }
-::             $detail = if ($item.PSObject.Properties.Match('Subtitle').Count) { $item.Subtitle } else { '' }
 ::
 ::             $label = Localize-Text $label
-::             $detail = Localize-Text $detail
 ::             Write-Host ('  ' + $prefix + (Shorten-Text -Text $label -Max 76)) -ForegroundColor $titleColor
-::             if ($detail) {
-::                 Write-Host ('     ' + (Shorten-Text -Text $detail -Max 74)) -ForegroundColor $detailColor
-::             }
 ::             Write-Host ''
 ::         }
 ::
+::         $selectedItem = $Items[$index]
+::         $selectedLabel = if ($selectedItem.PSObject.Properties.Match('Title').Count) { $selectedItem.Title } else { [string]$selectedItem }
+::         $selectedDetail = if ($selectedItem.PSObject.Properties.Match('Subtitle').Count) { $selectedItem.Subtitle } else { '' }
+::         $selectedAccent = if ($selectedItem.PSObject.Properties.Match('Accent').Count) { $selectedItem.Accent } else { 'Cyan' }
+::         Show-DetailPanel -Label 'Selected item' -Title $selectedLabel -Detail $selectedDetail -Accent $selectedAccent
+::
 ::         Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
+::         Write-BoxLine -Content 'Press Enter to choose the focused item.' -Color Gray
 ::         Write-BoxLine -Content 'Keys: Up/Down move | Enter select | Esc back' -Color DarkGray
 ::         Write-BoxLine -Content ("Items: {0} | Selected: {1}/{2}" -f $Items.Count, ($index + 1), $Items.Count) -Color DarkGray
 ::         Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
@@ -1062,7 +1083,9 @@ exit /b %errorlevel%
 ::         }
 ::     }
 ::
+::     Show-LoadProgress -Title 'Project Selector' -Status 'Loading recent projects' -Current 1 -Total 2 -Accent Cyan
 ::     $recent = @(Get-RecentProjects)
+::     Show-LoadProgress -Title 'Project Selector' -Status 'Scanning project folders' -Current 2 -Total 2 -Accent White
 ::     $existing = @(Get-ProjectDirectories | ForEach-Object {
 ::         [pscustomobject]@{
 ::             Title = $_.Name

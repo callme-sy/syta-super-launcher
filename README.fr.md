@@ -148,6 +148,7 @@ Comportements importants :
 
 - `First install` guide une nouvelle machine a travers WSL Ubuntu, PowerShell 7 en option, puis toutes les CLI IA une fois Ubuntu pret.
 - `Cleaner helper` verifie les anciennes installations npm des CLI IA dans les versions `nvm` plus vieilles avant nettoyage.
+- Les menus utilisent un affichage plus lisible avec un panneau de detail et une progression pendant la preparation des donnees projet ou outil.
 - Il privilégie `nvm` pour les CLI basées sur Node.
 - Il essaie de préserver la version Node active ou par défaut de l’utilisateur.
 - Il tente de réparer `libatomic.so.1` automatiquement sur les systèmes apt si nécessaire.
@@ -163,6 +164,8 @@ Avant les lancements et les installations, l’interface peut afficher :
 - la source de l’installation, par exemple `nvm`, `system`, `user-local` ou `config-only`
 
 Ces diagnostics sont volontairement pragmatiques. Ils sont utiles pour l’exploitation, mais ne remplacent pas une vérification parfaite de l’auth réelle chez chaque fournisseur.
+
+Quand les diagnostics live prennent un moment, le lanceur affiche maintenant une progression claire au lieu de sembler fige.
 
 ## Environnement Recommandé
 

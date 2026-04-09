@@ -148,6 +148,7 @@ Important behaviors:
 
 - `First install` guides a new machine through WSL Ubuntu, optional PowerShell 7, then the full AI CLI toolchain when Ubuntu is ready.
 - `Cleaner helper` checks for stale npm-based AI CLI installs across older `nvm` versions before cleanup.
+- Menus use a cleaner focused-detail layout and loading progress when project or tool data takes time to prepare.
 - It prefers `nvm` for Node-based CLI installs.
 - It tries to preserve the user’s active/default Node version instead of blindly switching to a fresh one.
 - It attempts to repair `libatomic.so.1` automatically on apt-based systems when required by Node runtimes.
@@ -163,6 +164,8 @@ Before launching or installing, the UI can surface:
 - install source, such as `nvm`, `system`, `user-local`, or `config-only`
 
 These diagnostics are intentionally pragmatic. They are useful operational signals, not perfect provider-auth verification.
+
+When live diagnostics take a moment, the launcher now shows focused loading progress instead of appearing frozen.
 
 ## Recommended Environment
 

@@ -46,6 +46,7 @@ The entire runtime is embedded into the batch file itself. At launch, it extract
 | `Update all` | Runs a broader toolchain update pass |
 | Diagnostics | Shows install, version, and auth/config hints |
 | Responsive menus | Batches diagnostics and shows loading bars during slower menu preparation |
+| Update prompt | Can offer a newer launcher release when one is available |
 | Portability | Ships as one `.bat` file |
 | Language | Auto-detects French/English for the launcher UI |
 
@@ -149,6 +150,7 @@ Important behaviors:
 - `First install` guides a new machine through WSL Ubuntu, optional PowerShell 7, then the full AI CLI toolchain when Ubuntu is ready.
 - `Cleaner helper` checks for stale npm-based AI CLI installs across older `nvm` versions before cleanup.
 - Menus use a cleaner focused-detail layout and loading progress when project or tool data takes time to prepare.
+- The launcher can check for a newer GitHub release and offer an in-place launcher update.
 - It prefers `nvm` for Node-based CLI installs.
 - It tries to preserve the user’s active/default Node version instead of blindly switching to a fresh one.
 - It attempts to repair `libatomic.so.1` automatically on apt-based systems when required by Node runtimes.

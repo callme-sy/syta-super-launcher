@@ -58,8 +58,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-09-031945Z'
-:: $script:ReleaseTag = 'v1.3.3'
+:: $script:BuildId = 'SYTA-build-2026-04-09-053639Z'
+:: $script:ReleaseTag = 'v1.4.0'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -674,146 +674,6 @@ exit /b %errorlevel%
 ::     }
 ::     Save-StateObject $state
 ::     return $state
-:: }
-::
-:: function Get-LauncherBatchPath {
-::     $candidates = @(
-::         $env:SYTA_SELF,
-::         (Join-Path $script:ScriptDir 'syta-super-launcher.bat'),
-::         (Join-Path $script:ScriptDir 'super.bat')
-::     ) | Where-Object { $_ }
-::
-::     foreach ($candidate in $candidates) {
-::         if (Test-Path -LiteralPath $candidate) {
-::             return [System.IO.Path]::GetFullPath($candidate)
-::         }
-::     }
-::
-::     return $null
-:: }
-::
-:: function Convert-ReleaseTagToVersion {
-::     param([string]$Tag)
-::
-::     if ([string]::IsNullOrWhiteSpace($Tag)) {
-::         return $null
-::     }
-::
-::     $normalized = $Tag.Trim()
-::     if ($normalized.StartsWith('v')) {
-::         $normalized = $normalized.Substring(1)
-::     }
-::
-::     try {
-::         return [version]$normalized
-::     } catch {
-::         return $null
-::     }
-:: }
-::
-:: function Get-LatestReleaseInfo {
-::     param([switch]$ForceRefresh)
-::
-::     $state = Get-StateObject
-::     $cachedTag = if ($state.PSObject.Properties.Match('latestReleaseTag').Count) { "$($state.latestReleaseTag)" } else { '' }
-::     $cachedUrl = if ($state.PSObject.Properties.Match('latestReleaseUrl').Count) { "$($state.latestReleaseUrl)" } else { '' }
-::     $cachedAssetUrl = if ($state.PSObject.Properties.Match('latestReleaseAssetUrl').Count) { "$($state.latestReleaseAssetUrl)" } else { '' }
-::     $cachedDigest = if ($state.PSObject.Properties.Match('latestReleaseAssetDigest').Count) { "$($state.latestReleaseAssetDigest)" } else { '' }
-::     $cachedPublishedAt = if ($state.PSObject.Properties.Match('latestReleasePublishedAt').Count) { "$($state.latestReleasePublishedAt)" } else { '' }
-::     $lastCheckedRaw = if ($state.PSObject.Properties.Match('updateLastCheckedUtc').Count) { "$($state.updateLastCheckedUtc)" } else { '' }
-::
-::     if (-not $ForceRefresh -and $lastCheckedRaw) {
-::         try {
-::             $lastChecked = [datetime]::Parse($lastCheckedRaw).ToUniversalTime()
-::             if (((Get-Date).ToUniversalTime() - $lastChecked).TotalHours -lt $script:UpdateCheckTtlHours -and $cachedTag -and $cachedAssetUrl) {
-::                 return [pscustomobject]@{
-::                     Tag = $cachedTag
-::                     Url = $cachedUrl
-::                     AssetUrl = $cachedAssetUrl
-::                     Digest = $cachedDigest
-::                     PublishedAt = $cachedPublishedAt
-::                 }
-::             }
-::         } catch {
-::             # fall through to refresh
-::         }
-::     }
-::
-::     try {
-::         $response = Invoke-RestMethod -Uri $script:ReleaseApiUrl -Headers @{
-::             'User-Agent' = 'SYTA Super Launcher'
-::             'Accept' = 'application/vnd.github+json'
-::         } -Method Get -TimeoutSec 3
-::         $asset = @($response.assets | Where-Object { $_.name -eq 'syta-super-launcher.bat' } | Select-Object -First 1)
-::         if (-not $asset) {
-::             return $null
-::         }
-::
-::         $digest = if ($asset.PSObject.Properties.Match('digest').Count) { "$($asset.digest)" } else { '' }
-::         $info = [pscustomobject]@{
-::             Tag = "$($response.tag_name)"
-::             Url = "$($response.html_url)"
-::             AssetUrl = "$($asset.browser_download_url)"
-::             Digest = $digest
-::             PublishedAt = "$($response.published_at)"
-::         }
-::
-::         Update-StateFields @{
-::             updateLastCheckedUtc = (Get-Date).ToUniversalTime().ToString('o')
-::             latestReleaseTag = $info.Tag
-::             latestReleaseUrl = $info.Url
-::             latestReleaseAssetUrl = $info.AssetUrl
-::             latestReleaseAssetDigest = $info.Digest
-::             latestReleasePublishedAt = $info.PublishedAt
-::         } | Out-Null
-::
-::         return $info
-::     } catch {
-::         if ($cachedTag -and $cachedAssetUrl) {
-::             return [pscustomobject]@{
-::                 Tag = $cachedTag
-::                 Url = $cachedUrl
-::                 AssetUrl = $cachedAssetUrl
-::                 Digest = $cachedDigest
-::                 PublishedAt = $cachedPublishedAt
-::             }
-::         }
-::         return $null
-::     }
-:: }
-::
-:: function Get-AvailableLauncherUpdate {
-::     $launcherPath = Get-LauncherBatchPath
-::     if (-not $launcherPath) {
-::         return $null
-::     }
-::
-::     $release = Get-LatestReleaseInfo
-::     if (-not $release) {
-::         return $null
-::     }
-::
-::     $currentVersion = Convert-ReleaseTagToVersion $script:ReleaseTag
-::     $latestVersion = Convert-ReleaseTagToVersion $release.Tag
-::     if (-not $currentVersion -or -not $latestVersion -or $latestVersion -le $currentVersion) {
-::         return $null
-::     }
-::
-::     $state = Get-StateObject
-::     $dismissedTag = if ($state.PSObject.Properties.Match('dismissedReleaseTag').Count) { "$($state.dismissedReleaseTag)" } else { '' }
-::     if ($dismissedTag -and $dismissedTag -eq $release.Tag) {
-::         return $null
-::     }
-::
-::     return [pscustomobject]@{
-::         CurrentTag = $script:ReleaseTag
-::         LatestTag = $release.Tag
-::         ReleaseUrl = $release.Url
-::         AssetUrl = $release.AssetUrl
-::         Digest = $release.Digest
-::         PublishedAt = $release.PublishedAt
-::         LauncherPath = $launcherPath
-::     }
 :: }
 ::
 :: function Get-LauncherBatchPath {
@@ -3302,7 +3162,7 @@ exit /b %errorlevel%
 ::     [Parameter(Mandatory = $true)][string]$TargetPath,
 ::     [Parameter(Mandatory = $true)][string]$DownloadUrl,
 ::     [Parameter(Mandatory = $true)][string]$ReleaseTag,
-::     [string]$ExpectedDigest
+::     [string]$ExpectedDigest = ''
 :: )
 ::
 :: $ErrorActionPreference = 'Stop'
@@ -3313,52 +3173,43 @@ exit /b %errorlevel%
 ::     Write-Host ("== " + $Text + " ==") -ForegroundColor Cyan
 :: }
 ::
-:: function Get-TempDownloadPath {
-::     param([string]$Tag)
-::     return Join-Path $env:TEMP ("syta-super-launcher-" + $Tag + ".bat")
+:: if (-not (Test-Path -LiteralPath (Split-Path -Parent $TargetPath))) {
+::     throw "Target folder not found: $TargetPath"
 :: }
 ::
-:: function Get-ExpectedSha256 {
-::     param([string]$Digest)
-::     if ([string]::IsNullOrWhiteSpace($Digest)) {
-::         return ''
-::     }
-::     if ($Digest -match '^sha256:(.+)$') {
-::         return $Matches[1].ToLowerInvariant()
-::     }
-::     return $Digest.ToLowerInvariant()
-:: }
-::
-:: $tempPath = Get-TempDownloadPath -Tag $ReleaseTag
-:: $expectedSha256 = Get-ExpectedSha256 -Digest $ExpectedDigest
+:: $tempFile = Join-Path $env:TEMP ("syta-super-launcher-" + $ReleaseTag + ".bat")
 ::
 :: Write-Stage "Download $ReleaseTag"
-:: Invoke-WebRequest -Uri $DownloadUrl -OutFile $tempPath -UseBasicParsing
+:: Invoke-WebRequest -Uri $DownloadUrl -OutFile $tempFile -UseBasicParsing
 ::
-:: if ($expectedSha256) {
-::     Write-Stage 'Verify download'
-::     $actualHash = (Get-FileHash -LiteralPath $tempPath -Algorithm SHA256).Hash.ToLowerInvariant()
-::     if ($actualHash -ne $expectedSha256) {
-::         throw "Downloaded launcher digest mismatch. Expected $expectedSha256 but got $actualHash."
+:: if ($ExpectedDigest) {
+::     Write-Stage 'Verify digest'
+::     $actualDigest = (Get-FileHash -LiteralPath $tempFile -Algorithm SHA256).Hash.ToLowerInvariant()
+::     $expected = ($ExpectedDigest -replace '^sha256:', '').ToLowerInvariant()
+::     if ($actualDigest -ne $expected) {
+::         throw "Downloaded launcher digest mismatch. Expected $expected, got $actualDigest."
 ::     }
 :: }
 ::
-:: Write-Stage 'Install update'
-:: for ($attempt = 1; $attempt -le 6; $attempt++) {
+:: Write-Stage 'Replace launcher'
+:: $replaced = $false
+:: for ($attempt = 1; $attempt -le 12; $attempt++) {
 ::     try {
-::         Copy-Item -LiteralPath $tempPath -Destination $TargetPath -Force
+::         Copy-Item -LiteralPath $tempFile -Destination $TargetPath -Force
+::         $replaced = $true
 ::         break
 ::     } catch {
-::         if ($attempt -eq 6) {
-::             throw
-::         }
 ::         Start-Sleep -Milliseconds 500
 ::     }
 :: }
 ::
-:: Write-Stage 'Relaunch updated launcher'
+:: if (-not $replaced) {
+::     throw "Unable to replace launcher at $TargetPath."
+:: }
+::
+:: Write-Stage 'Relaunch launcher'
 :: Start-Process -FilePath $TargetPath | Out-Null
 ::
 :: Write-Host ''
-:: Write-Host "Updated to $ReleaseTag." -ForegroundColor Green
+:: Write-Host "Launcher updated to $ReleaseTag and relaunched." -ForegroundColor Green
 ::END:syta-self-update.ps1

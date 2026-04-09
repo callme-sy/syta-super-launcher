@@ -46,6 +46,7 @@ Tout le runtime est embarqué dans le fichier batch lui-même. Au lancement, il 
 | `Update all` | Lance une mise à jour plus large de la chaîne d’outils |
 | Diagnostics | Affiche l’état d’installation, la version et des indices d’auth/config |
 | Menus plus reactifs | Regroupe les diagnostics et affiche des barres de chargement pendant les ecrans plus lents |
+| Invite de mise a jour | Peut proposer une nouvelle release du lanceur lorsqu'elle existe |
 | Portabilité | Distribution en un seul `.bat` |
 | Langue | Détecte automatiquement le français/anglais pour l'interface du lanceur |
 
@@ -149,6 +150,7 @@ Comportements importants :
 - `First install` guide une nouvelle machine a travers WSL Ubuntu, PowerShell 7 en option, puis toutes les CLI IA une fois Ubuntu pret.
 - `Cleaner helper` verifie les anciennes installations npm des CLI IA dans les versions `nvm` plus vieilles avant nettoyage.
 - Les menus utilisent un affichage plus lisible avec un panneau de detail et une progression pendant la preparation des donnees projet ou outil.
+- Le lanceur peut verifier si une nouvelle release GitHub est disponible et proposer une mise a jour du lanceur sur place.
 - Il privilégie `nvm` pour les CLI basées sur Node.
 - Il essaie de préserver la version Node active ou par défaut de l’utilisateur.
 - Il tente de réparer `libatomic.so.1` automatiquement sur les systèmes apt si nécessaire.

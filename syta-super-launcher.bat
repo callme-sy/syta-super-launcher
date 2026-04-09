@@ -936,8 +936,17 @@ exit /b %errorlevel%
 :: function Open-WindowsPowerShellWindow {
 ::     param(
 ::         [Parameter(Mandatory = $true)][string]$Title,
-::         [Parameter(Mandatory = $true)][string]$Command
+::         [Parameter(Mandatory = $true)][string]$Command,
+::         [switch]$UseWindowsTerminal = $true
 ::     )
+::
+::     $psExe = Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe'
+::     if (-not (Test-Path -LiteralPath $psExe)) {
+::         $cmd = Get-Command powershell.exe -ErrorAction SilentlyContinue
+::         if ($cmd) {
+::             $psExe = $cmd.Source
+::         }
+::     }
 ::
 ::     $wt = Get-Command wt.exe -ErrorAction SilentlyContinue
 ::     $psArgs = @(
@@ -950,17 +959,18 @@ exit /b %errorlevel%
 ::         return [pscustomobject]@{
 ::             Title = $Title
 ::             Command = $Command
-::             UsesWindowsTerminal = [bool]$wt
+::             FilePath = $psExe
+::             UsesWindowsTerminal = ([bool]$wt -and $UseWindowsTerminal)
 ::         }
 ::     }
 ::
-::     if ($wt) {
-::         $wtArgs = @('new-tab', '--title', $Title, 'powershell.exe') + $psArgs
+::     if ($wt -and $UseWindowsTerminal) {
+::         $wtArgs = @('new-tab', '--title', $Title, $psExe) + $psArgs
 ::         & $wt.Source @wtArgs | Out-Null
 ::         return
 ::     }
 ::
-::     Start-Process -FilePath 'powershell.exe' -ArgumentList $psArgs | Out-Null
+::     Start-Process -FilePath $psExe -ArgumentList $psArgs | Out-Null
 :: }
 ::
 :: function Read-Menu {
@@ -1299,7 +1309,8 @@ exit /b %errorlevel%
 ::         'Action  : Run wsl --install -d Ubuntu',
 ::         'Impact  : Installs Ubuntu into Windows Subsystem for Linux'
 ::     )
-::     $result = Open-WindowsPowerShellWindow -Title (Localize-Text 'SYTA WSL Ubuntu Install') -Command 'wsl --install -d Ubuntu'
+::     $scriptPath = Join-Path $script:ScriptDir 'syta-install-wsl-ubuntu.ps1'
+::     $result = Open-WindowsPowerShellWindow -Title (Localize-Text 'SYTA WSL Ubuntu Install') -Command ("& '$scriptPath'") -UseWindowsTerminal:$false
 ::     if ($DryRun) {
 ::         return $result
 ::     }
@@ -2869,3 +2880,30 @@ exit /b %errorlevel%
 ::
 :: exit "$failures"
 ::END:update-wsl-coding-tools.sh
+::BEGIN:syta-install-wsl-ubuntu.ps1
+:: $ErrorActionPreference = 'Stop'
+::
+:: function Write-Stage {
+::     param([string]$Text)
+::     Write-Host ''
+::     Write-Host ("== " + $Text + " ==") -ForegroundColor Cyan
+:: }
+::
+:: $wslExe = Join-Path $env:WINDIR 'System32\wsl.exe'
+:: if (-not (Test-Path -LiteralPath $wslExe)) {
+::     $cmd = Get-Command wsl.exe -ErrorAction SilentlyContinue
+::     if ($cmd) {
+::         $wslExe = $cmd.Source
+::     }
+:: }
+::
+:: if (-not (Test-Path -LiteralPath $wslExe)) {
+::     throw 'wsl.exe was not found on this Windows system.'
+:: }
+::
+:: Write-Stage 'Install WSL Ubuntu'
+:: & $wslExe --install -d Ubuntu
+::
+:: Write-Host ''
+:: Write-Host 'WSL Ubuntu install command completed.' -ForegroundColor Green
+::END:syta-install-wsl-ubuntu.ps1

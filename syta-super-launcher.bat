@@ -962,11 +962,16 @@ exit /b %errorlevel%
 ::             } else {
 ::                 'Gray'
 ::             }
+::             $detailColor = if ($selected) { 'White' } else { 'DarkGray' }
 ::             $prefix = if ($selected) { '> ' } else { '  ' }
 ::             $label = if ($item.PSObject.Properties.Match('Title').Count) { $item.Title } else { [string]$item }
+::             $detail = if ($item.PSObject.Properties.Match('Subtitle').Count) { $item.Subtitle } else { '' }
 ::
 ::             $label = Localize-Text $label
 ::             Write-Host ('  ' + $prefix + (Shorten-Text -Text $label -Max 76)) -ForegroundColor $titleColor
+::             if ($detail) {
+::                 Write-Host ('     ' + (Shorten-Text -Text $detail -Max 74)) -ForegroundColor $detailColor
+::             }
 ::             Write-Host ''
 ::         }
 ::

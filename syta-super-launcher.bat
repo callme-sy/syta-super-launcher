@@ -32,7 +32,7 @@ exit /b %errorlevel%
 
 ::BEGIN:syta-agentic-launcher.ps1
 :: param(
-::     [ValidateSet('Code', 'Install', 'Explanations', 'CleanerHelper', 'UpdateAll', 'UpdateLight')]
+::     [ValidateSet('Code', 'Install', 'Explanations', 'CleanerHelper', 'Update', 'UpdateAll', 'UpdateLight')]
 ::     [string]$Mode,
 ::     [ValidateSet('codex-yolo', 'omx-madmax-high', 'opencode', 'claude-code', 'gemini-cli')]
 ::     [string]$Agent,
@@ -58,8 +58,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-10-025346Z'
-:: $script:ReleaseTag = 'v1.4.8'
+:: $script:BuildId = 'SYTA-build-2026-04-10-031237Z'
+:: $script:ReleaseTag = 'v1.4.9'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -142,6 +142,19 @@ exit /b %errorlevel%
 ::         'Agent Selector' = 'Selection de l''agent'
 ::         'Mode Selector' = 'Selection du mode'
 ::         'Explanations' = 'Explications'
+::         'Update' = 'Mise a jour'
+::         'Choose which update lane to run.' = 'Choisissez le type de mise a jour a lancer.'
+::         'Run a lighter AI-tools-only update or the broader full maintenance pass.' = 'Lancer soit une mise a jour legere des outils IA, soit la maintenance complete.'
+::         'Light update' = 'Mise a jour legere'
+::         'Update all' = 'Mise a jour complete'
+::         'Update AI coding CLIs only: Codex, OMX, OpenCode, Claude Code, Gemini CLI.' = 'Mettre a jour seulement les CLI IA : Codex, OMX, OpenCode, Claude Code, Gemini CLI.'
+::         'Run the broader toolchain update pass, including system package managers.' = 'Lancer la maintenance plus large de la chaine d''outils, y compris les gestionnaires systeme.'
+::         'First install (recommended)' = 'Premiere installation (recommandee)'
+::         'Best beginner path for WSL Ubuntu, optional PowerShell 7, and all AI CLI tools.' = 'Meilleur parcours debutant pour WSL Ubuntu, PowerShell 7 en option et toutes les CLI IA.'
+::         'Recommended path for a new machine or first SYTA setup' = 'Parcours recommande pour une nouvelle machine ou une premiere installation SYTA'
+::         'CLI     : Ready to launch all AI CLI tools now' = 'CLI     : pret a lancer maintenant toutes les CLI IA'
+::         'CLI     : Full AI CLI install starts after Ubuntu is ready' = 'CLI     : l''installation complete des CLI IA demarre apres qu''Ubuntu soit pret'
+::         'Note    : Recommended path for a new machine or first SYTA setup' = 'Note    : parcours recommande pour une nouvelle machine ou une premiere installation SYTA'
 ::         'Learn what the tools are, who they are for, and what SYTA recommends.' = 'Comprendre les outils, a qui ils servent et ce que SYTA recommande.'
 ::         'Learn what the tools are, what SYTA recommends, and how to choose a setup.' = 'Comprendre les outils, ce que SYTA recommande et comment choisir votre configuration.'
 ::         'Beginner guide' = 'Guide debutant'
@@ -1443,6 +1456,33 @@ exit /b %errorlevel%
 ::     }
 :: }
 ::
+:: function Launch-UpdateMenu {
+::     $items = @(
+::         [pscustomobject]@{ Title = 'Light update'; Subtitle = 'Update AI coding CLIs only: Codex, OMX, OpenCode, Claude Code, Gemini CLI.'; Accent = 'Green'; Key = 'UpdateLight' }
+::         [pscustomobject]@{ Title = 'Update all'; Subtitle = 'Run the broader toolchain update pass, including system package managers.'; Accent = 'Yellow'; Key = 'UpdateAll' }
+::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the main menu.'; Accent = 'DarkGray'; Key = 'back' }
+::     )
+::
+::     if ($DryRun) {
+::         return [pscustomobject]@{
+::             Title = 'Update'
+::             Subtitle = 'Run a lighter AI-tools-only update or the broader full maintenance pass.'
+::             Items = $items
+::         }
+::     }
+::
+::     $selection = Read-Menu -Title 'Update' -Subtitle 'Run a lighter AI-tools-only update or the broader full maintenance pass.' -Items $items
+::
+::     if (-not $selection -or $selection.Key -eq 'back') {
+::         return
+::     }
+::
+::     switch ($selection.Key) {
+::         'UpdateLight' { Launch-UpdateLightMode }
+::         'UpdateAll' { Launch-UpdateMode }
+::     }
+:: }
+::
 :: function Start-LauncherSelfUpdate {
 ::     param([Parameter(Mandatory = $true)]$Update)
 ::
@@ -1687,8 +1727,8 @@ exit /b %errorlevel%
 ::
 ::     return @(
 ::         [pscustomobject]@{
-::             Title = 'First install'
-::             Subtitle = 'Guided setup for WSL Ubuntu, optional PowerShell 7, and all AI CLI tools.'
+::             Title = 'First install (recommended)'
+::             Subtitle = 'Best beginner path for WSL Ubuntu, optional PowerShell 7, and all AI CLI tools.'
 ::             Accent = if ($ubuntuInstalled -and $pwshInfo.Installed) { 'Green' } else { 'Yellow' }
 ::             Key = 'first-install'
 ::         }
@@ -1806,11 +1846,13 @@ exit /b %errorlevel%
 ::     $wslLine = if ($ubuntuInstalled) { 'WSL     : Ubuntu already installed' } else { 'WSL     : Will run wsl --install -d Ubuntu' }
 ::     $powerLine = if ($pwshInfo.Installed) { 'Power   : PowerShell 7 already installed; SYTA can repair it if needed' } else { 'Power   : SYTA will ask whether to install PowerShell 7' }
 ::
+::     $cliLine = if ($ubuntuInstalled) { 'CLI     : Ready to launch all AI CLI tools now' } else { 'CLI     : Full AI CLI install starts after Ubuntu is ready' }
 ::     $lines = @(
 ::         'Target  : First install',
 ::         $wslLine,
 ::         $powerLine,
-::         'CLI     : Install all AI CLI tools once Ubuntu is ready'
+::         $cliLine,
+::         'Note    : Recommended path for a new machine or first SYTA setup'
 ::     )
 ::     if (-not $ubuntuInstalled) {
 ::         $lines += 'Note    : Ubuntu setup may require a reboot or first-run Linux account creation before CLI installs can continue'
@@ -2096,6 +2138,14 @@ exit /b %errorlevel%
 ::     exit 0
 :: }
 ::
+:: if ($Mode -eq 'Update') {
+::     $result = Launch-UpdateMenu
+::     if ($DryRun) {
+::         $result | ConvertTo-Json -Depth 4
+::     }
+::     exit 0
+:: }
+::
 :: if ($Mode -eq 'UpdateLight') {
 ::     Launch-UpdateLightMode
 ::     exit 0
@@ -2112,8 +2162,7 @@ exit /b %errorlevel%
 ::         [pscustomobject]@{ Title = 'Install'; Subtitle = 'Install WSL Ubuntu or supported coding CLIs with preflight diagnostics.'; Accent = 'Green'; Key = 'Install' }
 ::         [pscustomobject]@{ Title = 'Explanations'; Subtitle = 'Learn what the tools are, what SYTA recommends, and how to choose a setup.'; Accent = 'Blue'; Key = 'Explanations' }
 ::         [pscustomobject]@{ Title = 'Cleaner helper'; Subtitle = 'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.'; Accent = 'Cyan'; Key = 'CleanerHelper' }
-::         [pscustomobject]@{ Title = 'Light update'; Subtitle = 'Update AI coding CLIs only: Codex, OMX, OpenCode, Claude Code, Gemini CLI.'; Accent = 'Green'; Key = 'UpdateLight' }
-::         [pscustomobject]@{ Title = 'Update all'; Subtitle = 'Run the broader toolchain update pass, including system package managers.'; Accent = 'Yellow'; Key = 'UpdateAll' }
+::         [pscustomobject]@{ Title = 'Update'; Subtitle = 'Choose which update lane to run.'; Accent = 'Yellow'; Key = 'Update' }
 ::         [pscustomobject]@{ Title = 'Exit'; Subtitle = 'Close the launcher.'; Accent = 'DarkGray'; Key = 'Exit' }
 ::     )
 ::
@@ -2126,8 +2175,7 @@ exit /b %errorlevel%
 ::         'Install' { Launch-InstallMode }
 ::         'Explanations' { Launch-ExplanationsMode }
 ::         'CleanerHelper' { Invoke-CleanerHelperFlow }
-::         'UpdateLight' { Launch-UpdateLightMode }
-::         'UpdateAll' { Launch-UpdateMode }
+::         'Update' { Launch-UpdateMenu }
 ::     }
 :: }
 ::END:syta-agentic-launcher.ps1

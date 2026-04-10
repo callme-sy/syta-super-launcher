@@ -58,8 +58,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-10-031237Z'
-:: $script:ReleaseTag = 'v1.4.9'
+:: $script:BuildId = 'SYTA-build-2026-04-10-031900Z'
+:: $script:ReleaseTag = 'v1.4.10'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -155,6 +155,9 @@ exit /b %errorlevel%
 ::         'CLI     : Ready to launch all AI CLI tools now' = 'CLI     : pret a lancer maintenant toutes les CLI IA'
 ::         'CLI     : Full AI CLI install starts after Ubuntu is ready' = 'CLI     : l''installation complete des CLI IA demarre apres qu''Ubuntu soit pret'
 ::         'Note    : Recommended path for a new machine or first SYTA setup' = 'Note    : parcours recommande pour une nouvelle machine ou une premiere installation SYTA'
+::         'Note    : Ubuntu setup may require a reboot before CLI installs continue' = 'Note    : Ubuntu peut demander un redemarrage avant la suite des installations CLI'
+::         'Note    : Ubuntu may also require first-run Linux account creation' = 'Note    : Ubuntu peut aussi demander la creation initiale du compte Linux'
+::         'You can still use First install from here for the guided beginner path.' = 'Vous pouvez toujours utiliser Premiere installation ici pour le parcours debutant guide.'
 ::         'Learn what the tools are, who they are for, and what SYTA recommends.' = 'Comprendre les outils, a qui ils servent et ce que SYTA recommande.'
 ::         'Learn what the tools are, what SYTA recommends, and how to choose a setup.' = 'Comprendre les outils, ce que SYTA recommande et comment choisir votre configuration.'
 ::         'Beginner guide' = 'Guide debutant'
@@ -1855,7 +1858,8 @@ exit /b %errorlevel%
 ::         'Note    : Recommended path for a new machine or first SYTA setup'
 ::     )
 ::     if (-not $ubuntuInstalled) {
-::         $lines += 'Note    : Ubuntu setup may require a reboot or first-run Linux account creation before CLI installs can continue'
+::         $lines += 'Note    : Ubuntu setup may require a reboot before CLI installs continue'
+::         $lines += 'Note    : Ubuntu may also require first-run Linux account creation'
 ::     }
 ::
 ::     Show-InfoBox -Title 'First Install' -Accent Yellow -Hint 'SYTA keeps this selector open while new tabs launch' -Lines $lines
@@ -2009,9 +2013,11 @@ exit /b %errorlevel%
 ::         } catch {
 ::             Show-InfoBox -Title 'Installer' -Accent Yellow -Hint 'Back' -Lines @(
 ::                 'Live diagnostics were unavailable, so SYTA switched to a safe fallback install menu.',
-::                 'You can still install WSL Ubuntu or PowerShell 7 from here.'
+::                 'You can still install WSL Ubuntu or PowerShell 7 from here.',
+::                 'You can still use First install from here for the guided beginner path.'
 ::             )
 ::             Read-Menu -Title 'Installer' -Subtitle 'Install or repair WSL Ubuntu and supported coding CLIs.' -Items @(
+::                 [pscustomobject]@{ Title = 'First install (recommended)'; Subtitle = 'Best beginner path for WSL Ubuntu, optional PowerShell 7, and all AI CLI tools.'; Accent = 'Yellow'; Key = 'first-install' }
 ::                 [pscustomobject]@{ Title = 'WSL Ubuntu'; Subtitle = 'Missing | runs wsl --install -d Ubuntu'; Accent = 'Yellow'; Key = 'wsl-ubuntu' }
 ::                 [pscustomobject]@{ Title = 'PowerShell 7'; Subtitle = 'Missing | install via winget and set as Windows Terminal default.'; Accent = 'Yellow'; Key = 'powershell-7' }
 ::                 [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the main menu.'; Accent = 'DarkGray'; Key = 'back' }

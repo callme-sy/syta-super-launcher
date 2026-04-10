@@ -60,8 +60,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-10-082300Z'
-:: $script:ReleaseTag = 'v1.4.12'
+:: $script:BuildId = 'SYTA-build-2026-04-10-090500Z'
+:: $script:ReleaseTag = 'v1.4.13'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -1304,16 +1304,59 @@ exit /b %errorlevel%
 ::     }
 ::
 ::     $wt = Get-Command wt.exe -ErrorAction SilentlyContinue
+::     $successMessage = if ($script:Language -eq 'fr') {
+::         'Operation terminee. Vous pouvez fermer cette fenetre et revenir a la fenetre principale SYTA.'
+::     } else {
+::         'Operation completed. You can close this window and go back to the main SYTA window.'
+::     }
+::     $failureMessage = if ($script:Language -eq 'fr') {
+::         'Operation terminee avec une erreur.'
+::     } else {
+::         'Operation finished with an error.'
+::     }
+::     $returnMessage = if ($script:Language -eq 'fr') {
+::         'Revenez a la fenetre principale SYTA pour choisir une autre action ou installer l''outil manquant.'
+::     } else {
+::         'Go back to the main SYTA window to choose another action or install the missing tool.'
+::     }
+::     $closePrompt = if ($script:Language -eq 'fr') {
+::         'Appuyez sur Entree pour fermer cette fenetre'
+::     } else {
+::         'Press Enter to close this window'
+::     }
+::     $escapedTitle = $Title.Replace("'", "''")
+::     $escapedSuccess = $successMessage.Replace("'", "''")
+::     $escapedFailure = $failureMessage.Replace("'", "''")
+::     $escapedReturn = $returnMessage.Replace("'", "''")
+::     $escapedClosePrompt = $closePrompt.Replace("'", "''")
+::     $wrappedCommand = @(
+::         "`$env:SYTA_LANGUAGE = '$($script:Language)'"
+::         "`$Host.UI.RawUI.WindowTitle = '$escapedTitle'"
+::         '$ErrorActionPreference = ''Stop'''
+::         'try {'
+::         "  $Command"
+::         "  Write-Host ''"
+::         "  Write-Host '$escapedSuccess' -ForegroundColor Green"
+::         '} catch {'
+::         "  Write-Host ''"
+::         "  Write-Host '$escapedFailure' -ForegroundColor Red"
+::         '  Write-Host $_.Exception.Message -ForegroundColor Yellow'
+::         "  Write-Host '$escapedReturn' -ForegroundColor Cyan"
+::         '} finally {'
+::         "  Write-Host ''"
+::         "  Read-Host '$escapedClosePrompt' | Out-Null"
+::         '}'
+::     ) -join '; '
 ::     $psArgs = @(
 ::         '-NoExit',
 ::         '-ExecutionPolicy', 'Bypass',
-::         '-Command', "`$env:SYTA_LANGUAGE = '$($script:Language)'; `$Host.UI.RawUI.WindowTitle = '$Title'; $Command"
+::         '-Command', $wrappedCommand
 ::     )
 ::
 ::     if ($DryRun) {
 ::         return [pscustomobject]@{
 ::             Title = $Title
-::             Command = $Command
+::             Command = $wrappedCommand
 ::             FilePath = $psExe
 ::             UsesWindowsTerminal = ([bool]$wt -and $UseWindowsTerminal)
 ::         }
@@ -2685,16 +2728,22 @@ exit /b %errorlevel%
 ::       missing_agent) printf 'Cle agent manquante.\n' ;;
 ::       missing_install) printf 'Cible d''installation manquante.\n' ;;
 ::       unknown_mode) printf 'Mode de session inconnu : %s\n' "$value" ;;
-::       leaving_shell) printf 'Le shell %s reste ouvert pour le workspace.\n' "$value" ;;
 ::       session_exit) printf 'Code de sortie de session : %s\n' "$value" ;;
+::       session_ok) printf 'Operation terminee.\n' ;;
+::       session_failed) printf 'Operation terminee avec une erreur.\n' ;;
+::       return_main) printf 'Revenez a la fenetre principale de SYTA pour choisir autre chose ou lancer une installation.\n' ;;
+::       close_window) printf 'Appuyez sur Entree pour fermer cette fenetre.\n' ;;
 ::     esac
 ::   else
 ::     case "$key" in
 ::       missing_agent) printf 'Missing agent key.\n' ;;
 ::       missing_install) printf 'Missing install target.\n' ;;
 ::       unknown_mode) printf 'Unknown session mode: %s\n' "$value" ;;
-::       leaving_shell) printf 'Leaving %s open for the workspace.\n' "$value" ;;
 ::       session_exit) printf 'Session exit code: %s\n' "$value" ;;
+::       session_ok) printf 'Operation completed.\n' ;;
+::       session_failed) printf 'Operation finished with an error.\n' ;;
+::       return_main) printf 'Go back to the main SYTA window to choose another action or install the missing tool.\n' ;;
+::       close_window) printf 'Press Enter to close this window.\n' ;;
 ::     esac
 ::   fi
 :: }
@@ -2759,7 +2808,21 @@ exit /b %errorlevel%
 ::     ;;
 :: esac
 ::
-:: payload="$runner_cmd; syta_rc=\$?; printf '\n'; msg session_exit \"\$syta_rc\"; printf '\n'; msg leaving_shell $(quote_arg "$shell_bin"); exec $(quote_arg "$shell_bin") -i"
+:: if [ "$lang" = 'fr' ]; then
+::   success_text="Operation terminee."
+::   failure_text="Operation terminee avec une erreur."
+::   exit_prefix="Code de sortie de session : "
+::   return_text="Revenez a la fenetre principale de SYTA pour choisir autre chose ou lancer une installation."
+::   close_text="Appuyez sur Entree pour fermer cette fenetre."
+:: else
+::   success_text="Operation completed."
+::   failure_text="Operation finished with an error."
+::   exit_prefix="Session exit code: "
+::   return_text="Go back to the main SYTA window to choose another action or install the missing tool."
+::   close_text="Press Enter to close this window."
+:: fi
+::
+:: payload="$runner_cmd; syta_rc=\$?; printf '\n'; if [ \"\$syta_rc\" -eq 0 ]; then printf '%s\n' $(quote_arg "$success_text"); else printf '%s\n' $(quote_arg "$failure_text"); fi; printf '%s%s\n\n' $(quote_arg "$exit_prefix") \"\$syta_rc\"; printf '%s\n' $(quote_arg "$return_text"); printf '%s\n' $(quote_arg "$close_text"); read -r _syta_close_prompt || true; exit \"\$syta_rc\""
 :: run_in_shell "$payload"
 ::
 ::END:syta-wsl-session.sh
@@ -2854,7 +2917,12 @@ exit /b %errorlevel%
 :: show_header
 :: load_user_env
 :: if ! command -v bash >/dev/null 2>&1; then msg missing_bash; exit 1; fi
-:: if ! run_agent; then rc=$?; msg agent_exit "$rc"; exit "$rc"; fi
+:: run_agent
+:: rc=$?
+:: if [ "$rc" -ne 0 ]; then
+::   msg agent_exit "$rc"
+::   exit "$rc"
+:: fi
 :: msg session_end
 ::
 ::END:syta-run-agent.sh

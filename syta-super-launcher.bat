@@ -36,8 +36,10 @@ exit /b %errorlevel%
 ::     [string]$Mode,
 ::     [ValidateSet('codex-yolo', 'omx-madmax-high', 'opencode', 'claude-code', 'gemini-cli')]
 ::     [string]$Agent,
-::     [ValidateSet('first-install', 'wsl-ubuntu', 'powershell-7', 'all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'codex', 'opencode', 'omx', 'claude-code', 'gemini-cli', 'oh-my-opencode-slim')]
+::     [ValidateSet('first-install', 'wsl-ubuntu', 'powershell-7', 'all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'codex', 'opencode', 'omx', 'claude-code', 'gemini-cli', 'oh-my-openagent', 'oh-my-opencode-slim')]
 ::     [string]$InstallTarget,
+::     [ValidateSet('codex-omx', 'opencode', 'oh-my-openagent', 'oh-my-opencode-slim', 'claude-code', 'gemini-cli', 'all')]
+::     [string]$ResetTarget,
 ::     [string]$ProjectName,
 ::     [switch]$NoAnimation,
 ::     [switch]$NoMaximize,
@@ -58,8 +60,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-10-072500Z'
-:: $script:ReleaseTag = 'v1.4.11'
+:: $script:BuildId = 'SYTA-build-2026-04-10-082300Z'
+:: $script:ReleaseTag = 'v1.4.12'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -173,15 +175,15 @@ exit /b %errorlevel%
 ::         'OpenCode: lightweight coding CLI and usually the easiest first start.' = 'OpenCode : CLI de code legere et souvent le point de depart le plus simple.'
 ::         'Claude Code and Gemini CLI: best if you already use those ecosystems.' = 'Claude Code et Gemini CLI : pertinents surtout si vous utilisez deja ces ecosystemes.'
 ::         'Best beginner path: Install -> First install, then start with OpenCode or Codex.' = 'Meilleur parcours debutant : Installation -> Premiere installation, puis commencer avec OpenCode ou Codex.'
-::         'Oh My OpenCode Slim is an OpenCode add-on. It keeps the setup focused on OpenCode helpers.' = 'Oh My OpenCode Slim est un module complementaire pour OpenCode. Il garde la configuration centree sur les aides OpenCode.'
+::         'Oh My OpenAgent is the full OpenCode harness. Oh My OpenCode Slim keeps a lighter preset.' = 'Oh My OpenAgent est le harnais OpenCode complet. Oh My OpenCode Slim garde un preset plus leger.'
 ::         'Codex is the direct OpenAI lane; OMX adds more opinionated automation and orchestration.' = 'Codex est la voie OpenAI directe ; OMX ajoute davantage d''automatisation et d''orchestration opinionated.'
 ::         'OpenCode is often the lightest workflow; Codex and OMX are better when you want stronger guided execution.' = 'OpenCode est souvent le workflow le plus leger ; Codex et OMX sont meilleurs si vous voulez une execution plus guidee.'
 ::         'Install only the CLIs you will actually use. More tools means more auth, updates, and overlap.' = 'Installez seulement les CLI que vous utiliserez vraiment. Plus d''outils signifie plus d''authentification, de mises a jour et de chevauchements.'
-::         'Oh My OpenCode Slim keeps the setup focused on OpenCode helpers instead of a broader add-on bundle.' = 'Oh My OpenCode Slim garde la configuration centree sur les aides OpenCode plutot que sur un ensemble d''extensions plus large.'
+::         'Oh My OpenAgent is the broader OpenCode harness; Slim keeps a lighter OpenCode-focused preset.' = 'Oh My OpenAgent est le harnais OpenCode le plus large ; Slim garde un preset plus leger centre sur OpenCode.'
 ::         'Brand-new Windows machine: Install -> First install.' = 'Nouvelle machine Windows : Installation -> Premiere installation.'
 ::         'Lowest-friction start: OpenCode.' = 'Demarrage le plus simple : OpenCode.'
 ::         'Best OpenAI-first path: Codex, then OMX if you want deeper automation.' = 'Meilleur parcours centre OpenAI : Codex, puis OMX si vous voulez plus d''automatisation.'
-::         'Install Oh My OpenCode Slim only if you already like OpenCode and want extra helpers without a broader bundle.' = 'Installez Oh My OpenCode Slim seulement si vous aimez deja OpenCode et voulez des aides supplementaires sans ensemble plus large.'
+::         'Install Oh My OpenAgent if you want the full harness. Install Slim if you want a lighter preset.' = 'Installez Oh My OpenAgent si vous voulez le harnais complet. Installez Slim si vous voulez un preset plus leger.'
 ::         'Skip tools you do not have keys, subscriptions, or a real workflow for.' = 'Ignorez les outils pour lesquels vous n''avez pas de cle, d''abonnement ou de vrai besoin.'
 ::         'Choose what SYTA should do.' = 'Choisissez ce que SYTA doit faire.'
 ::         'Install or repair WSL Ubuntu and supported coding CLIs.' = 'Installer ou reparer WSL Ubuntu et les CLI de codage prises en charge.'
@@ -194,19 +196,38 @@ exit /b %errorlevel%
 ::         'Install PowerShell 7 now' = 'Installer PowerShell 7 maintenant'
 ::         'Reinstall or repair PowerShell 7' = 'Reinstaller ou reparer PowerShell 7'
 ::         'Install all AI CLI tools' = 'Installer toutes les CLI IA'
-::         'Run Codex, OMX, OpenCode, Claude Code, Gemini CLI, and Oh My OpenCode Slim in one pass.' = 'Lancer Codex, OMX, OpenCode, Claude Code, Gemini CLI et Oh My OpenCode Slim en une seule passe.'
+::         'Run Codex, OMX, OpenCode, Claude Code, and Gemini CLI in one pass.' = 'Lancer Codex, OMX, OpenCode, Claude Code et Gemini CLI en une seule passe.'
 ::         'Cleaner helper' = 'Assistant de nettoyage'
 ::         'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.' = 'Analyser les anciennes installations nvm/npm des CLI IA et les doublons du PATH avant nettoyage.'
 ::         'Reset tool configs' = 'Reinitialiser les configs des outils'
 ::         'Review tracked config/auth paths and remove only the ones you confirm.' = 'Examiner les chemins config/auth suivis et supprimer seulement ceux que vous confirmez.'
+::         'Choose which tool configs to reset.' = 'Choisissez quelles configs d''outils reinitialiser.'
+::         'Pick one tool family, or reset every tracked config path.' = 'Choisissez une famille d''outils, ou reinitialisez tous les chemins config suivis.'
+::         'Codex / OMX configs' = 'Configs Codex / OMX'
+::         'Remove tracked Codex and OMX auth/config files.' = 'Supprimer les fichiers config/auth suivis de Codex et OMX.'
+::         'OpenCode configs' = 'Configs OpenCode'
+::         'Remove tracked OpenCode base config files.' = 'Supprimer les fichiers de config principaux suivis d''OpenCode.'
+::         'Oh My OpenAgent configs' = 'Configs Oh My OpenAgent'
+::         'Remove tracked Oh My OpenAgent compatibility config files.' = 'Supprimer les fichiers de config de compatibilite suivis d''Oh My OpenAgent.'
+::         'Oh My OpenCode Slim configs' = 'Configs Oh My OpenCode Slim'
+::         'Remove tracked Oh My OpenCode Slim config files.' = 'Supprimer les fichiers de config suivis d''Oh My OpenCode Slim.'
+::         'Claude Code configs' = 'Configs Claude Code'
+::         'Remove tracked Claude Code config files.' = 'Supprimer les fichiers de config suivis de Claude Code.'
+::         'Gemini CLI configs' = 'Configs Gemini CLI'
+::         'Remove tracked Gemini and Google AI config folders.' = 'Supprimer les dossiers de config suivis de Gemini et Google AI.'
+::         'All tracked configs' = 'Toutes les configs suivies'
+::         'Remove every tracked config/auth path shown by SYTA.' = 'Supprimer tous les chemins config/auth suivis affiches par SYTA.'
 ::         'SYTA Install - Config Reset Helper' = 'SYTA Installation - Assistant de reinitialisation des configs'
 ::         'Target  : Reset tool configs' = 'Cible   : Reinitialiser les configs des outils'
 ::         'Action  : Review tracked config/auth paths and confirm which ones to remove' = 'Action  : examiner les chemins config/auth suivis et confirmer ceux a supprimer'
-::         'Scope   : Codex/OMX, OpenCode, Claude Code, Gemini CLI tracked config/auth paths' = 'Portee  : chemins config/auth suivis pour Codex/OMX, OpenCode, Claude Code et Gemini CLI'
+::         'Scope   : Selected tracked config/auth paths, or all tracked config/auth paths' = 'Portee  : chemins config/auth suivis selectionnes, ou tous les chemins config/auth suivis'
+::         'Selection : ' = 'Selection : '
 ::         'SYTA Install - Cleaner Helper' = 'SYTA Installation - Assistant de nettoyage'
 ::         'Target  : Cleaner helper' = 'Cible   : Assistant de nettoyage'
 ::         'Action  : Scan stale AI CLI installs and ask before removing old npm globals' = 'Action  : analyser les CLI IA obsoletes et demander avant de supprimer les npm globaux anciens'
 ::         'Scope   : Older nvm Node versions, duplicate PATH entries, user-scoped npm installs' = 'Portee  : anciennes versions Node nvm, doublons du PATH, installations npm utilisateur'
+::         'Oh My OpenAgent' = 'Oh My OpenAgent'
+::         'OpenCode + the full Oh My OpenAgent harness with its interactive installer.' = 'OpenCode + le harnais complet Oh My OpenAgent avec son installateur interactif.'
 ::         'Loading live tool diagnostics' = 'Chargement des diagnostics des outils'
 ::         'Checking Windows prerequisites' = 'Verification des prerequis Windows'
 ::         'Loading WSL tool diagnostics' = 'Chargement des diagnostics WSL'
@@ -392,6 +413,13 @@ exit /b %errorlevel%
 ::         DetectScript = $null
 ::         AuthScript = 'if [ -f "$HOME/.config/opencode/opencode.json" ]; then echo config-present; elif [ -n "${OPENAI_API_KEY:-}" ]; then echo env-key; else echo not-detected; fi'
 ::         InstallHint = 'Install from Install -> OpenCode.'
+::     }
+::     'oh-my-openagent' = [pscustomobject]@{
+::         Command = ''
+::         VersionScript = ''
+::         DetectScript = 'if [ -f "$HOME/.config/opencode/oh-my-openagent.jsonc" ]; then echo "$HOME/.config/opencode/oh-my-openagent.jsonc"; elif [ -f "$HOME/.config/opencode/oh-my-openagent.json" ]; then echo "$HOME/.config/opencode/oh-my-openagent.json"; elif [ -f "$HOME/.config/opencode/oh-my-opencode.jsonc" ]; then echo "$HOME/.config/opencode/oh-my-opencode.jsonc"; elif [ -f "$HOME/.config/opencode/oh-my-opencode.json" ]; then echo "$HOME/.config/opencode/oh-my-opencode.json"; elif [ -f "$HOME/.config/opencode/opencode.json" ] && grep -Eq "\"oh-my-openagent\"|\"oh-my-opencode\"" "$HOME/.config/opencode/opencode.json"; then echo "$HOME/.config/opencode/opencode.json"; elif [ -f "$HOME/.config/opencode/opencode.jsonc" ] && grep -Eq "\"oh-my-openagent\"|\"oh-my-opencode\"" "$HOME/.config/opencode/opencode.jsonc"; then echo "$HOME/.config/opencode/opencode.jsonc"; fi'
+::         AuthScript = 'if [ -f "$HOME/.config/opencode/oh-my-openagent.jsonc" ] || [ -f "$HOME/.config/opencode/oh-my-openagent.json" ] || [ -f "$HOME/.config/opencode/oh-my-opencode.jsonc" ] || [ -f "$HOME/.config/opencode/oh-my-opencode.json" ] || { [ -f "$HOME/.config/opencode/opencode.json" ] && grep -Eq "\"oh-my-openagent\"|\"oh-my-opencode\"" "$HOME/.config/opencode/opencode.json"; } || { [ -f "$HOME/.config/opencode/opencode.jsonc" ] && grep -Eq "\"oh-my-openagent\"|\"oh-my-opencode\"" "$HOME/.config/opencode/opencode.jsonc"; }; then echo config-present; else echo not-detected; fi'
+::         InstallHint = 'Install from Install -> Oh My OpenAgent.'
 ::     }
 ::     'claude-code' = [pscustomobject]@{
 ::         Command = 'claude'
@@ -1442,7 +1470,7 @@ exit /b %errorlevel%
 ::                     'OpenCode: lightweight coding CLI and usually the easiest first start.',
 ::                     'Claude Code and Gemini CLI: best if you already use those ecosystems.',
 ::                     'Best beginner path: Install -> First install, then start with OpenCode or Codex.',
-::                     'Oh My OpenCode Slim is an OpenCode add-on. It keeps the setup focused on OpenCode helpers.'
+::                     'Oh My OpenAgent is the full OpenCode harness. Oh My OpenCode Slim keeps a lighter preset.'
 ::                 )
 ::             }
 ::             'advanced' {
@@ -1450,7 +1478,7 @@ exit /b %errorlevel%
 ::                     'Codex is the direct OpenAI lane; OMX adds more opinionated automation and orchestration.',
 ::                     'OpenCode is often the lightest workflow; Codex and OMX are better when you want stronger guided execution.',
 ::                     'Install only the CLIs you will actually use. More tools means more auth, updates, and overlap.',
-::                     'Oh My OpenCode Slim keeps the setup focused on OpenCode helpers instead of a broader add-on bundle.'
+::                     'Oh My OpenAgent is the broader OpenCode harness; Slim keeps a lighter OpenCode-focused preset.'
 ::                 )
 ::             }
 ::             'recommend' {
@@ -1458,7 +1486,7 @@ exit /b %errorlevel%
 ::                     'Brand-new Windows machine: Install -> First install.',
 ::                     'Lowest-friction start: OpenCode.',
 ::                     'Best OpenAI-first path: Codex, then OMX if you want deeper automation.',
-::                     'Install Oh My OpenCode Slim only if you already like OpenCode and want extra helpers without a broader bundle.',
+::                     'Install Oh My OpenAgent if you want the full harness. Install Slim if you want a lighter preset.',
 ::                     'Skip tools you do not have keys, subscriptions, or a real workflow for.'
 ::                 )
 ::             }
@@ -1868,12 +1896,13 @@ exit /b %errorlevel%
 ::     $ubuntuInstalled = Test-UbuntuInstalled
 ::     $pwshInfo = Get-PwshInfo
 ::     if ($ubuntuInstalled) {
-::         Warm-ToolDiagnosticsCache -Keys @('codex', 'omx', 'opencode', 'claude-code', 'gemini-cli', 'oh-my-opencode-slim')
+::         Warm-ToolDiagnosticsCache -Keys @('codex', 'omx', 'opencode', 'claude-code', 'gemini-cli', 'oh-my-openagent', 'oh-my-opencode-slim')
 ::         $codexDiag = Get-ToolDiagnostics -Key 'codex'
 ::         $omxDiag = Get-ToolDiagnostics -Key 'omx'
 ::         $opencodeDiag = Get-ToolDiagnostics -Key 'opencode'
 ::         $claudeDiag = Get-ToolDiagnostics -Key 'claude-code'
 ::         $geminiDiag = Get-ToolDiagnostics -Key 'gemini-cli'
+::         $omaDiag = Get-ToolDiagnostics -Key 'oh-my-openagent'
 ::         $omoDiag = Get-ToolDiagnostics -Key 'oh-my-opencode-slim'
 ::     } else {
 ::         $codexDiag = New-WslMissingToolDiagnostics -Key 'codex'
@@ -1881,6 +1910,7 @@ exit /b %errorlevel%
 ::         $opencodeDiag = New-WslMissingToolDiagnostics -Key 'opencode'
 ::         $claudeDiag = New-WslMissingToolDiagnostics -Key 'claude-code'
 ::         $geminiDiag = New-WslMissingToolDiagnostics -Key 'gemini-cli'
+::         $omaDiag = New-WslMissingToolDiagnostics -Key 'oh-my-openagent'
 ::         $omoDiag = New-WslMissingToolDiagnostics -Key 'oh-my-opencode-slim'
 ::     }
 ::
@@ -1898,15 +1928,16 @@ exit /b %errorlevel%
 ::             Key = 'wsl-ubuntu'
 ::         }
 ::         [pscustomobject]@{ Title = 'PowerShell 7'; Subtitle = $pwshInfo.MenuText; Accent = if ($pwshInfo.Installed) { 'Green' } else { 'Yellow' }; Key = 'powershell-7' }
-::         [pscustomobject]@{ Title = 'Install all AI CLI tools'; Subtitle = if ($ubuntuInstalled) { 'Run Codex, OMX, OpenCode, Claude Code, Gemini CLI, and Oh My OpenCode Slim in one pass.' } else { 'WSL Ubuntu missing | install Ubuntu first.' }; Accent = if ($ubuntuInstalled) { 'Green' } else { 'Yellow' }; Key = 'all-ai-cli-tools' }
+::         [pscustomobject]@{ Title = 'Install all AI CLI tools'; Subtitle = if ($ubuntuInstalled) { 'Run Codex, OMX, OpenCode, Claude Code, and Gemini CLI in one pass.' } else { 'WSL Ubuntu missing | install Ubuntu first.' }; Accent = if ($ubuntuInstalled) { 'Green' } else { 'Yellow' }; Key = 'all-ai-cli-tools' }
 ::         [pscustomobject]@{ Title = 'Cleaner helper'; Subtitle = if ($ubuntuInstalled) { 'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.' } else { 'WSL Ubuntu missing | install Ubuntu first.' }; Accent = if ($ubuntuInstalled) { 'Cyan' } else { 'Yellow' }; Key = 'cleaner-helper' }
 ::         [pscustomobject]@{ Title = 'Reset tool configs'; Subtitle = if ($ubuntuInstalled) { 'Review tracked config/auth paths and remove only the ones you confirm.' } else { 'WSL Ubuntu missing | install Ubuntu first.' }; Accent = if ($ubuntuInstalled) { 'Yellow' } else { 'Yellow' }; Key = 'reset-tool-configs' }
 ::         [pscustomobject]@{ Title = 'Codex CLI'; Subtitle = $codexDiag.MenuText; Accent = if ($codexDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'codex' }
 ::         [pscustomobject]@{ Title = 'OpenCode'; Subtitle = $opencodeDiag.MenuText; Accent = if ($opencodeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'opencode' }
+::         [pscustomobject]@{ Title = 'Oh My OpenAgent'; Subtitle = $omaDiag.MenuText; Accent = if ($omaDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Yellow' }; Key = 'oh-my-openagent' }
 ::         [pscustomobject]@{ Title = 'Oh My Codex / OMX'; Subtitle = $omxDiag.MenuText; Accent = if ($omxDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'omx' }
 ::         [pscustomobject]@{ Title = 'Claude Code'; Subtitle = $claudeDiag.MenuText; Accent = if ($claudeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'claude-code' }
 ::         [pscustomobject]@{ Title = 'Gemini CLI'; Subtitle = $geminiDiag.MenuText; Accent = if ($geminiDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'gemini-cli' }
-::         [pscustomobject]@{ Title = 'Oh My OpenCode Slim'; Subtitle = $omoDiag.MenuText; Accent = if ($omoDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'oh-my-opencode-slim' }
+::         [pscustomobject]@{ Title = 'Oh My OpenCode Slim'; Subtitle = $omoDiag.MenuText; Accent = if ($omoDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Cyan' }; Key = 'oh-my-opencode-slim' }
 ::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the main menu.'; Accent = 'DarkGray'; Key = 'back' }
 ::     )
 :: }
@@ -1924,6 +1955,47 @@ exit /b %errorlevel%
 ::         $diag = Get-ToolDiagnostics -Key $_.Key
 ::         ('{0,-8}: {1}; {2}; {3}' -f $_.Label, $diag.InstallText, $diag.VersionText, $diag.AuthText)
 ::     })
+:: }
+::
+:: function Get-ResetConfigItems {
+::     return @(
+::         [pscustomobject]@{ Title = 'Codex / OMX configs'; Subtitle = 'Remove tracked Codex and OMX auth/config files.'; Accent = 'Cyan'; Key = 'codex-omx' }
+::         [pscustomobject]@{ Title = 'OpenCode configs'; Subtitle = 'Remove tracked OpenCode base config files.'; Accent = 'Green'; Key = 'opencode' }
+::         [pscustomobject]@{ Title = 'Oh My OpenAgent configs'; Subtitle = 'Remove tracked Oh My OpenAgent compatibility config files.'; Accent = 'Yellow'; Key = 'oh-my-openagent' }
+::         [pscustomobject]@{ Title = 'Oh My OpenCode Slim configs'; Subtitle = 'Remove tracked Oh My OpenCode Slim config files.'; Accent = 'White'; Key = 'oh-my-opencode-slim' }
+::         [pscustomobject]@{ Title = 'Claude Code configs'; Subtitle = 'Remove tracked Claude Code config files.'; Accent = 'Magenta'; Key = 'claude-code' }
+::         [pscustomobject]@{ Title = 'Gemini CLI configs'; Subtitle = 'Remove tracked Gemini and Google AI config folders.'; Accent = 'Blue'; Key = 'gemini-cli' }
+::         [pscustomobject]@{ Title = 'All tracked configs'; Subtitle = 'Remove every tracked config/auth path shown by SYTA.'; Accent = 'Red'; Key = 'all' }
+::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the previous menu.'; Accent = 'DarkGray'; Key = 'back' }
+::     )
+:: }
+::
+:: function Get-ResetConfigSelectionLabel {
+::     param([Parameter(Mandatory = $true)][string]$Key)
+::
+::     $match = Get-ResetConfigItems | Where-Object Key -eq $Key | Select-Object -First 1
+::     if ($match) {
+::         return $match.Title
+::     }
+::
+::     return $Key
+:: }
+::
+:: function Select-ResetConfigTarget {
+::     if ($ResetTarget) {
+::         return $ResetTarget
+::     }
+::
+::     if ($DryRun) {
+::         return 'all'
+::     }
+::
+::     $selection = Read-Menu -Title 'Reset tool configs' -Subtitle 'Choose which tool configs to reset.' -Items (Get-ResetConfigItems)
+::     if (-not $selection -or $selection.Key -eq 'back') {
+::         return $null
+::     }
+::
+::     return $selection.Key
 :: }
 ::
 :: function Invoke-WslUbuntuInstallFlow {
@@ -1962,7 +2034,7 @@ exit /b %errorlevel%
 :: function Invoke-AllAiCliInstallFlow {
 ::     Show-InfoBox -Title 'Install Preflight' -Accent Cyan -Hint 'A new terminal tab opens immediately after this screen' -Lines (@(
 ::         'Target  : Install all AI CLI tools',
-::         'Scope   : Codex, OMX, OpenCode, Claude Code, Gemini CLI, Oh My OpenCode Slim'
+::         'Scope   : Codex, OMX, OpenCode, Claude Code, Gemini CLI'
 ::     ) + (Get-CodingCliSummaryLines))
 ::
 ::     $result = Open-WslWindow `
@@ -2001,19 +2073,28 @@ exit /b %errorlevel%
 :: }
 ::
 :: function Invoke-ResetToolConfigsFlow {
+::     $selection = Select-ResetConfigTarget
+::     if (-not $selection) {
+::         return $null
+::     }
+::
+::     $selectionLabel = Get-ResetConfigSelectionLabel -Key $selection
 ::     Show-InfoBox -Title 'Install Preflight' -Accent Yellow -Hint 'A new terminal tab opens immediately after this screen' -Lines @(
 ::         'Target  : Reset tool configs',
 ::         'Action  : Review tracked config/auth paths and confirm which ones to remove',
-::         'Scope   : Codex/OMX, OpenCode, Claude Code, Gemini CLI tracked config/auth paths'
+::         'Scope   : Selected tracked config/auth paths, or all tracked config/auth paths',
+::         ("Selection : {0}" -f $selectionLabel)
 ::     )
 ::
 ::     $result = Open-WslWindow `
 ::         -Title (Localize-Text 'SYTA Install - Config Reset Helper') `
 ::         -WindowsDirectory $script:ScriptDir `
 ::         -WindowsScriptPath (Join-Path $script:ScriptDir 'syta-wsl-session.sh') `
-::         -ScriptArguments @('install', 'reset-tool-configs', $script:Language)
+::         -ScriptArguments @('install', 'reset-tool-configs', $script:Language, $selection)
 ::
 ::     if ($DryRun) {
+::         $result | Add-Member -NotePropertyName ResetTarget -NotePropertyValue $selection
+::         $result | Add-Member -NotePropertyName ResetTargetLabel -NotePropertyValue $selectionLabel
 ::         return $result
 ::     }
 ::
@@ -2586,6 +2667,7 @@ exit /b %errorlevel%
 :: mode="${1:-}"
 :: tool_key="${2:-}"
 :: lang_raw="${3:-${SYTA_LANGUAGE:-${SYTA_LANG:-auto}}}"
+:: tool_option="${4:-}"
 ::
 :: normalize_lang() {
 ::   case "${1:-auto}" in
@@ -2661,6 +2743,9 @@ exit /b %errorlevel%
 ::   install)
 ::     if [ -z "$tool_key" ]; then msg missing_install; exit 64; fi
 ::     runner_cmd="export SYTA_LANG=$(quote_arg "$lang"); export SYTA_LANGUAGE=$(quote_arg "$lang"); bash $(quote_arg "$script_dir/syta-install-tool.sh") $(quote_arg "$tool_key")"
+::     if [ -n "$tool_option" ]; then
+::       runner_cmd="$runner_cmd $(quote_arg "$tool_option")"
+::     fi
 ::     ;;
 ::   update)
 ::     runner_cmd="export SYTA_LANG=$(quote_arg "$lang"); export SYTA_LANGUAGE=$(quote_arg "$lang"); bash $(quote_arg "$script_dir/update-wsl-coding-tools.sh")"
@@ -2779,6 +2864,7 @@ exit /b %errorlevel%
 ::
 :: NVM_INSTALL_URL="https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh"
 :: tool_key="${1:-}"
+:: tool_option="${2:-}"
 ::
 :: show_header() {
 ::   printf '
@@ -2905,13 +2991,20 @@ exit /b %errorlevel%
 ::
 :: reset_config_specs() {
 ::   cat <<'EOF'
-:: Codex / OMX config|file|~/.codex/config.toml
-:: Codex / OMX auth|file|~/.codex/auth.json
-:: OpenCode config directory|dir|~/.config/opencode
-:: Claude Code config directory|dir|~/.config/claude
-:: Claude Code config file|file|~/.claude.json
-:: Gemini CLI config directory|dir|~/.config/gemini
-:: Google AI config directory|dir|~/.config/google
+:: codex-omx|Codex / OMX config|file|~/.codex/config.toml
+:: codex-omx|Codex / OMX auth|file|~/.codex/auth.json
+:: opencode|OpenCode config|file|~/.config/opencode/opencode.json
+:: opencode|OpenCode config|file|~/.config/opencode/opencode.jsonc
+:: oh-my-openagent|Oh My OpenAgent config|file|~/.config/opencode/oh-my-openagent.json
+:: oh-my-openagent|Oh My OpenAgent config|file|~/.config/opencode/oh-my-openagent.jsonc
+:: oh-my-openagent|Oh My OpenAgent legacy config|file|~/.config/opencode/oh-my-opencode.json
+:: oh-my-openagent|Oh My OpenAgent legacy config|file|~/.config/opencode/oh-my-opencode.jsonc
+:: oh-my-opencode-slim|Oh My OpenCode Slim config|file|~/.config/opencode/oh-my-opencode-slim.json
+:: oh-my-opencode-slim|Oh My OpenCode Slim config|file|~/.config/opencode/oh-my-opencode-slim.jsonc
+:: claude-code|Claude Code config directory|dir|~/.config/claude
+:: claude-code|Claude Code config file|file|~/.claude.json
+:: gemini-cli|Gemini CLI config directory|dir|~/.config/gemini
+:: gemini-cli|Google AI config directory|dir|~/.config/google
 :: EOF
 :: }
 ::
@@ -3074,6 +3167,24 @@ exit /b %errorlevel%
 ::   fi
 :: }
 ::
+:: install_oh_my_openagent() {
+::   load_user_env
+::   if ! command -v opencode >/dev/null 2>&1; then
+::     printf 'OpenCode is not installed yet. Installing OpenCode first.\n\n'
+::     install_opencode || return 1
+::     load_user_env
+::   fi
+::   if ! command -v opencode >/dev/null 2>&1; then
+::     printf 'OpenCode binary is still not on PATH after install.\n'
+::     return 1
+::   fi
+::   ensure_node_npm_latest || return 1
+::   printf 'Launching the official Oh My OpenAgent interactive installer.\n'
+::   printf 'Use this flow to choose your subscriptions and preferred provider setup.\n\n'
+::   run_step "Install Oh My OpenAgent" with_nvm npx oh-my-opencode install || return 1
+::   run_step "Oh My OpenAgent doctor" with_nvm npx oh-my-opencode doctor || return 1
+:: }
+::
 :: install_oh_my_opencode_slim() {
 ::   load_user_env
 ::   if ! command -v opencode >/dev/null 2>&1; then
@@ -3102,7 +3213,6 @@ exit /b %errorlevel%
 ::   install_gemini_cli || overall=1
 ::   install_opencode || overall=1
 ::   install_omx || overall=1
-::   install_oh_my_opencode_slim || overall=1
 ::   return "$overall"
 :: }
 ::
@@ -3247,6 +3357,7 @@ exit /b %errorlevel%
 :: }
 ::
 :: run_reset_tool_configs() {
+::   local selection="${1:-all}"
 ::   local label=""
 ::   local kind=""
 ::   local raw_path=""
@@ -3258,8 +3369,11 @@ exit /b %errorlevel%
 ::   printf 'Scanning tracked tool config/auth paths.\n'
 ::   printf 'This helper keeps broader history/session folders intact and only targets the tracked paths below.\n\n'
 ::
-::   while IFS='|' read -r label kind raw_path; do
+::   while IFS='|' read -r scope label kind raw_path; do
 ::     [ -n "$label" ] || continue
+::     if [ "$selection" != 'all' ] && [ "$scope" != "$selection" ]; then
+::       continue
+::     fi
 ::     target="$(expand_home_path "$raw_path")"
 ::     if [ -e "$target" ]; then
 ::       found_entries+=("$label|$kind|$target")
@@ -3307,12 +3421,13 @@ exit /b %errorlevel%
 :: case "$tool_key" in
 ::   all-ai-cli-tools) install_all_ai_cli_tools || status=$? ;;
 ::   cleaner-helper) run_cleaner_helper || status=$? ;;
-::   reset-tool-configs) run_reset_tool_configs || status=$? ;;
+::   reset-tool-configs) run_reset_tool_configs "$tool_option" || status=$? ;;
 ::   codex) install_codex || status=$? ;;
 ::   opencode) install_opencode || status=$? ;;
 ::   omx) install_omx || status=$? ;;
 ::   claude-code) install_claude_code || status=$? ;;
 ::   gemini-cli) install_gemini_cli || status=$? ;;
+::   oh-my-openagent) install_oh_my_openagent || status=$? ;;
 ::   oh-my-opencode-slim) install_oh_my_opencode_slim || status=$? ;;
 ::   *) printf 'Unknown install target: %s
 :: ' "$tool_key"; exit 64 ;;

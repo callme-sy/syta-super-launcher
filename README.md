@@ -79,6 +79,7 @@ The installer currently supports:
 - `Reset tool configs`
 - `Codex CLI`
 - `OpenCode`
+- `Oh My OpenAgent`
 - `Oh My Codex / OMX`
 - `Claude Code`
 - `Gemini CLI`
@@ -88,9 +89,13 @@ The installer currently supports:
 
 `Cleaner helper` is available directly from the main menu and also in the install menu. It scans for tracked AI CLI installs left behind in older `nvm` Node versions, plus duplicate PATH hits, then asks before removing stale npm globals it can safely clean.
 
-`Reset tool configs` is the deeper cleanup lane. It reviews tracked config/auth paths for Codex/OMX, OpenCode, Claude Code, and Gemini CLI, then removes only the individual paths the user explicitly confirms.
+`Reset tool configs` now opens a second selector. From there you can reset only `Codex / OMX`, `OpenCode`, `Oh My OpenAgent`, `Oh My OpenCode Slim`, `Claude Code`, `Gemini CLI`, or `All tracked configs`.
 
-`Oh My OpenCode Slim` stays positioned as the focused OpenCode add-on. It is intended for users who want extra OpenCode helpers without pulling in a broader add-on bundle.
+`OpenCode`, `Oh My OpenAgent`, and `Oh My OpenCode Slim` are now separate lanes:
+
+- `OpenCode` is the normal coding CLI.
+- `Oh My OpenAgent` is the broader OpenCode harness.
+- `Oh My OpenCode Slim` stays positioned as the lighter preset for people who want extra helpers without the broader harness.
 
 ## Language
 
@@ -159,7 +164,7 @@ Important behaviors:
 
 - `First install` guides a new machine through WSL Ubuntu, optional PowerShell 7, then the full AI CLI toolchain when Ubuntu is ready.
 - `Cleaner helper` is reachable from the main menu for faster maintenance and still checks stale npm-based AI CLI installs across older `nvm` versions before cleanup.
-- `Reset tool configs` gives users a conservative way to undo tracked tool config/auth paths without deleting broader history or session folders.
+- `Reset tool configs` gives users a conservative way to undo tracked tool config/auth paths, with a second menu for tool-specific reset choices or `All tracked configs`.
 - Menus use a cleaner focused-detail layout and loading progress when project or tool data takes time to prepare.
 - The launcher can check for a newer GitHub release and offer an in-place launcher update.
 - It prefers `nvm` for Node-based CLI installs.

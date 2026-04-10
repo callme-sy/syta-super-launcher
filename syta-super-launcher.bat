@@ -36,7 +36,7 @@ exit /b %errorlevel%
 ::     [string]$Mode,
 ::     [ValidateSet('codex-yolo', 'omx-madmax-high', 'opencode', 'claude-code', 'gemini-cli')]
 ::     [string]$Agent,
-::     [ValidateSet('first-install', 'wsl-ubuntu', 'powershell-7', 'all-ai-cli-tools', 'cleaner-helper', 'codex', 'opencode', 'omx', 'claude-code', 'gemini-cli', 'oh-my-opencode-slim')]
+::     [ValidateSet('first-install', 'wsl-ubuntu', 'powershell-7', 'all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'codex', 'opencode', 'omx', 'claude-code', 'gemini-cli', 'oh-my-opencode-slim')]
 ::     [string]$InstallTarget,
 ::     [string]$ProjectName,
 ::     [switch]$NoAnimation,
@@ -58,8 +58,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-10-031900Z'
-:: $script:ReleaseTag = 'v1.4.10'
+:: $script:BuildId = 'SYTA-build-2026-04-10-072500Z'
+:: $script:ReleaseTag = 'v1.4.11'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -130,6 +130,7 @@ exit /b %errorlevel%
 ::         'Existing Projects' = 'Projets existants'
 ::         'Search Projects' = 'Rechercher des projets'
 ::         'Search scans existing folders under C:\.CODEX.' = 'La recherche parcourt les dossiers existants sous C:\.CODEX.'
+::         'Search is case-insensitive and matches partial words.' = 'La recherche ignore la casse et reconnait les mots partiels.'
 ::         '   Search term' = '   Terme de recherche'
 ::         'No project matches' = 'Aucun projet correspondant'
 ::         'Try another search' = 'Essayez une autre recherche'
@@ -172,15 +173,15 @@ exit /b %errorlevel%
 ::         'OpenCode: lightweight coding CLI and usually the easiest first start.' = 'OpenCode : CLI de code legere et souvent le point de depart le plus simple.'
 ::         'Claude Code and Gemini CLI: best if you already use those ecosystems.' = 'Claude Code et Gemini CLI : pertinents surtout si vous utilisez deja ces ecosystemes.'
 ::         'Best beginner path: Install -> First install, then start with OpenCode or Codex.' = 'Meilleur parcours debutant : Installation -> Premiere installation, puis commencer avec OpenCode ou Codex.'
-::         'Oh My OpenCode Slim is an OpenCode add-on. It is separate from OpenAgent.' = 'Oh My OpenCode Slim est un module complementaire pour OpenCode. Il est distinct d''OpenAgent.'
+::         'Oh My OpenCode Slim is an OpenCode add-on. It keeps the setup focused on OpenCode helpers.' = 'Oh My OpenCode Slim est un module complementaire pour OpenCode. Il garde la configuration centree sur les aides OpenCode.'
 ::         'Codex is the direct OpenAI lane; OMX adds more opinionated automation and orchestration.' = 'Codex est la voie OpenAI directe ; OMX ajoute davantage d''automatisation et d''orchestration opinionated.'
 ::         'OpenCode is often the lightest workflow; Codex and OMX are better when you want stronger guided execution.' = 'OpenCode est souvent le workflow le plus leger ; Codex et OMX sont meilleurs si vous voulez une execution plus guidee.'
 ::         'Install only the CLIs you will actually use. More tools means more auth, updates, and overlap.' = 'Installez seulement les CLI que vous utiliserez vraiment. Plus d''outils signifie plus d''authentification, de mises a jour et de chevauchements.'
-::         'Oh My OpenCode Slim stays focused on OpenCode helpers. It is not Oh My OpenAgent, which is heavier and more token-expensive.' = 'Oh My OpenCode Slim reste centre sur les aides OpenCode. Ce n''est pas Oh My OpenAgent, qui est plus lourd et plus couteux en tokens.'
+::         'Oh My OpenCode Slim keeps the setup focused on OpenCode helpers instead of a broader add-on bundle.' = 'Oh My OpenCode Slim garde la configuration centree sur les aides OpenCode plutot que sur un ensemble d''extensions plus large.'
 ::         'Brand-new Windows machine: Install -> First install.' = 'Nouvelle machine Windows : Installation -> Premiere installation.'
 ::         'Lowest-friction start: OpenCode.' = 'Demarrage le plus simple : OpenCode.'
 ::         'Best OpenAI-first path: Codex, then OMX if you want deeper automation.' = 'Meilleur parcours centre OpenAI : Codex, puis OMX si vous voulez plus d''automatisation.'
-::         'Install Oh My OpenCode Slim only if you already like OpenCode and want extra helpers.' = 'Installez Oh My OpenCode Slim seulement si vous aimez deja OpenCode et voulez des aides supplementaires.'
+::         'Install Oh My OpenCode Slim only if you already like OpenCode and want extra helpers without a broader bundle.' = 'Installez Oh My OpenCode Slim seulement si vous aimez deja OpenCode et voulez des aides supplementaires sans ensemble plus large.'
 ::         'Skip tools you do not have keys, subscriptions, or a real workflow for.' = 'Ignorez les outils pour lesquels vous n''avez pas de cle, d''abonnement ou de vrai besoin.'
 ::         'Choose what SYTA should do.' = 'Choisissez ce que SYTA doit faire.'
 ::         'Install or repair WSL Ubuntu and supported coding CLIs.' = 'Installer ou reparer WSL Ubuntu et les CLI de codage prises en charge.'
@@ -196,6 +197,12 @@ exit /b %errorlevel%
 ::         'Run Codex, OMX, OpenCode, Claude Code, Gemini CLI, and Oh My OpenCode Slim in one pass.' = 'Lancer Codex, OMX, OpenCode, Claude Code, Gemini CLI et Oh My OpenCode Slim en une seule passe.'
 ::         'Cleaner helper' = 'Assistant de nettoyage'
 ::         'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.' = 'Analyser les anciennes installations nvm/npm des CLI IA et les doublons du PATH avant nettoyage.'
+::         'Reset tool configs' = 'Reinitialiser les configs des outils'
+::         'Review tracked config/auth paths and remove only the ones you confirm.' = 'Examiner les chemins config/auth suivis et supprimer seulement ceux que vous confirmez.'
+::         'SYTA Install - Config Reset Helper' = 'SYTA Installation - Assistant de reinitialisation des configs'
+::         'Target  : Reset tool configs' = 'Cible   : Reinitialiser les configs des outils'
+::         'Action  : Review tracked config/auth paths and confirm which ones to remove' = 'Action  : examiner les chemins config/auth suivis et confirmer ceux a supprimer'
+::         'Scope   : Codex/OMX, OpenCode, Claude Code, Gemini CLI tracked config/auth paths' = 'Portee  : chemins config/auth suivis pour Codex/OMX, OpenCode, Claude Code et Gemini CLI'
 ::         'SYTA Install - Cleaner Helper' = 'SYTA Installation - Assistant de nettoyage'
 ::         'Target  : Cleaner helper' = 'Cible   : Assistant de nettoyage'
 ::         'Action  : Scan stale AI CLI installs and ask before removing old npm globals' = 'Action  : analyser les CLI IA obsoletes et demander avant de supprimer les npm globaux anciens'
@@ -1435,7 +1442,7 @@ exit /b %errorlevel%
 ::                     'OpenCode: lightweight coding CLI and usually the easiest first start.',
 ::                     'Claude Code and Gemini CLI: best if you already use those ecosystems.',
 ::                     'Best beginner path: Install -> First install, then start with OpenCode or Codex.',
-::                     'Oh My OpenCode Slim is an OpenCode add-on. It is separate from OpenAgent.'
+::                     'Oh My OpenCode Slim is an OpenCode add-on. It keeps the setup focused on OpenCode helpers.'
 ::                 )
 ::             }
 ::             'advanced' {
@@ -1443,7 +1450,7 @@ exit /b %errorlevel%
 ::                     'Codex is the direct OpenAI lane; OMX adds more opinionated automation and orchestration.',
 ::                     'OpenCode is often the lightest workflow; Codex and OMX are better when you want stronger guided execution.',
 ::                     'Install only the CLIs you will actually use. More tools means more auth, updates, and overlap.',
-::                     'Oh My OpenCode Slim stays focused on OpenCode helpers. It is not Oh My OpenAgent, which is heavier and more token-expensive.'
+::                     'Oh My OpenCode Slim keeps the setup focused on OpenCode helpers instead of a broader add-on bundle.'
 ::                 )
 ::             }
 ::             'recommend' {
@@ -1451,7 +1458,7 @@ exit /b %errorlevel%
 ::                     'Brand-new Windows machine: Install -> First install.',
 ::                     'Lowest-friction start: OpenCode.',
 ::                     'Best OpenAI-first path: Codex, then OMX if you want deeper automation.',
-::                     'Install Oh My OpenCode Slim only if you already like OpenCode and want extra helpers.',
+::                     'Install Oh My OpenCode Slim only if you already like OpenCode and want extra helpers without a broader bundle.',
 ::                     'Skip tools you do not have keys, subscriptions, or a real workflow for.'
 ::                 )
 ::             }
@@ -1531,6 +1538,148 @@ exit /b %errorlevel%
 ::         Sort-Object Name
 :: }
 ::
+:: function Get-NormalizedSearchText {
+::     param([AllowNull()][string]$Value)
+::
+::     if ([string]::IsNullOrWhiteSpace($Value)) {
+::         return ''
+::     }
+::
+::     return (($Value.ToLowerInvariant()) -replace '[^a-z0-9]+', ' ').Trim()
+:: }
+::
+:: function Get-CompactSearchText {
+::     param([AllowNull()][string]$Value)
+::
+::     $normalized = Get-NormalizedSearchText -Value $Value
+::     if (-not $normalized) {
+::         return ''
+::     }
+::
+::     return ($normalized -replace '\s+', '')
+:: }
+::
+:: function Get-SearchTokens {
+::     param([AllowNull()][string]$Value)
+::
+::     $normalized = Get-NormalizedSearchText -Value $Value
+::     if (-not $normalized) {
+::         return @()
+::     }
+::
+::     return @($normalized -split '\s+' | Where-Object { $_ })
+:: }
+::
+:: function Test-CompactSubsequence {
+::     param(
+::         [string]$Needle,
+::         [string]$Haystack
+::     )
+::
+::     if (-not $Needle -or -not $Haystack) {
+::         return $false
+::     }
+::
+::     $index = 0
+::     foreach ($char in $Haystack.ToCharArray()) {
+::         if ($char -eq $Needle[$index]) {
+::             $index++
+::             if ($index -ge $Needle.Length) {
+::                 return $true
+::             }
+::         }
+::     }
+::
+::     return $false
+:: }
+::
+:: function Get-ProjectSearchScore {
+::     param(
+::         [Parameter(Mandatory = $true)][string]$Name,
+::         [Parameter(Mandatory = $true)][string]$Query,
+::         [switch]$IsRecent
+::     )
+::
+::     $compactName = Get-CompactSearchText -Value $Name
+::     $compactQuery = Get-CompactSearchText -Value $Query
+::     if (-not $compactName -or -not $compactQuery) {
+::         return $null
+::     }
+::
+::     $normalizedName = Get-NormalizedSearchText -Value $Name
+::     $normalizedQuery = Get-NormalizedSearchText -Value $Query
+::     $tokens = @(Get-SearchTokens -Value $Query)
+::     $score = 0
+::
+::     if ($compactName -eq $compactQuery) {
+::         $score += 500
+::     } elseif ($normalizedName -eq $normalizedQuery) {
+::         $score += 460
+::     } elseif ($compactName.StartsWith($compactQuery)) {
+::         $score += 380
+::     } elseif ($normalizedName.StartsWith($normalizedQuery)) {
+::         $score += 340
+::     } elseif ($compactName.Contains($compactQuery)) {
+::         $score += 280
+::     } elseif ($normalizedName.Contains($normalizedQuery)) {
+::         $score += 240
+::     }
+::
+::     $matchedTokens = 0
+::     foreach ($token in $tokens) {
+::         if ($compactName.StartsWith($token) -or $normalizedName -match ("(^|\s){0}" -f [regex]::Escape($token))) {
+::             $score += 60
+::             $matchedTokens++
+::             continue
+::         }
+::
+::         if ($compactName.Contains($token) -or $normalizedName.Contains($token)) {
+::             $score += 35
+::             $matchedTokens++
+::         }
+::     }
+::
+::     if ($tokens.Count -gt 0 -and $matchedTokens -eq $tokens.Count) {
+::         $score += 40
+::     }
+::
+::     if ($score -eq 0 -and (Test-CompactSubsequence -Needle $compactQuery -Haystack $compactName)) {
+::         $score = 120
+::     }
+::
+::     if ($score -eq 0) {
+::         return $null
+::     }
+::
+::     if ($IsRecent) {
+::         $score += 15
+::     }
+::
+::     return $score
+:: }
+::
+:: function Find-ProjectsBySearchQuery {
+::     param(
+::         [Parameter(Mandatory = $true)][array]$Projects,
+::         [Parameter(Mandatory = $true)][string]$Query
+::     )
+::
+::     return @(
+::         $Projects |
+::             ForEach-Object {
+::                 $score = Get-ProjectSearchScore -Name $_.Name -Query $Query -IsRecent:([bool]($_.PSObject.Properties.Match('IsRecent').Count -and $_.IsRecent))
+::                 if ($null -ne $score) {
+::                     [pscustomobject]@{
+::                         Score = $score
+::                         Project = $_
+::                     }
+::                 }
+::             } |
+::             Sort-Object @{ Expression = 'Score'; Descending = $true }, @{ Expression = { $_.Project.Name.ToLowerInvariant() }; Descending = $false } |
+::             ForEach-Object { $_.Project }
+::     )
+:: }
+::
 :: function Prompt-NewProject {
 ::     while ($true) {
 ::         Clear-Host
@@ -1591,14 +1740,20 @@ exit /b %errorlevel%
 ::
 ::     Show-LoadProgress -Title 'Project Selector' -Status 'Loading recent projects' -Current 1 -Total 2 -Accent Cyan
 ::     $recent = @(Get-RecentProjects)
+::     $recentLookup = @{}
+::     foreach ($item in $recent) {
+::         $recentLookup[$item.Name] = $true
+::     }
 ::     Show-LoadProgress -Title 'Project Selector' -Status 'Scanning project folders' -Current 2 -Total 2 -Accent White
 ::     $existing = @(Get-ProjectDirectories | ForEach-Object {
+::         $isRecent = $recentLookup.ContainsKey($_.Name)
 ::         [pscustomobject]@{
 ::             Title = $_.Name
-::             Subtitle = "Project folder in $script:ProjectsRoot"
-::             Accent = 'White'
+::             Subtitle = if ($isRecent) { "Recent project folder in $script:ProjectsRoot" } else { "Project folder in $script:ProjectsRoot" }
+::             Accent = if ($isRecent) { 'Cyan' } else { 'White' }
 ::             Name = $_.Name
 ::             Existing = $true
+::             IsRecent = $isRecent
 ::         }
 ::     })
 ::
@@ -1632,6 +1787,7 @@ exit /b %errorlevel%
 ::                 Write-Banner -Tagline 'Search Projects' -Hint 'Leave blank to cancel'
 ::                 Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
 ::                 Write-BoxLine -Content 'Search scans existing folders under C:\.CODEX.' -Color Gray
+::                 Write-BoxLine -Content 'Search is case-insensitive and matches partial words.' -Color DarkGray
 ::                 Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
 ::                 Write-Host ''
 ::                 $query = Read-Host (Localize-Text '   Search term')
@@ -1639,7 +1795,7 @@ exit /b %errorlevel%
 ::                     return $null
 ::                 }
 ::
-::                 $matches = @($existing | Where-Object { $_.Name -like "*$query*" })
+::                 $matches = @(Find-ProjectsBySearchQuery -Projects $existing -Query $query)
 ::                 if ($matches.Count -eq 0) {
 ::                     Show-InfoBox -Title 'No project matches' -Lines @("No existing project matched '$query'.") -Accent Red -Hint 'Try another search'
 ::                     Start-Sleep -Milliseconds 1000
@@ -1744,6 +1900,7 @@ exit /b %errorlevel%
 ::         [pscustomobject]@{ Title = 'PowerShell 7'; Subtitle = $pwshInfo.MenuText; Accent = if ($pwshInfo.Installed) { 'Green' } else { 'Yellow' }; Key = 'powershell-7' }
 ::         [pscustomobject]@{ Title = 'Install all AI CLI tools'; Subtitle = if ($ubuntuInstalled) { 'Run Codex, OMX, OpenCode, Claude Code, Gemini CLI, and Oh My OpenCode Slim in one pass.' } else { 'WSL Ubuntu missing | install Ubuntu first.' }; Accent = if ($ubuntuInstalled) { 'Green' } else { 'Yellow' }; Key = 'all-ai-cli-tools' }
 ::         [pscustomobject]@{ Title = 'Cleaner helper'; Subtitle = if ($ubuntuInstalled) { 'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.' } else { 'WSL Ubuntu missing | install Ubuntu first.' }; Accent = if ($ubuntuInstalled) { 'Cyan' } else { 'Yellow' }; Key = 'cleaner-helper' }
+::         [pscustomobject]@{ Title = 'Reset tool configs'; Subtitle = if ($ubuntuInstalled) { 'Review tracked config/auth paths and remove only the ones you confirm.' } else { 'WSL Ubuntu missing | install Ubuntu first.' }; Accent = if ($ubuntuInstalled) { 'Yellow' } else { 'Yellow' }; Key = 'reset-tool-configs' }
 ::         [pscustomobject]@{ Title = 'Codex CLI'; Subtitle = $codexDiag.MenuText; Accent = if ($codexDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'codex' }
 ::         [pscustomobject]@{ Title = 'OpenCode'; Subtitle = $opencodeDiag.MenuText; Accent = if ($opencodeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'opencode' }
 ::         [pscustomobject]@{ Title = 'Oh My Codex / OMX'; Subtitle = $omxDiag.MenuText; Accent = if ($omxDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'omx' }
@@ -1834,6 +1991,27 @@ exit /b %errorlevel%
 ::         -WindowsDirectory $script:ScriptDir `
 ::         -WindowsScriptPath (Join-Path $script:ScriptDir 'syta-wsl-session.sh') `
 ::         -ScriptArguments @('install', 'cleaner-helper', $script:Language)
+::
+::     if ($DryRun) {
+::         return $result
+::     }
+::
+::     Start-Sleep -Milliseconds 500
+::     return $null
+:: }
+::
+:: function Invoke-ResetToolConfigsFlow {
+::     Show-InfoBox -Title 'Install Preflight' -Accent Yellow -Hint 'A new terminal tab opens immediately after this screen' -Lines @(
+::         'Target  : Reset tool configs',
+::         'Action  : Review tracked config/auth paths and confirm which ones to remove',
+::         'Scope   : Codex/OMX, OpenCode, Claude Code, Gemini CLI tracked config/auth paths'
+::     )
+::
+::     $result = Open-WslWindow `
+::         -Title (Localize-Text 'SYTA Install - Config Reset Helper') `
+::         -WindowsDirectory $script:ScriptDir `
+::         -WindowsScriptPath (Join-Path $script:ScriptDir 'syta-wsl-session.sh') `
+::         -ScriptArguments @('install', 'reset-tool-configs', $script:Language)
 ::
 ::     if ($DryRun) {
 ::         return $result
@@ -2071,6 +2249,15 @@ exit /b %errorlevel%
 ::             return
 ::         }
 ::         return
+::     }
+::
+::     if ($selection.Key -eq 'reset-tool-configs') {
+::         $result = Invoke-ResetToolConfigsFlow
+::         if ($DryRun) {
+::             $result | ConvertTo-Json -Depth 4
+::             return
+::         }
+::         return
 ::     } else {
 ::         $diag = Get-ToolDiagnostics -Key $selection.Key -Refresh
 ::         Show-InfoBox -Title 'Install Preflight' -Accent Cyan -Hint 'A new terminal tab opens immediately after this screen' -Lines @(
@@ -2184,6 +2371,7 @@ exit /b %errorlevel%
 ::         'Update' { Launch-UpdateMenu }
 ::     }
 :: }
+::
 ::END:syta-agentic-launcher.ps1
 
 ::BEGIN:syta-tool-diagnostics.sh
@@ -2707,6 +2895,26 @@ exit /b %errorlevel%
 :: EOF
 :: }
 ::
+:: expand_home_path() {
+::   case "${1:-}" in
+::     "~") printf '%s\n' "$HOME" ;;
+::     "~/"*) printf '%s/%s\n' "$HOME" "${1#~/}" ;;
+::     *) printf '%s\n' "${1:-}" ;;
+::   esac
+:: }
+::
+:: reset_config_specs() {
+::   cat <<'EOF'
+:: Codex / OMX config|file|~/.codex/config.toml
+:: Codex / OMX auth|file|~/.codex/auth.json
+:: OpenCode config directory|dir|~/.config/opencode
+:: Claude Code config directory|dir|~/.config/claude
+:: Claude Code config file|file|~/.claude.json
+:: Gemini CLI config directory|dir|~/.config/gemini
+:: Google AI config directory|dir|~/.config/google
+:: EOF
+:: }
+::
 :: ensure_sudo() {
 ::   if ! command -v sudo >/dev/null 2>&1; then
 ::     printf 'sudo is not available. Cannot install system packages automatically.
@@ -3038,6 +3246,60 @@ exit /b %errorlevel%
 ::   return "$overall"
 :: }
 ::
+:: run_reset_tool_configs() {
+::   local label=""
+::   local kind=""
+::   local raw_path=""
+::   local target=""
+::   local overall=0
+::   local entry=""
+::   local -a found_entries=()
+::
+::   printf 'Scanning tracked tool config/auth paths.\n'
+::   printf 'This helper keeps broader history/session folders intact and only targets the tracked paths below.\n\n'
+::
+::   while IFS='|' read -r label kind raw_path; do
+::     [ -n "$label" ] || continue
+::     target="$(expand_home_path "$raw_path")"
+::     if [ -e "$target" ]; then
+::       found_entries+=("$label|$kind|$target")
+::     fi
+::   done < <(reset_config_specs)
+::
+::   if [ ${#found_entries[@]} -eq 0 ]; then
+::     printf 'No tracked config/auth paths were found.\n'
+::     return 0
+::   fi
+::
+::   printf 'Tracked config/auth paths found:\n'
+::   for entry in "${found_entries[@]}"; do
+::     IFS='|' read -r label kind target <<< "$entry"
+::     printf ' - %s (%s): %s\n' "$label" "$kind" "$target"
+::   done
+::
+::   for entry in "${found_entries[@]}"; do
+::     IFS='|' read -r label kind target <<< "$entry"
+::     printf '\n'
+::     if ! prompt_yes_no "Remove $label at $target?"; then
+::       printf 'Skipped %s.\n' "$label"
+::       continue
+::     fi
+::
+::     if [ "$kind" = 'dir' ]; then
+::       run_step "Remove $label" rm -rf -- "$target" || overall=1
+::     else
+::       run_step "Remove $label" rm -f -- "$target" || overall=1
+::     fi
+::   done
+::
+::   if [ "$overall" -eq 0 ]; then
+::     printf 'Config reset completed.\n'
+::   else
+::     printf 'Config reset completed with failures.\n'
+::   fi
+::   return "$overall"
+:: }
+::
 :: show_header
 :: load_user_env
 ::
@@ -3045,6 +3307,7 @@ exit /b %errorlevel%
 :: case "$tool_key" in
 ::   all-ai-cli-tools) install_all_ai_cli_tools || status=$? ;;
 ::   cleaner-helper) run_cleaner_helper || status=$? ;;
+::   reset-tool-configs) run_reset_tool_configs || status=$? ;;
 ::   codex) install_codex || status=$? ;;
 ::   opencode) install_opencode || status=$? ;;
 ::   omx) install_omx || status=$? ;;
@@ -3066,6 +3329,7 @@ exit /b %errorlevel%
 :: fi
 ::
 :: exit "$status"
+::
 ::END:syta-install-tool.sh
 ::BEGIN:update-ai-cli-tools.sh
 :: #!/usr/bin/env bash

@@ -29,9 +29,11 @@
 It gives you one interactive entry point to:
 
 - create and reopen projects under `C:\.CODEX`
+- search projects with ranked, case-insensitive partial matching
 - launch AI coding CLIs inside WSL
 - install missing tools
 - run the cleaner helper directly from the main menu
+- reset tracked tool configs when a setup has become too cluttered
 - run light or full update flows
 - surface diagnostics before launch
 
@@ -44,6 +46,7 @@ The entire runtime is embedded into the batch file itself. At launch, it extract
 | `Code` | Opens a project and launches a coding CLI in WSL |
 | `Install` | Installs or repairs the environment and supported tools |
 | `Cleaner helper` | Scans stale AI CLI installs and duplicate PATH hits from the main menu |
+| `Reset tool configs` | Reviews tracked config/auth paths and removes only the entries you confirm |
 | `Light update` | Updates AI coding CLIs only |
 | `Update all` | Runs a broader toolchain update pass |
 | Diagnostics | Shows install, version, and auth/config hints |
@@ -73,6 +76,7 @@ The installer currently supports:
 - `PowerShell 7`
 - `Install all AI CLI tools`
 - `Cleaner helper`
+- `Reset tool configs`
 - `Codex CLI`
 - `OpenCode`
 - `Oh My Codex / OMX`
@@ -83,6 +87,10 @@ The installer currently supports:
 `First install` is the beginner lane: it starts WSL Ubuntu when needed, asks whether PowerShell 7 should be installed or repaired, then runs the all-in-one AI CLI installer once Ubuntu is ready. If Ubuntu still needs a reboot or first-run account setup, SYTA tells the user to rerun `First install` afterward.
 
 `Cleaner helper` is available directly from the main menu and also in the install menu. It scans for tracked AI CLI installs left behind in older `nvm` Node versions, plus duplicate PATH hits, then asks before removing stale npm globals it can safely clean.
+
+`Reset tool configs` is the deeper cleanup lane. It reviews tracked config/auth paths for Codex/OMX, OpenCode, Claude Code, and Gemini CLI, then removes only the individual paths the user explicitly confirms.
+
+`Oh My OpenCode Slim` stays positioned as the focused OpenCode add-on. It is intended for users who want extra OpenCode helpers without pulling in a broader add-on bundle.
 
 ## Language
 
@@ -151,6 +159,7 @@ Important behaviors:
 
 - `First install` guides a new machine through WSL Ubuntu, optional PowerShell 7, then the full AI CLI toolchain when Ubuntu is ready.
 - `Cleaner helper` is reachable from the main menu for faster maintenance and still checks stale npm-based AI CLI installs across older `nvm` versions before cleanup.
+- `Reset tool configs` gives users a conservative way to undo tracked tool config/auth paths without deleting broader history or session folders.
 - Menus use a cleaner focused-detail layout and loading progress when project or tool data takes time to prepare.
 - The launcher can check for a newer GitHub release and offer an in-place launcher update.
 - It prefers `nvm` for Node-based CLI installs.

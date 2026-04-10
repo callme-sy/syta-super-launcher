@@ -58,8 +58,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-09-170816Z'
-:: $script:ReleaseTag = 'v1.4.7'
+:: $script:BuildId = 'SYTA-build-2026-04-10-025346Z'
+:: $script:ReleaseTag = 'v1.4.8'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -141,6 +141,31 @@ exit /b %errorlevel%
 ::         'Choose the tool to launch in the project workspace.' = 'Choisissez l''outil a lancer dans l''espace de travail du projet.'
 ::         'Agent Selector' = 'Selection de l''agent'
 ::         'Mode Selector' = 'Selection du mode'
+::         'Explanations' = 'Explications'
+::         'Learn what the tools are, who they are for, and what SYTA recommends.' = 'Comprendre les outils, a qui ils servent et ce que SYTA recommande.'
+::         'Learn what the tools are, what SYTA recommends, and how to choose a setup.' = 'Comprendre les outils, ce que SYTA recommande et comment choisir votre configuration.'
+::         'Beginner guide' = 'Guide debutant'
+::         'Ultra-beginner explanation of each tool and the easiest path through SYTA.' = 'Explication ultra debutant de chaque outil et du chemin le plus simple dans SYTA.'
+::         'Advanced guide' = 'Guide avance'
+::         'Higher-level tradeoffs, workflows, and why you might pick one tool over another.' = 'Vue plus avancee des compromis, workflows et raisons de choisir un outil plutot qu''un autre.'
+::         'What should I install?' = 'Que dois-je installer ?'
+::         'Straight recommendation based on simplicity, budget, and how hands-off you want setup to be.' = 'Recommandation directe selon la simplicite, le budget et le niveau d''autonomie souhaite.'
+::         'Press any key to return.' = 'Appuyez sur une touche pour revenir.'
+::         'Codex: OpenAI coding agent with strong editing and reasoning.' = 'Codex : agent de code OpenAI avec de bonnes capacites d''edition et de raisonnement.'
+::         'OMX: power-user wrapper around Codex for planning, orchestration, and heavier workflows.' = 'OMX : surcouche avancee autour de Codex pour la planification, l''orchestration et des workflows plus lourds.'
+::         'OpenCode: lightweight coding CLI and usually the easiest first start.' = 'OpenCode : CLI de code legere et souvent le point de depart le plus simple.'
+::         'Claude Code and Gemini CLI: best if you already use those ecosystems.' = 'Claude Code et Gemini CLI : pertinents surtout si vous utilisez deja ces ecosystemes.'
+::         'Best beginner path: Install -> First install, then start with OpenCode or Codex.' = 'Meilleur parcours debutant : Installation -> Premiere installation, puis commencer avec OpenCode ou Codex.'
+::         'Oh My OpenCode Slim is an OpenCode add-on. It is separate from OpenAgent.' = 'Oh My OpenCode Slim est un module complementaire pour OpenCode. Il est distinct d''OpenAgent.'
+::         'Codex is the direct OpenAI lane; OMX adds more opinionated automation and orchestration.' = 'Codex est la voie OpenAI directe ; OMX ajoute davantage d''automatisation et d''orchestration opinionated.'
+::         'OpenCode is often the lightest workflow; Codex and OMX are better when you want stronger guided execution.' = 'OpenCode est souvent le workflow le plus leger ; Codex et OMX sont meilleurs si vous voulez une execution plus guidee.'
+::         'Install only the CLIs you will actually use. More tools means more auth, updates, and overlap.' = 'Installez seulement les CLI que vous utiliserez vraiment. Plus d''outils signifie plus d''authentification, de mises a jour et de chevauchements.'
+::         'Oh My OpenCode Slim stays focused on OpenCode helpers. It is not Oh My OpenAgent, which is heavier and more token-expensive.' = 'Oh My OpenCode Slim reste centre sur les aides OpenCode. Ce n''est pas Oh My OpenAgent, qui est plus lourd et plus couteux en tokens.'
+::         'Brand-new Windows machine: Install -> First install.' = 'Nouvelle machine Windows : Installation -> Premiere installation.'
+::         'Lowest-friction start: OpenCode.' = 'Demarrage le plus simple : OpenCode.'
+::         'Best OpenAI-first path: Codex, then OMX if you want deeper automation.' = 'Meilleur parcours centre OpenAI : Codex, puis OMX si vous voulez plus d''automatisation.'
+::         'Install Oh My OpenCode Slim only if you already like OpenCode and want extra helpers.' = 'Installez Oh My OpenCode Slim seulement si vous aimez deja OpenCode et voulez des aides supplementaires.'
+::         'Skip tools you do not have keys, subscriptions, or a real workflow for.' = 'Ignorez les outils pour lesquels vous n''avez pas de cle, d''abonnement ou de vrai besoin.'
 ::         'Choose what SYTA should do.' = 'Choisissez ce que SYTA doit faire.'
 ::         'Install or repair WSL Ubuntu and supported coding CLIs.' = 'Installer ou reparer WSL Ubuntu et les CLI de codage prises en charge.'
 ::         'First install' = 'Premiere installation'
@@ -1061,6 +1086,39 @@ exit /b %errorlevel%
 ::     Write-Host ('  | ' + $render.PadRight($Width) + ' |') -ForegroundColor $Color
 :: }
 ::
+:: function Write-WrappedBoxText {
+::     param(
+::         [string]$Content,
+::         [ConsoleColor]$Color = [ConsoleColor]::Gray,
+::         [int]$Width = 72
+::     )
+::
+::     $text = Localize-Text $Content
+::     if ($null -eq $text) {
+::         $text = ''
+::     }
+::
+::     $remaining = $text.Trim()
+::     if (-not $remaining) {
+::         Write-Host ('  | ' + ''.PadRight($Width) + ' |') -ForegroundColor $Color
+::         return
+::     }
+::
+::     while ($remaining.Length -gt $Width) {
+::         $slice = $remaining.Substring(0, $Width)
+::         $breakAt = $slice.LastIndexOf(' ')
+::         if ($breakAt -lt 0 -or $breakAt -lt [Math]::Floor($Width / 3)) {
+::             $breakAt = $Width
+::         }
+::
+::         $line = $remaining.Substring(0, $breakAt).Trim()
+::         Write-Host ('  | ' + $line.PadRight($Width) + ' |') -ForegroundColor $Color
+::         $remaining = $remaining.Substring([Math]::Min($breakAt, $remaining.Length)).TrimStart()
+::     }
+::
+::     Write-Host ('  | ' + $remaining.PadRight($Width) + ' |') -ForegroundColor $Color
+:: }
+::
 :: function Write-Banner {
 ::     param(
 ::         [string]$Tagline = 'Selector',
@@ -1328,7 +1386,12 @@ exit /b %errorlevel%
 ::         [Parameter(Mandatory = $true)][string[]]$Lines
 ::     )
 ::
-::     Show-InfoBox -Title $Title -Accent Cyan -Hint 'Back' -Lines $Lines
+::     Clear-Host
+::     Write-Banner -Tagline $Title -Hint 'Back'
+::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
+::     foreach ($line in $Lines) {
+::         Write-WrappedBoxText -Content $line -Color Cyan
+::     }
 ::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
 ::     Write-BoxLine -Content 'Press any key to return.' -Color Gray
 ::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray

@@ -60,8 +60,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-12-060254Z'
-:: $script:ReleaseTag = 'v1.4.16'
+:: $script:BuildId = 'SYTA-build-2026-04-12-060811Z'
+:: $script:ReleaseTag = 'v1.5.0'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -195,8 +195,9 @@ exit /b %errorlevel%
 ::         'Continue without changing the Windows Terminal default profile.' = 'Continuer sans modifier le profil par defaut de Windows Terminal.'
 ::         'Install PowerShell 7 now' = 'Installer PowerShell 7 maintenant'
 ::         'Reinstall or repair PowerShell 7' = 'Reinstaller ou reparer PowerShell 7'
-::         'Install all AI CLI tools' = 'Installer toutes les CLI IA de base'
+::         'Install core AI CLI tools' = 'Installer les CLI IA de base'
 ::         'Run Codex, OpenCode, Claude Code, and Gemini CLI in one pass.' = 'Lancer Codex, OpenCode, Claude Code et Gemini CLI en une seule passe.'
+::         'WSL Linux setup incomplete | launch Ubuntu once first.' = 'Configuration Linux WSL incomplete | lancez Ubuntu une fois d''abord.'
 ::         'Cleaner helper' = 'Assistant de nettoyage'
 ::         'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.' = 'Analyser les anciennes installations nvm/npm des CLI IA et les doublons du PATH avant nettoyage.'
 ::         'Reset tool configs' = 'Reinitialiser les configs des outils'
@@ -263,7 +264,7 @@ exit /b %errorlevel%
 ::         'A PowerShell window opens immediately after this screen' = 'Une fenetre PowerShell s''ouvre juste apres cet ecran'
 ::         'SYTA WSL Ubuntu Install' = 'SYTA Installation WSL Ubuntu'
 ::         'SYTA PowerShell 7 Install' = 'SYTA Installation PowerShell 7'
-::         'SYTA Install - All AI CLI Tools' = 'SYTA Installation - Toutes les CLI IA'
+::         'SYTA Install - Core AI CLI Tools' = 'SYTA Installation - CLI IA de base'
 ::         'SYTA Light Updater' = 'SYTA Mise a jour legere'
 ::         'SYTA Updater' = 'SYTA Mise a jour complete'
 ::         'Continue later' = 'Continuer plus tard'
@@ -285,10 +286,10 @@ exit /b %errorlevel%
 ::         'Then come back here once Ubuntu setup is complete.' = 'Revenez ici une fois la configuration d''Ubuntu terminee.'
 ::         'Note    : Ubuntu setup may require a reboot or first-run Linux account creation before CLI installs can continue' = 'Note    : l''installation d''Ubuntu peut necessiter un redemarrage ou la creation initiale du compte Linux avant de poursuivre les CLI'
 ::         'Ubuntu setup was started in a separate PowerShell window.' = 'L''installation d''Ubuntu a ete lancee dans une fenetre PowerShell separee.'
-::         'After Ubuntu finishes installing, rerun First install to continue with AI CLI tools.' = 'Une fois Ubuntu installe, relancez Premiere installation pour continuer avec les CLI IA.'
+::         'After Ubuntu finishes installing, rerun First install to continue with the core AI CLI tools.' = 'Une fois Ubuntu installe, relancez Premiere installation pour continuer avec les CLI IA de base.'
 ::         'If Windows asks for a reboot, restart Windows first.' = 'Si Windows demande un redemarrage, redemarrez Windows d''abord.'
 ::         'If Ubuntu asks you to create your Linux user, finish that step first.' = 'Si Ubuntu demande de creer votre utilisateur Linux, terminez d''abord cette etape.'
-::         'You can also use Install all AI CLI tools later if Ubuntu is already ready.' = 'Vous pourrez aussi utiliser Installer toutes les CLI IA de base plus tard si Ubuntu est deja pret.'
+::         'You can also use Install core AI CLI tools later if Ubuntu is already ready.' = 'Vous pourrez aussi utiliser Installer les CLI IA de base plus tard si Ubuntu est deja pret.'
 ::         'Unknown tool' = 'Outil inconnu'
 ::         'Auth via env key' = 'Auth via cle d''environnement'
 ::         'Auth/config detected' = 'Auth/config detectee'
@@ -2047,9 +2048,9 @@ exit /b %errorlevel%
 ::             Key = 'wsl-ubuntu'
 ::         }
 ::         [pscustomobject]@{ Title = 'PowerShell 7'; Subtitle = $pwshInfo.MenuText; Accent = if ($pwshInfo.Installed) { 'Green' } else { 'Yellow' }; Key = 'powershell-7' }
-::         [pscustomobject]@{ Title = 'Install all AI CLI tools'; Subtitle = if ($distroReady) { 'Run Codex, OpenCode, Claude Code, and Gemini CLI in one pass.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Green' } else { 'Yellow' }; Key = 'all-ai-cli-tools' }
-::         [pscustomobject]@{ Title = 'Cleaner helper'; Subtitle = if ($distroReady) { 'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Cyan' } else { 'Yellow' }; Key = 'cleaner-helper' }
-::         [pscustomobject]@{ Title = 'Reset tool configs'; Subtitle = if ($distroReady) { 'Review tracked config/auth paths and remove only the ones you confirm.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Yellow' } else { 'Yellow' }; Key = 'reset-tool-configs' }
+::         [pscustomobject]@{ Title = 'Install core AI CLI tools'; Subtitle = if ($distroReady) { 'Run Codex, OpenCode, Claude Code, and Gemini CLI in one pass.' } elseif ($distroInstalled) { 'WSL Linux setup incomplete | launch Ubuntu once first.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Green' } else { 'Yellow' }; Key = 'all-ai-cli-tools' }
+::         [pscustomobject]@{ Title = 'Cleaner helper'; Subtitle = if ($distroReady) { 'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.' } elseif ($distroInstalled) { 'WSL Linux setup incomplete | launch Ubuntu once first.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Cyan' } else { 'Yellow' }; Key = 'cleaner-helper' }
+::         [pscustomobject]@{ Title = 'Reset tool configs'; Subtitle = if ($distroReady) { 'Review tracked config/auth paths and remove only the ones you confirm.' } elseif ($distroInstalled) { 'WSL Linux setup incomplete | launch Ubuntu once first.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = 'Yellow'; Key = 'reset-tool-configs' }
 ::         [pscustomobject]@{ Title = 'Codex CLI'; Subtitle = $codexDiag.MenuText; Accent = if ($codexDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'codex' }
 ::         [pscustomobject]@{ Title = 'OpenCode'; Subtitle = $opencodeDiag.MenuText; Accent = if ($opencodeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'opencode' }
 ::         [pscustomobject]@{ Title = 'Oh My OpenAgent'; Subtitle = $omaDiag.MenuText; Accent = if ($omaDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Yellow' }; Key = 'oh-my-openagent' }
@@ -2151,12 +2152,12 @@ exit /b %errorlevel%
 ::
 :: function Invoke-AllAiCliInstallFlow {
 ::     Show-InfoBox -Title 'Install Preflight' -Accent Cyan -Hint 'A new terminal tab opens immediately after this screen' -Lines (@(
-::         'Target  : Install all AI CLI tools',
+::         'Target  : Install core AI CLI tools',
 ::         'Scope   : Codex, OpenCode, Claude Code, Gemini CLI'
 ::     ) + (Get-CodingCliSummaryLines))
 ::
 ::     $result = Open-WslWindow `
-::         -Title (Localize-Text 'SYTA Install - All AI CLI Tools') `
+::         -Title (Localize-Text 'SYTA Install - Core AI CLI Tools') `
 ::         -WindowsDirectory $script:ScriptDir `
 ::         -WindowsScriptPath (Join-Path $script:ScriptDir 'syta-wsl-session.sh') `
 ::         -ScriptArguments @('install', 'all-ai-cli-tools', $script:Language)
@@ -2267,7 +2268,7 @@ exit /b %errorlevel%
 ::
 ::         if ($distroReady) {
 ::             $result.CliInstall = Open-WslWindow `
-::                 -Title (Localize-Text 'SYTA Install - All AI CLI Tools') `
+::                 -Title (Localize-Text 'SYTA Install - Core AI CLI Tools') `
 ::                 -WindowsDirectory $script:ScriptDir `
 ::                 -WindowsScriptPath (Join-Path $script:ScriptDir 'syta-wsl-session.sh') `
 ::                 -ScriptArguments @('install', 'all-ai-cli-tools', $script:Language)
@@ -2287,10 +2288,10 @@ exit /b %errorlevel%
 ::     if (-not $distroReady) {
 ::         Show-InfoBox -Title 'Continue later' -Accent Yellow -Hint 'Back' -Lines @(
 ::             $(if ($distroInstalled) { 'Ubuntu is installed, but its first Linux-user setup is not finished yet.' } else { 'Ubuntu setup was started in a separate PowerShell window.' }),
-::             'After Ubuntu finishes installing, rerun First install to continue with AI CLI tools.',
+::             'After Ubuntu finishes installing, rerun First install to continue with the core AI CLI tools.',
 ::             'If Windows asks for a reboot, restart Windows first.',
 ::             'If Ubuntu asks you to create your Linux user, finish that step first.',
-::             'You can also use Install all AI CLI tools later if Ubuntu is already ready.'
+::             'You can also use Install core AI CLI tools later if Ubuntu is already ready.'
 ::         )
 ::         Start-Sleep -Milliseconds 1500
 ::         return
@@ -2385,10 +2386,13 @@ exit /b %errorlevel%
 ::     } else {
 ::         try {
 ::             Show-LoadProgress -Title 'Installer' -Status 'Checking Windows prerequisites' -Current 1 -Total 2 -Accent Yellow
-::             $ubuntuInstalled = Test-WslUserDistroInstalled
+::             $distroInstalled = Test-WslUserDistroInstalled
+::             $distroReady = Test-WslPreferredDistroReadyForCli
 ::             $null = Get-PwshInfo
-::             if ($ubuntuInstalled) {
+::             if ($distroReady) {
 ::                 Show-LoadProgress -Title 'Installer' -Status 'Loading WSL tool diagnostics' -Current 2 -Total 2 -Accent Cyan
+::             } elseif ($distroInstalled) {
+::                 Show-LoadProgress -Title 'Installer' -Status 'Preparing install options' -Detail 'Ubuntu is installed, but its first Linux-user setup is not finished yet.' -Current 2 -Total 2 -Accent Yellow
 ::             } else {
 ::                 Show-LoadProgress -Title 'Installer' -Status 'Preparing install options' -Detail 'No WSL Linux distro is ready yet, so SYTA will show safe setup choices only.' -Current 2 -Total 2 -Accent Yellow
 ::             }

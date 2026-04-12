@@ -74,7 +74,7 @@ The installer currently supports:
 - `First install` for guided beginner setup
 - `WSL Ubuntu`
 - `PowerShell 7`
-- `Install all AI CLI tools`
+- `Install core AI CLI tools`
 - `Cleaner helper`
 - `Reset tool configs`
 - `Codex CLI`

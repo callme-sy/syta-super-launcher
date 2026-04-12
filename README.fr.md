@@ -74,7 +74,7 @@ Le menu d’installation prend actuellement en charge :
 - `First install` pour un parcours debutant guide
 - `WSL Ubuntu`
 - `PowerShell 7`
-- `Install all AI CLI tools`
+- `Install core AI CLI tools`
 - `Cleaner helper`
 - `Reset tool configs`
 - `Codex CLI`

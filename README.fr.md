@@ -103,8 +103,8 @@ Le bundle de base installe actuellement :
 `OpenCode`, `Oh My OpenAgent` et `Oh My OpenCode Slim` sont maintenant trois voies distinctes :
 
 - `OpenCode` est la CLI de code normale.
-- `Oh My OpenAgent` est le harnais OpenCode le plus large.
-- `Oh My OpenCode Slim` reste le preset plus leger pour les personnes qui veulent des aides supplementaires sans le harnais plus large.
+- `Oh My OpenAgent` est le plus gros add-on autour d'OpenCode, avec plus d'aides mais aussi plus de setup.
+- `Oh My OpenCode Slim` est l'add-on plus leger autour d'OpenCode pour les personnes qui veulent seulement quelques aides en plus.
 
 ## Langue
 
@@ -171,7 +171,7 @@ Le lanceur est pensé pour des machines réelles, pas pour un environnement parf
 
 Comportements importants :
 
-- `First install` guide une nouvelle machine a travers WSL Ubuntu, PowerShell 7 en option, puis les CLI IA de base une fois Ubuntu pret. Les voies `Oh My x` restent optionnelles.
+- `First install` guide une nouvelle machine a travers WSL Ubuntu, PowerShell 7 en option, puis les CLI IA de base une fois Ubuntu pret. Les voies `Oh My x` restent des extras optionnels.
 - `Cleaner helper` reste un raccourci de maintenance depuis le menu principal tout en verifiant les anciennes installations npm des CLI IA dans les versions `nvm` plus vieilles avant nettoyage.
 - `Reset tool configs` donne un moyen conservateur d'annuler des chemins config/auth suivis, avec un second menu pour choisir un outil precis ou `Toutes les configs suivies`.
 - Les menus utilisent un affichage plus lisible avec un panneau de detail et une progression pendant la preparation des donnees projet ou outil.

@@ -103,8 +103,8 @@ The core bundle currently installs:
 `OpenCode`, `Oh My OpenAgent`, and `Oh My OpenCode Slim` are now separate lanes:
 
 - `OpenCode` is the normal coding CLI.
-- `Oh My OpenAgent` is the broader OpenCode harness.
-- `Oh My OpenCode Slim` stays positioned as the lighter preset for people who want extra helpers without the broader harness.
+- `Oh My OpenAgent` is the bigger add-on around OpenCode, with more helper features and more setup.
+- `Oh My OpenCode Slim` is the lighter add-on around OpenCode for people who want a smaller set of extras.
 
 ## Language
 
@@ -171,7 +171,7 @@ This launcher is designed for real-world machines, not idealized clean-room setu
 
 Important behaviors:
 
-- `First install` guides a new machine through WSL Ubuntu, optional PowerShell 7, then the core AI CLI tools when Ubuntu is ready. The `Oh My x` lanes remain optional.
+- `First install` guides a new machine through WSL Ubuntu, optional PowerShell 7, then the core AI CLI tools when Ubuntu is ready. The `Oh My x` lanes remain optional extras.
 - `Cleaner helper` is reachable from the main menu for faster maintenance and still checks stale npm-based AI CLI installs across older `nvm` versions before cleanup.
 - `Reset tool configs` gives users a conservative way to undo tracked tool config/auth paths, with a second menu for tool-specific reset choices or `All tracked configs`.
 - Menus use a cleaner focused-detail layout and loading progress when project or tool data takes time to prepare.

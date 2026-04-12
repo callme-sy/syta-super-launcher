@@ -60,8 +60,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-12-060811Z'
-:: $script:ReleaseTag = 'v1.5.0'
+:: $script:BuildId = 'SYTA-build-2026-04-12-061555Z'
+:: $script:ReleaseTag = 'v1.5.1'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -161,29 +161,29 @@ exit /b %errorlevel%
 ::         'Note    : Ubuntu setup may require a reboot before CLI installs continue' = 'Note    : Ubuntu peut demander un redemarrage avant la suite des installations CLI'
 ::         'Note    : Ubuntu may also require first-run Linux account creation' = 'Note    : Ubuntu peut aussi demander la creation initiale du compte Linux'
 ::         'You can still use First install from here for the guided beginner path.' = 'Vous pouvez toujours utiliser Premiere installation ici pour le parcours debutant guide.'
-::         'Learn what the tools are, who they are for, and what SYTA recommends.' = 'Comprendre les outils, a qui ils servent et ce que SYTA recommande.'
-::         'Learn what the tools are, what SYTA recommends, and how to choose a setup.' = 'Comprendre les outils, ce que SYTA recommande et comment choisir votre configuration.'
+::         'Learn what the tools are, who they are for, and what SYTA recommends.' = 'Comprendre simplement a quoi servent les outils et quoi choisir en premier.'
+::         'Learn what the tools are, what SYTA recommends, and how to choose a setup.' = 'Comprendre simplement a quoi servent les outils, ce que SYTA recommande et quoi choisir.'
 ::         'Beginner guide' = 'Guide debutant'
-::         'Ultra-beginner explanation of each tool and the easiest path through SYTA.' = 'Explication ultra debutant de chaque outil et du chemin le plus simple dans SYTA.'
+::         'Ultra-beginner explanation of each tool and the easiest path through SYTA.' = 'Explication tres simple de chaque outil et du chemin le plus facile dans SYTA.'
 ::         'Advanced guide' = 'Guide avance'
-::         'Higher-level tradeoffs, workflows, and why you might pick one tool over another.' = 'Vue plus avancee des compromis, workflows et raisons de choisir un outil plutot qu''un autre.'
+::         'Higher-level tradeoffs, workflows, and why you might pick one tool over another.' = 'Vue plus detaillee des differences entre les outils et de quand les choisir.'
 ::         'What should I install?' = 'Que dois-je installer ?'
-::         'Straight recommendation based on simplicity, budget, and how hands-off you want setup to be.' = 'Recommandation directe selon la simplicite, le budget et le niveau d''autonomie souhaite.'
+::         'Straight recommendation based on simplicity, budget, and how hands-off you want setup to be.' = 'Recommandation directe selon ce qui est le plus simple, le moins prise de tete, et vos abonnements.'
 ::         'Press any key to return.' = 'Appuyez sur une touche pour revenir.'
-::         'Codex: OpenAI coding agent with strong editing and reasoning.' = 'Codex : agent de code OpenAI avec de bonnes capacites d''edition et de raisonnement.'
-::         'OMX: power-user wrapper around Codex for planning, orchestration, and heavier workflows.' = 'OMX : surcouche avancee autour de Codex pour la planification, l''orchestration et des workflows plus lourds.'
-::         'OpenCode: lightweight coding CLI and usually the easiest first start.' = 'OpenCode : CLI de code legere et souvent le point de depart le plus simple.'
-::         'Claude Code and Gemini CLI: best if you already use those ecosystems.' = 'Claude Code et Gemini CLI : pertinents surtout si vous utilisez deja ces ecosystemes.'
+::         'Codex: OpenAI coding agent with strong editing and reasoning.' = 'Codex : l''outil OpenAI pour coder avec de l''aide. Bon choix si vous voulez un assistant serieux pour lire, modifier et expliquer du code.'
+::         'OMX: power-user wrapper around Codex for planning, orchestration, and heavier workflows.' = 'OMX : une couche en plus par-dessus Codex. A utiliser surtout si vous voulez plus d''automatisation, plus de structure, et des workflows plus lourds.'
+::         'OpenCode: lightweight coding CLI and usually the easiest first start.' = 'OpenCode : l''outil le plus leger et souvent le plus simple pour commencer.'
+::         'Claude Code and Gemini CLI: best if you already use those ecosystems.' = 'Claude Code et Gemini CLI : utiles surtout si vous payez deja ces services ou preferez deja ces ecosystemes.'
 ::         'Best beginner path: Install -> First install, then start with OpenCode or Codex.' = 'Meilleur parcours debutant : Installation -> Premiere installation, puis commencer avec OpenCode ou Codex.'
-::         'Oh My OpenAgent is the full OpenCode harness. Oh My OpenCode Slim keeps a lighter preset.' = 'Oh My OpenAgent est le harnais OpenCode complet. Oh My OpenCode Slim garde un preset plus leger.'
-::         'Codex is the direct OpenAI lane; OMX adds more opinionated automation and orchestration.' = 'Codex est la voie OpenAI directe ; OMX ajoute davantage d''automatisation et d''orchestration opinionated.'
-::         'OpenCode is often the lightest workflow; Codex and OMX are better when you want stronger guided execution.' = 'OpenCode est souvent le workflow le plus leger ; Codex et OMX sont meilleurs si vous voulez une execution plus guidee.'
+::         'Oh My OpenAgent is the full OpenCode harness. Oh My OpenCode Slim keeps a lighter preset.' = 'Oh My OpenAgent ajoute plein d''aides autour d''OpenCode. Oh My OpenCode Slim garde seulement une partie plus legere de ces aides.'
+::         'Codex is the direct OpenAI lane; OMX adds more opinionated automation and orchestration.' = 'Codex est la voie OpenAI directe. OMX ajoute une facon plus guidee et plus automatique de travailler.'
+::         'OpenCode is often the lightest workflow; Codex and OMX are better when you want stronger guided execution.' = 'OpenCode est souvent le plus simple. Codex et surtout OMX sont plus utiles si vous voulez etre davantage guide.'
 ::         'Install only the CLIs you will actually use. More tools means more auth, updates, and overlap.' = 'Installez seulement les CLI que vous utiliserez vraiment. Plus d''outils signifie plus d''authentification, de mises a jour et de chevauchements.'
-::         'Oh My OpenAgent is the broader OpenCode harness; Slim keeps a lighter OpenCode-focused preset.' = 'Oh My OpenAgent est le harnais OpenCode le plus large ; Slim garde un preset plus leger centre sur OpenCode.'
+::         'Oh My OpenAgent is the broader OpenCode harness; Slim keeps a lighter OpenCode-focused preset.' = 'Oh My OpenAgent ajoute beaucoup d''outils autour d''OpenCode ; Slim garde une version plus simple de cette idee.'
 ::         'Brand-new Windows machine: Install -> First install.' = 'Nouvelle machine Windows : Installation -> Premiere installation.'
 ::         'Lowest-friction start: OpenCode.' = 'Demarrage le plus simple : OpenCode.'
-::         'Best OpenAI-first path: Codex, then OMX if you want deeper automation.' = 'Meilleur parcours centre OpenAI : Codex, puis OMX si vous voulez plus d''automatisation.'
-::         'Install Oh My OpenAgent if you want the full harness. Install Slim if you want a lighter preset.' = 'Installez Oh My OpenAgent si vous voulez le harnais complet. Installez Slim si vous voulez un preset plus leger.'
+::         'Best OpenAI-first path: Codex, then OMX if you want deeper automation.' = 'Meilleur parcours si vous voulez surtout OpenAI : Codex d''abord, puis OMX seulement si vous voulez aller plus loin.'
+::         'Install Oh My OpenAgent if you want the full harness. Install Slim if you want a lighter preset.' = 'Installez Oh My OpenAgent si vous voulez beaucoup d''aides autour d''OpenCode. Installez Slim si vous voulez une version plus simple.'
 ::         'Skip tools you do not have keys, subscriptions, or a real workflow for.' = 'Ignorez les outils pour lesquels vous n''avez pas de cle, d''abonnement ou de vrai besoin.'
 ::         'Choose what SYTA should do.' = 'Choisissez ce que SYTA doit faire.'
 ::         'Install or repair WSL Ubuntu and supported coding CLIs.' = 'Installer ou reparer WSL Ubuntu et les CLI de codage prises en charge.'
@@ -1564,10 +1564,10 @@ exit /b %errorlevel%
 ::
 :: function Launch-ExplanationsMode {
 ::     while ($true) {
-::         $selection = Read-Menu -Title 'Explanations' -Subtitle 'Learn what the tools are, who they are for, and what SYTA recommends.' -Items @(
-::             [pscustomobject]@{ Title = 'Beginner guide'; Subtitle = 'Ultra-beginner explanation of each tool and the easiest path through SYTA.'; Accent = 'Cyan'; Key = 'beginner' }
-::             [pscustomobject]@{ Title = 'Advanced guide'; Subtitle = 'Higher-level tradeoffs, workflows, and why you might pick one tool over another.'; Accent = 'Yellow'; Key = 'advanced' }
-::             [pscustomobject]@{ Title = 'What should I install?'; Subtitle = 'Straight recommendation based on simplicity, budget, and how hands-off you want setup to be.'; Accent = 'Green'; Key = 'recommend' }
+::         $selection = Read-Menu -Title 'Explanations' -Subtitle 'Learn what the tools are, what they are good for, and what SYTA recommends.' -Items @(
+::             [pscustomobject]@{ Title = 'Beginner guide'; Subtitle = 'Very simple explanation of each tool and the easiest place to start.'; Accent = 'Cyan'; Key = 'beginner' }
+::             [pscustomobject]@{ Title = 'Advanced guide'; Subtitle = 'More detail about the differences between the tools and when to pick each one.'; Accent = 'Yellow'; Key = 'advanced' }
+::             [pscustomobject]@{ Title = 'What should I install?'; Subtitle = 'Direct recommendation if you just want the short answer.'; Accent = 'Green'; Key = 'recommend' }
 ::             [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the main menu.'; Accent = 'DarkGray'; Key = 'back' }
 ::         )
 ::
@@ -1578,29 +1578,30 @@ exit /b %errorlevel%
 ::         switch ($selection.Key) {
 ::             'beginner' {
 ::                 Show-ExplanationPanel -Title 'Beginner guide' -Lines @(
-::                     'Codex: OpenAI coding agent with strong editing and reasoning.',
-::                     'OMX: power-user wrapper around Codex for planning, orchestration, and heavier workflows.',
-::                     'OpenCode: lightweight coding CLI and usually the easiest first start.',
-::                     'Claude Code and Gemini CLI: best if you already use those ecosystems.',
-::                     'Best beginner path: Install -> First install, then start with OpenCode or Codex.',
-::                     'Oh My OpenAgent is the full OpenCode harness. Oh My OpenCode Slim keeps a lighter preset.'
+::                     'Codex is a strong all-around coding assistant from OpenAI.',
+::                     'OMX is Codex with extra automation and more structure. It is usually for people who want a heavier setup.',
+::                     'OpenCode is often the easiest and lightest place to begin.',
+::                     'Claude Code and Gemini CLI are mostly worth it if you already use those services.',
+::                     'If you are new, the easiest path is Install -> First install, then start with OpenCode or Codex.',
+::                     'The Oh My tools are add-ons. They are optional extras, not the best first step for most beginners.'
 ::                 )
 ::             }
 ::             'advanced' {
 ::                 Show-ExplanationPanel -Title 'Advanced guide' -Lines @(
-::                     'Codex is the direct OpenAI lane; OMX adds more opinionated automation and orchestration.',
-::                     'OpenCode is often the lightest workflow; Codex and OMX are better when you want stronger guided execution.',
-::                     'Install only the CLIs you will actually use. More tools means more auth, updates, and overlap.',
-::                     'Oh My OpenAgent is the broader OpenCode harness; Slim keeps a lighter OpenCode-focused preset.'
+::                     'Codex is the direct OpenAI tool. Choose it if you want something solid without too many extra layers.',
+::                     'OMX adds extra automation, planning helpers, and more guided workflows on top of Codex.',
+::                     'OpenCode is lighter and faster to get moving with, but it gives you less built-in structure.',
+::                     'Install only the tools you really plan to use. More tools means more logins, more updates, and more overlap.',
+::                     'Oh My OpenAgent and Oh My OpenCode Slim are optional add-ons around OpenCode, not required for the basic setup.'
 ::                 )
 ::             }
 ::             'recommend' {
 ::                 Show-ExplanationPanel -Title 'What should I install?' -Lines @(
-::                     'Brand-new Windows machine: Install -> First install.',
-::                     'Lowest-friction start: OpenCode.',
-::                     'Best OpenAI-first path: Codex, then OMX if you want deeper automation.',
-::                     'Install Oh My OpenAgent if you want the full harness. Install Slim if you want a lighter preset.',
-::                     'Skip tools you do not have keys, subscriptions, or a real workflow for.'
+::                     'New Windows machine: use Install -> First install.',
+::                     'If you want the simplest start, choose OpenCode first.',
+::                     'If you want the OpenAI path, choose Codex first. Add OMX later only if you want more automation.',
+::                     'Add the Oh My tools only after the base setup works and only if you understand why you want them.',
+::                     'Skip any tool you do not have a subscription for, do not understand yet, or do not expect to use.'
 ::                 )
 ::             }
 ::         }

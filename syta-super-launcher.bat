@@ -60,8 +60,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-12-061555Z'
-:: $script:ReleaseTag = 'v1.5.1'
+:: $script:BuildId = 'SYTA-build-2026-04-12-061942Z'
+:: $script:ReleaseTag = 'v1.5.2'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -372,36 +372,36 @@ exit /b %errorlevel%
 :: $script:AgentOptions = @(
 ::     [pscustomobject]@{
 ::         Key = 'codex-yolo'
-::         Title = 'Codex (ChatGPT subscription required)'
-::         Subtitle = 'Runs codex --yolo.'
+::         Title = 'Codex | guided'
+::         Subtitle = 'Strong all-around coding help. Good default if you want the OpenAI path.'
 ::         Accent = 'Cyan'
 ::         WindowTitle = 'Codex YOLO'
 ::     }
 ::     [pscustomobject]@{
 ::         Key = 'omx-madmax-high'
-::         Title = 'OMX (higher-tier paid OpenAI setup recommended)'
-::         Subtitle = 'Runs omx --madmax --high.'
+::         Title = 'OMX | advanced'
+::         Subtitle = 'More automation and more structure on top of Codex. Better after you already understand the basics.'
 ::         Accent = 'Yellow'
 ::         WindowTitle = 'OMX MADMAX HIGH'
 ::     }
 ::     [pscustomobject]@{
 ::         Key = 'opencode'
-::         Title = 'OpenCode (free models available)'
-::         Subtitle = 'Runs opencode.'
+::         Title = 'OpenCode | simple'
+::         Subtitle = 'Usually the easiest and lightest place to start.'
 ::         Accent = 'Green'
 ::         WindowTitle = 'OpenCode'
 ::     }
 ::     [pscustomobject]@{
 ::         Key = 'claude-code'
-::         Title = 'Claude Code (Claude access required)'
-::         Subtitle = 'Runs claude.'
+::         Title = 'Claude Code | optional'
+::         Subtitle = 'Useful if you already use Claude.'
 ::         Accent = 'Magenta'
 ::         WindowTitle = 'Claude Code'
 ::     }
 ::     [pscustomobject]@{
 ::         Key = 'gemini-cli'
-::         Title = 'Gemini CLI (Gemini access required)'
-::         Subtitle = 'Runs gemini.'
+::         Title = 'Gemini CLI | optional'
+::         Subtitle = 'Useful if you already use Gemini.'
 ::         Accent = 'Blue'
 ::         WindowTitle = 'Gemini CLI'
 ::     }
@@ -1565,9 +1565,9 @@ exit /b %errorlevel%
 :: function Launch-ExplanationsMode {
 ::     while ($true) {
 ::         $selection = Read-Menu -Title 'Explanations' -Subtitle 'Learn what the tools are, what they are good for, and what SYTA recommends.' -Items @(
-::             [pscustomobject]@{ Title = 'Beginner guide'; Subtitle = 'Very simple explanation of each tool and the easiest place to start.'; Accent = 'Cyan'; Key = 'beginner' }
-::             [pscustomobject]@{ Title = 'Advanced guide'; Subtitle = 'More detail about the differences between the tools and when to pick each one.'; Accent = 'Yellow'; Key = 'advanced' }
-::             [pscustomobject]@{ Title = 'What should I install?'; Subtitle = 'Direct recommendation if you just want the short answer.'; Accent = 'Green'; Key = 'recommend' }
+::             [pscustomobject]@{ Title = 'Beginner guide | simple'; Subtitle = 'Very simple explanation of each tool and the easiest place to start.'; Accent = 'Cyan'; Key = 'beginner' }
+::             [pscustomobject]@{ Title = 'Advanced guide | more detail'; Subtitle = 'More detail about the differences between the tools and when to pick each one.'; Accent = 'Yellow'; Key = 'advanced' }
+::             [pscustomobject]@{ Title = 'What should I install? | short answer'; Subtitle = 'Direct recommendation if you just want the short answer.'; Accent = 'Green'; Key = 'recommend' }
 ::             [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the main menu.'; Accent = 'DarkGray'; Key = 'back' }
 ::         )
 ::
@@ -2037,28 +2037,28 @@ exit /b %errorlevel%
 ::
 ::     return @(
 ::         [pscustomobject]@{
-::             Title = 'First install (recommended)'
+::             Title = 'First install | recommended'
 ::             Subtitle = 'Best beginner path for WSL Ubuntu, optional PowerShell 7, and the core AI CLI tools.'
 ::             Accent = if ($distroReady -and $pwshInfo.Installed) { 'Green' } else { 'Yellow' }
 ::             Key = 'first-install'
 ::         }
 ::         [pscustomobject]@{
-::             Title = 'WSL Ubuntu'
+::             Title = 'WSL Ubuntu | system setup'
 ::             Subtitle = if ($distroReady) { "Installed | ready | distros: $(@(Get-WslUserDistros).Count)" } elseif ($distroInstalled) { "Installed | finish Ubuntu first launch | distros: $(@(Get-WslUserDistros).Count)" } else { 'Missing | runs wsl --install -d Ubuntu' }
 ::             Accent = if ($distroReady) { 'Green' } elseif ($distroInstalled) { 'Yellow' } else { 'Yellow' }
 ::             Key = 'wsl-ubuntu'
 ::         }
-::         [pscustomobject]@{ Title = 'PowerShell 7'; Subtitle = $pwshInfo.MenuText; Accent = if ($pwshInfo.Installed) { 'Green' } else { 'Yellow' }; Key = 'powershell-7' }
-::         [pscustomobject]@{ Title = 'Install core AI CLI tools'; Subtitle = if ($distroReady) { 'Run Codex, OpenCode, Claude Code, and Gemini CLI in one pass.' } elseif ($distroInstalled) { 'WSL Linux setup incomplete | launch Ubuntu once first.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Green' } else { 'Yellow' }; Key = 'all-ai-cli-tools' }
-::         [pscustomobject]@{ Title = 'Cleaner helper'; Subtitle = if ($distroReady) { 'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.' } elseif ($distroInstalled) { 'WSL Linux setup incomplete | launch Ubuntu once first.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Cyan' } else { 'Yellow' }; Key = 'cleaner-helper' }
-::         [pscustomobject]@{ Title = 'Reset tool configs'; Subtitle = if ($distroReady) { 'Review tracked config/auth paths and remove only the ones you confirm.' } elseif ($distroInstalled) { 'WSL Linux setup incomplete | launch Ubuntu once first.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = 'Yellow'; Key = 'reset-tool-configs' }
-::         [pscustomobject]@{ Title = 'Codex CLI'; Subtitle = $codexDiag.MenuText; Accent = if ($codexDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'codex' }
-::         [pscustomobject]@{ Title = 'OpenCode'; Subtitle = $opencodeDiag.MenuText; Accent = if ($opencodeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'opencode' }
-::         [pscustomobject]@{ Title = 'Oh My OpenAgent'; Subtitle = $omaDiag.MenuText; Accent = if ($omaDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Yellow' }; Key = 'oh-my-openagent' }
-::         [pscustomobject]@{ Title = 'Oh My Codex / OMX'; Subtitle = $omxDiag.MenuText; Accent = if ($omxDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'omx' }
-::         [pscustomobject]@{ Title = 'Claude Code'; Subtitle = $claudeDiag.MenuText; Accent = if ($claudeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'claude-code' }
-::         [pscustomobject]@{ Title = 'Gemini CLI'; Subtitle = $geminiDiag.MenuText; Accent = if ($geminiDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'gemini-cli' }
-::         [pscustomobject]@{ Title = 'Oh My OpenCode Slim'; Subtitle = $omoDiag.MenuText; Accent = if ($omoDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Cyan' }; Key = 'oh-my-opencode-slim' }
+::         [pscustomobject]@{ Title = 'PowerShell 7 | optional'; Subtitle = $pwshInfo.MenuText; Accent = if ($pwshInfo.Installed) { 'Green' } else { 'Yellow' }; Key = 'powershell-7' }
+::         [pscustomobject]@{ Title = 'Install core AI CLI tools | simple'; Subtitle = if ($distroReady) { 'Run Codex, OpenCode, Claude Code, and Gemini CLI in one pass.' } elseif ($distroInstalled) { 'WSL Linux setup incomplete | launch Ubuntu once first.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Green' } else { 'Yellow' }; Key = 'all-ai-cli-tools' }
+::         [pscustomobject]@{ Title = 'Cleaner helper | maintenance'; Subtitle = if ($distroReady) { 'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.' } elseif ($distroInstalled) { 'WSL Linux setup incomplete | launch Ubuntu once first.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Cyan' } else { 'Yellow' }; Key = 'cleaner-helper' }
+::         [pscustomobject]@{ Title = 'Reset tool configs | maintenance'; Subtitle = if ($distroReady) { 'Review tracked config/auth paths and remove only the ones you confirm.' } elseif ($distroInstalled) { 'WSL Linux setup incomplete | launch Ubuntu once first.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = 'Yellow'; Key = 'reset-tool-configs' }
+::         [pscustomobject]@{ Title = 'Codex CLI | guided'; Subtitle = $codexDiag.MenuText; Accent = if ($codexDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'codex' }
+::         [pscustomobject]@{ Title = 'OpenCode | simple'; Subtitle = $opencodeDiag.MenuText; Accent = if ($opencodeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'opencode' }
+::         [pscustomobject]@{ Title = 'Oh My OpenAgent | advanced optional'; Subtitle = $omaDiag.MenuText; Accent = if ($omaDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Yellow' }; Key = 'oh-my-openagent' }
+::         [pscustomobject]@{ Title = 'Oh My Codex / OMX | advanced optional'; Subtitle = $omxDiag.MenuText; Accent = if ($omxDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'omx' }
+::         [pscustomobject]@{ Title = 'Claude Code | optional'; Subtitle = $claudeDiag.MenuText; Accent = if ($claudeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'claude-code' }
+::         [pscustomobject]@{ Title = 'Gemini CLI | optional'; Subtitle = $geminiDiag.MenuText; Accent = if ($geminiDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'gemini-cli' }
+::         [pscustomobject]@{ Title = 'Oh My OpenCode Slim | optional'; Subtitle = $omoDiag.MenuText; Accent = if ($omoDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Cyan' }; Key = 'oh-my-opencode-slim' }
 ::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the main menu.'; Accent = 'DarkGray'; Key = 'back' }
 ::     )
 :: }

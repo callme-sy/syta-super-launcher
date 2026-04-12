@@ -60,8 +60,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-10-090500Z'
-:: $script:ReleaseTag = 'v1.4.13'
+:: $script:BuildId = 'SYTA-build-2026-04-12-054708Z'
+:: $script:ReleaseTag = 'v1.4.14'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -232,7 +232,7 @@ exit /b %errorlevel%
 ::         'Checking Windows prerequisites' = 'Verification des prerequis Windows'
 ::         'Loading WSL tool diagnostics' = 'Chargement des diagnostics WSL'
 ::         'Preparing install options' = 'Preparation des options d''installation'
-::         'Ubuntu is missing, so SYTA will show safe setup choices only.' = 'Ubuntu est absent, SYTA affiche donc uniquement des options d''installation sures.'
+::         'No WSL Linux distro is ready yet, so SYTA will show safe setup choices only.' = 'Aucune distribution Linux WSL n''est encore prete, SYTA affiche donc uniquement des options d''installation sures.'
 ::         'Live diagnostics were unavailable, so SYTA switched to a safe fallback install menu.' = 'Les diagnostics live etaient indisponibles, SYTA a bascule vers un menu d''installation de secours.'
 ::         'You can still install WSL Ubuntu or PowerShell 7 from here.' = 'Vous pouvez toujours installer WSL Ubuntu ou PowerShell 7 depuis ici.'
 ::         'Loading recent projects' = 'Chargement des projets recents'
@@ -260,7 +260,7 @@ exit /b %errorlevel%
 ::         'Light Update Preflight' = 'Pre-verification avant mise a jour legere'
 ::         'Install Preflight' = 'Pre-verification avant installation'
 ::         'A new terminal tab opens immediately after this screen' = 'Un nouvel onglet du terminal s''ouvre juste apres cet ecran'
-::         'A PowerShell tab opens immediately after this screen' = 'Un onglet PowerShell s''ouvre juste apres cet ecran'
+::         'A PowerShell window opens immediately after this screen' = 'Une fenetre PowerShell s''ouvre juste apres cet ecran'
 ::         'SYTA WSL Ubuntu Install' = 'SYTA Installation WSL Ubuntu'
 ::         'SYTA PowerShell 7 Install' = 'SYTA Installation PowerShell 7'
 ::         'SYTA Install - All AI CLI Tools' = 'SYTA Installation - Toutes les CLI IA'
@@ -268,20 +268,22 @@ exit /b %errorlevel%
 ::         'SYTA Updater' = 'SYTA Mise a jour complete'
 ::         'Continue later' = 'Continuer plus tard'
 ::         'Target  : First install' = 'Cible   : Premiere installation'
-::         'WSL     : Ubuntu already installed' = 'WSL     : Ubuntu deja installe'
+::         'WSL     : Linux distro already installed' = 'WSL     : distribution Linux deja installee'
 ::         'WSL     : Will run wsl --install -d Ubuntu' = 'WSL     : executera wsl --install -d Ubuntu'
 ::         'Power   : SYTA will ask whether to install PowerShell 7' = 'Power   : SYTA demandera s''il faut installer PowerShell 7'
 ::         'Power   : PowerShell 7 already installed; SYTA can repair it if needed' = 'Power   : PowerShell 7 deja installe ; SYTA peut le reparer si besoin'
-::         'CLI     : Install all AI CLI tools once Ubuntu is ready' = 'CLI     : installer toutes les CLI IA une fois Ubuntu pret'
+::         'CLI     : Install all AI CLI tools once a Linux distro is ready' = 'CLI     : installer toutes les CLI IA une fois une distribution Linux prete'
 ::         'Note    : Ubuntu setup may require a reboot or first-run Linux account creation before CLI installs can continue' = 'Note    : l''installation d''Ubuntu peut necessiter un redemarrage ou la creation initiale du compte Linux avant de poursuivre les CLI'
 ::         'Ubuntu setup was started in a separate PowerShell window.' = 'L''installation d''Ubuntu a ete lancee dans une fenetre PowerShell separee.'
 ::         'After Ubuntu finishes installing, rerun First install to continue with AI CLI tools.' = 'Une fois Ubuntu installe, relancez Premiere installation pour continuer avec les CLI IA.'
+::         'If Windows asks for a reboot, restart Windows first.' = 'Si Windows demande un redemarrage, redemarrez Windows d''abord.'
+::         'If Ubuntu asks you to create your Linux user, finish that step first.' = 'Si Ubuntu demande de creer votre utilisateur Linux, terminez d''abord cette etape.'
 ::         'You can also use Install all AI CLI tools later if Ubuntu is already ready.' = 'Vous pourrez aussi utiliser Installer toutes les CLI IA plus tard si Ubuntu est deja pret.'
 ::         'Unknown tool' = 'Outil inconnu'
 ::         'Auth via env key' = 'Auth via cle d''environnement'
 ::         'Auth/config detected' = 'Auth/config detectee'
 ::         'Auth n/a' = 'Auth n/a'
-::         'WSL Ubuntu missing' = 'WSL Ubuntu absent'
+::         'WSL Linux distro missing' = 'Aucune distribution Linux WSL prete'
 ::         'Auth not detected' = 'Auth non detectee'
 ::         'Auth unknown' = 'Auth inconnue'
 ::         'Installed' = 'Installe'
@@ -471,6 +473,30 @@ exit /b %errorlevel%
 ::     return @($raw | ForEach-Object { ($_ -replace "`0", '').Trim() } | Where-Object { $_ })
 :: }
 ::
+:: function Get-WslUserDistros {
+::     return @(Get-WslDistros | Where-Object {
+::         $_ -and $_ -notmatch '^(docker-desktop|docker-desktop-data|rancher-desktop|podman-machine-default|podman-machine-default-rootful)$'
+::     })
+:: }
+::
+:: function Get-PreferredWslDistro {
+::     $userDistros = @(Get-WslUserDistros)
+::     if ($userDistros.Count -eq 0) {
+::         return $null
+::     }
+::
+::     $ubuntu = @($userDistros | Where-Object { $_ -match '^Ubuntu' } | Select-Object -First 1)
+::     if ($ubuntu.Count -gt 0) {
+::         return $ubuntu[0]
+::     }
+::
+::     return $userDistros[0]
+:: }
+::
+:: function Test-WslUserDistroInstalled {
+::     return @(Get-WslUserDistros).Count -gt 0
+:: }
+::
 :: function Test-UbuntuInstalled {
 ::     return @(Get-WslDistros | Where-Object { $_ -match '^Ubuntu' }).Count -gt 0
 :: }
@@ -503,11 +529,12 @@ exit /b %errorlevel%
 :: function Invoke-WslCapture {
 ::     param([Parameter(Mandatory = $true)][string]$Script)
 ::
-::     if (-not (Test-UbuntuInstalled)) {
+::     $distro = Get-PreferredWslDistro
+::     if (-not $distro) {
 ::         return $null
 ::     }
 ::
-::     $result = & wsl.exe sh -lc $Script 2>$null
+::     $result = & wsl.exe -d $distro --exec sh -lc $Script 2>$null
 ::     if ($LASTEXITCODE -ne 0 -or -not $result) {
 ::         return $null
 ::     }
@@ -534,14 +561,19 @@ exit /b %errorlevel%
 :: function Invoke-ToolDiagnosticsScript {
 ::     param([Parameter(Mandatory = $true)][string]$Key)
 ::
-::     if (-not (Test-UbuntuInstalled)) {
+::     if (-not (Test-WslUserDistroInstalled)) {
+::         return $null
+::     }
+::
+::     $distro = Get-PreferredWslDistro
+::     if (-not $distro) {
 ::         return $null
 ::     }
 ::
 ::     $scriptPath = Join-Path $script:ScriptDir 'syta-tool-diagnostics.sh'
 ::     $wslScriptPath = Get-WslPath -WindowsPath $scriptPath
 ::     $wslDir = Get-WslPath -WindowsPath $script:ScriptDir
-::     $output = & wsl.exe --cd $wslDir --exec bash $wslScriptPath $Key 2>$null
+::     $output = & wsl.exe -d $distro --cd $wslDir --exec bash $wslScriptPath $Key 2>$null
 ::     if ($LASTEXITCODE -ne 0 -or -not $output) {
 ::         return $null
 ::     }
@@ -558,14 +590,19 @@ exit /b %errorlevel%
 :: function Invoke-ToolDiagnosticsBatchScript {
 ::     param([string[]]$Keys)
 ::
-::     if (-not (Test-UbuntuInstalled) -or -not $Keys -or $Keys.Count -eq 0) {
+::     if (-not (Test-WslUserDistroInstalled) -or -not $Keys -or $Keys.Count -eq 0) {
+::         return @{}
+::     }
+::
+::     $distro = Get-PreferredWslDistro
+::     if (-not $distro) {
 ::         return @{}
 ::     }
 ::
 ::     $scriptPath = Join-Path $script:ScriptDir 'syta-tool-diagnostics.sh'
 ::     $wslScriptPath = Get-WslPath -WindowsPath $scriptPath
 ::     $wslDir = Get-WslPath -WindowsPath $script:ScriptDir
-::     $output = & wsl.exe --cd $wslDir --exec bash $wslScriptPath @Keys 2>$null
+::     $output = & wsl.exe -d $distro --cd $wslDir --exec bash $wslScriptPath @Keys 2>$null
 ::     if ($LASTEXITCODE -ne 0 -or -not $output) {
 ::         return @{}
 ::     }
@@ -955,7 +992,7 @@ exit /b %errorlevel%
 ::         'env-key' { return (Localize-Text 'Auth via env key') }
 ::         'config-present' { return (Localize-Text 'Auth/config detected') }
 ::         'not-installed' { return (Localize-Text 'Auth n/a') }
-::         'wsl-missing' { return (Localize-Text 'WSL Ubuntu missing') }
+::         'wsl-missing' { return (Localize-Text 'WSL Linux distro missing') }
 ::         'not-detected' { return (Localize-Text 'Auth not detected') }
 ::         default {
 ::             if ([string]::IsNullOrWhiteSpace($Raw)) { return (Localize-Text 'Auth unknown') }
@@ -994,19 +1031,19 @@ exit /b %errorlevel%
 ::         return $diag
 ::     }
 ::
-::     if (-not (Test-UbuntuInstalled)) {
+::     if (-not (Test-WslUserDistroInstalled)) {
 ::         $diag = [pscustomobject]@{
 ::             Key = $resolvedKey
 ::             Installed = $false
 ::             Path = $null
 ::             PathText = $spec.InstallHint
 ::             Version = $null
-::             VersionText = (Localize-Text 'WSL Ubuntu missing')
+::             VersionText = (Localize-Text 'WSL Linux distro missing')
 ::             AuthRaw = 'wsl-missing'
-::             AuthText = (Localize-Text 'WSL Ubuntu missing')
+::             AuthText = (Localize-Text 'WSL Linux distro missing')
 ::             InstallSource = 'unknown'
 ::             InstallText = (Localize-Text 'Missing')
-::             MenuText = (Localize-Text 'WSL Ubuntu missing')
+::             MenuText = (Localize-Text 'WSL Linux distro missing')
 ::         }
 ::         $script:ToolDiagCache[$resolvedKey] = $diag
 ::         return $diag
@@ -1070,12 +1107,12 @@ exit /b %errorlevel%
 ::         Path = $null
 ::         PathText = $spec.InstallHint
 ::         Version = $null
-::         VersionText = (Localize-Text 'WSL Ubuntu missing')
+::         VersionText = (Localize-Text 'WSL Linux distro missing')
 ::         AuthRaw = 'wsl-missing'
-::         AuthText = (Localize-Text 'WSL Ubuntu missing')
+::         AuthText = (Localize-Text 'WSL Linux distro missing')
 ::         InstallSource = 'unknown'
 ::         InstallText = (Localize-Text 'Missing')
-::         MenuText = (Localize-Text 'WSL Ubuntu missing')
+::         MenuText = (Localize-Text 'WSL Linux distro missing')
 ::     }
 ::     return $diag
 :: }
@@ -1088,7 +1125,7 @@ exit /b %errorlevel%
 ::         return
 ::     }
 ::
-::     if (-not (Test-UbuntuInstalled)) {
+::     if (-not (Test-WslUserDistroInstalled)) {
 ::         foreach ($key in $resolvedKeys) {
 ::             $null = Get-ToolDiagnostics -Key $key
 ::         }
@@ -1348,7 +1385,8 @@ exit /b %errorlevel%
 ::         '}'
 ::     ) -join '; '
 ::     $psArgs = @(
-::         '-NoExit',
+::         '-NoLogo',
+::         '-NoProfile',
 ::         '-ExecutionPolicy', 'Bypass',
 ::         '-Command', $wrappedCommand
 ::     )
@@ -1910,7 +1948,12 @@ exit /b %errorlevel%
 ::
 ::     $wslDir = Get-WslPath -WindowsPath $WindowsDirectory
 ::     $wslScript = Get-WslPath -WindowsPath $WindowsScriptPath
-::     $wslArgs = @('--cd', $wslDir, '--exec', 'bash', $wslScript) + $ScriptArguments
+::     $distro = Get-PreferredWslDistro
+::     $wslArgs = @()
+::     if ($distro) {
+::         $wslArgs += @('-d', $distro)
+::     }
+::     $wslArgs += @('--cd', $wslDir, '--exec', 'bash', $wslScript) + $ScriptArguments
 ::     $wt = Get-Command wt.exe -ErrorAction SilentlyContinue
 ::
 ::     if ($DryRun) {
@@ -1936,9 +1979,9 @@ exit /b %errorlevel%
 ::
 :: function Get-InstallItems {
 ::     $script:ToolDiagCache = @{}
-::     $ubuntuInstalled = Test-UbuntuInstalled
+::     $distroReady = Test-WslUserDistroInstalled
 ::     $pwshInfo = Get-PwshInfo
-::     if ($ubuntuInstalled) {
+::     if ($distroReady) {
 ::         Warm-ToolDiagnosticsCache -Keys @('codex', 'omx', 'opencode', 'claude-code', 'gemini-cli', 'oh-my-openagent', 'oh-my-opencode-slim')
 ::         $codexDiag = Get-ToolDiagnostics -Key 'codex'
 ::         $omxDiag = Get-ToolDiagnostics -Key 'omx'
@@ -1961,19 +2004,19 @@ exit /b %errorlevel%
 ::         [pscustomobject]@{
 ::             Title = 'First install (recommended)'
 ::             Subtitle = 'Best beginner path for WSL Ubuntu, optional PowerShell 7, and all AI CLI tools.'
-::             Accent = if ($ubuntuInstalled -and $pwshInfo.Installed) { 'Green' } else { 'Yellow' }
+::             Accent = if ($distroReady -and $pwshInfo.Installed) { 'Green' } else { 'Yellow' }
 ::             Key = 'first-install'
 ::         }
 ::         [pscustomobject]@{
 ::             Title = 'WSL Ubuntu'
-::             Subtitle = if ($ubuntuInstalled) { "Installed | distros: $(@(Get-WslDistros).Count)" } else { 'Missing | runs wsl --install -d Ubuntu' }
-::             Accent = if ($ubuntuInstalled) { 'Green' } else { 'Yellow' }
+::             Subtitle = if ($distroReady) { "Installed | distros: $(@(Get-WslUserDistros).Count)" } else { 'Missing | runs wsl --install -d Ubuntu' }
+::             Accent = if ($distroReady) { 'Green' } else { 'Yellow' }
 ::             Key = 'wsl-ubuntu'
 ::         }
 ::         [pscustomobject]@{ Title = 'PowerShell 7'; Subtitle = $pwshInfo.MenuText; Accent = if ($pwshInfo.Installed) { 'Green' } else { 'Yellow' }; Key = 'powershell-7' }
-::         [pscustomobject]@{ Title = 'Install all AI CLI tools'; Subtitle = if ($ubuntuInstalled) { 'Run Codex, OMX, OpenCode, Claude Code, and Gemini CLI in one pass.' } else { 'WSL Ubuntu missing | install Ubuntu first.' }; Accent = if ($ubuntuInstalled) { 'Green' } else { 'Yellow' }; Key = 'all-ai-cli-tools' }
-::         [pscustomobject]@{ Title = 'Cleaner helper'; Subtitle = if ($ubuntuInstalled) { 'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.' } else { 'WSL Ubuntu missing | install Ubuntu first.' }; Accent = if ($ubuntuInstalled) { 'Cyan' } else { 'Yellow' }; Key = 'cleaner-helper' }
-::         [pscustomobject]@{ Title = 'Reset tool configs'; Subtitle = if ($ubuntuInstalled) { 'Review tracked config/auth paths and remove only the ones you confirm.' } else { 'WSL Ubuntu missing | install Ubuntu first.' }; Accent = if ($ubuntuInstalled) { 'Yellow' } else { 'Yellow' }; Key = 'reset-tool-configs' }
+::         [pscustomobject]@{ Title = 'Install all AI CLI tools'; Subtitle = if ($distroReady) { 'Run Codex, OMX, OpenCode, Claude Code, and Gemini CLI in one pass.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Green' } else { 'Yellow' }; Key = 'all-ai-cli-tools' }
+::         [pscustomobject]@{ Title = 'Cleaner helper'; Subtitle = if ($distroReady) { 'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Cyan' } else { 'Yellow' }; Key = 'cleaner-helper' }
+::         [pscustomobject]@{ Title = 'Reset tool configs'; Subtitle = if ($distroReady) { 'Review tracked config/auth paths and remove only the ones you confirm.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Yellow' } else { 'Yellow' }; Key = 'reset-tool-configs' }
 ::         [pscustomobject]@{ Title = 'Codex CLI'; Subtitle = $codexDiag.MenuText; Accent = if ($codexDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'codex' }
 ::         [pscustomobject]@{ Title = 'OpenCode'; Subtitle = $opencodeDiag.MenuText; Accent = if ($opencodeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'opencode' }
 ::         [pscustomobject]@{ Title = 'Oh My OpenAgent'; Subtitle = $omaDiag.MenuText; Accent = if ($omaDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Yellow' }; Key = 'oh-my-openagent' }
@@ -2042,7 +2085,7 @@ exit /b %errorlevel%
 :: }
 ::
 :: function Invoke-WslUbuntuInstallFlow {
-::     Show-InfoBox -Title 'Install Preflight' -Accent Yellow -Hint 'A PowerShell tab opens immediately after this screen' -Lines @(
+::     Show-InfoBox -Title 'Install Preflight' -Accent Yellow -Hint 'A PowerShell window opens immediately after this screen' -Lines @(
 ::         'Target  : WSL Ubuntu',
 ::         'Action  : Run wsl --install -d Ubuntu',
 ::         'Impact  : Installs Ubuntu into Windows Subsystem for Linux'
@@ -2059,14 +2102,14 @@ exit /b %errorlevel%
 :: function Invoke-PowerShell7InstallFlow {
 ::     $pwshInfo = Get-PwshInfo
 ::     $pwshStatus = if ($pwshInfo.Installed) { 'Installed' } else { 'Missing' }
-::     Show-InfoBox -Title 'Install Preflight' -Accent Yellow -Hint 'A PowerShell tab opens immediately after this screen' -Lines @(
+::     Show-InfoBox -Title 'Install Preflight' -Accent Yellow -Hint 'A PowerShell window opens immediately after this screen' -Lines @(
 ::         'Target  : PowerShell 7',
 ::         "Current : $pwshStatus",
 ::         "Version : $($pwshInfo.Version)",
 ::         'Action  : Install PowerShell 7 with winget and set Windows Terminal default profile to PowerShell'
 ::     )
 ::     $scriptPath = Join-Path $script:ScriptDir 'syta-install-powershell7.ps1'
-::     $result = Open-WindowsPowerShellWindow -Title (Localize-Text 'SYTA PowerShell 7 Install') -Command ("& '$scriptPath'")
+::     $result = Open-WindowsPowerShellWindow -Title (Localize-Text 'SYTA PowerShell 7 Install') -Command ("& '$scriptPath'") -UseWindowsTerminal:$false
 ::     if ($DryRun) {
 ::         return $result
 ::     }
@@ -2146,12 +2189,12 @@ exit /b %errorlevel%
 :: }
 ::
 :: function Invoke-FirstInstallFlow {
-::     $ubuntuInstalled = Test-UbuntuInstalled
+::     $distroReady = Test-WslUserDistroInstalled
 ::     $pwshInfo = Get-PwshInfo
-::     $wslLine = if ($ubuntuInstalled) { 'WSL     : Ubuntu already installed' } else { 'WSL     : Will run wsl --install -d Ubuntu' }
+::     $wslLine = if ($distroReady) { 'WSL     : Linux distro already installed' } else { 'WSL     : Will run wsl --install -d Ubuntu' }
 ::     $powerLine = if ($pwshInfo.Installed) { 'Power   : PowerShell 7 already installed; SYTA can repair it if needed' } else { 'Power   : SYTA will ask whether to install PowerShell 7' }
 ::
-::     $cliLine = if ($ubuntuInstalled) { 'CLI     : Ready to launch all AI CLI tools now' } else { 'CLI     : Full AI CLI install starts after Ubuntu is ready' }
+::     $cliLine = if ($distroReady) { 'CLI     : Ready to launch all AI CLI tools now' } else { 'CLI     : Install all AI CLI tools once a Linux distro is ready' }
 ::     $lines = @(
 ::         'Target  : First install',
 ::         $wslLine,
@@ -2159,9 +2202,8 @@ exit /b %errorlevel%
 ::         $cliLine,
 ::         'Note    : Recommended path for a new machine or first SYTA setup'
 ::     )
-::     if (-not $ubuntuInstalled) {
-::         $lines += 'Note    : Ubuntu setup may require a reboot before CLI installs continue'
-::         $lines += 'Note    : Ubuntu may also require first-run Linux account creation'
+::     if (-not $distroReady) {
+::         $lines += 'Note    : Ubuntu setup may require a reboot or first-run Linux account creation before CLI installs can continue'
 ::     }
 ::
 ::     Show-InfoBox -Title 'First Install' -Accent Yellow -Hint 'SYTA keeps this selector open while new tabs launch' -Lines $lines
@@ -2170,12 +2212,12 @@ exit /b %errorlevel%
 ::         WslInstall = $null
 ::         PowerShellInstall = $null
 ::         CliInstall = $null
-::         RequiresRerunAfterUbuntuSetup = -not $ubuntuInstalled
+::         RequiresRerunAfterUbuntuSetup = -not $distroReady
 ::     }
 ::
 ::     if ($DryRun) {
 ::         $scriptPath = Join-Path $script:ScriptDir 'syta-install-powershell7.ps1'
-::         if (-not $ubuntuInstalled) {
+::         if (-not $distroReady) {
 ::             $result.WslInstall = Open-WindowsPowerShellWindow -Title (Localize-Text 'SYTA WSL Ubuntu Install') -Command 'wsl --install -d Ubuntu'
 ::         }
 ::
@@ -2184,9 +2226,9 @@ exit /b %errorlevel%
 ::         } else {
 ::             'would-ask-install-or-skip'
 ::         }
-::         $result.PowerShellInstall = Open-WindowsPowerShellWindow -Title (Localize-Text 'SYTA PowerShell 7 Install') -Command ("& '$scriptPath'")
+::         $result.PowerShellInstall = Open-WindowsPowerShellWindow -Title (Localize-Text 'SYTA PowerShell 7 Install') -Command ("& '$scriptPath'") -UseWindowsTerminal:$false
 ::
-::         if ($ubuntuInstalled) {
+::         if ($distroReady) {
 ::             $result.CliInstall = Open-WslWindow `
 ::                 -Title (Localize-Text 'SYTA Install - All AI CLI Tools') `
 ::                 -WindowsDirectory $script:ScriptDir `
@@ -2197,7 +2239,7 @@ exit /b %errorlevel%
 ::         return [pscustomobject]$result
 ::     }
 ::
-::     if (-not $ubuntuInstalled) {
+::     if (-not $distroReady) {
 ::         $result.WslInstall = Invoke-WslUbuntuInstallFlow
 ::     }
 ::
@@ -2205,10 +2247,12 @@ exit /b %errorlevel%
 ::         $result.PowerShellInstall = Invoke-PowerShell7InstallFlow
 ::     }
 ::
-::     if (-not $ubuntuInstalled) {
+::     if (-not $distroReady) {
 ::         Show-InfoBox -Title 'Continue later' -Accent Yellow -Hint 'Back' -Lines @(
 ::             'Ubuntu setup was started in a separate PowerShell window.',
 ::             'After Ubuntu finishes installing, rerun First install to continue with AI CLI tools.',
+::             'If Windows asks for a reboot, restart Windows first.',
+::             'If Ubuntu asks you to create your Linux user, finish that step first.',
 ::             'You can also use Install all AI CLI tools later if Ubuntu is already ready.'
 ::         )
 ::         Start-Sleep -Milliseconds 1500
@@ -2304,12 +2348,12 @@ exit /b %errorlevel%
 ::     } else {
 ::         try {
 ::             Show-LoadProgress -Title 'Installer' -Status 'Checking Windows prerequisites' -Current 1 -Total 2 -Accent Yellow
-::             $ubuntuInstalled = Test-UbuntuInstalled
+::             $ubuntuInstalled = Test-WslUserDistroInstalled
 ::             $null = Get-PwshInfo
 ::             if ($ubuntuInstalled) {
 ::                 Show-LoadProgress -Title 'Installer' -Status 'Loading WSL tool diagnostics' -Current 2 -Total 2 -Accent Cyan
 ::             } else {
-::                 Show-LoadProgress -Title 'Installer' -Status 'Preparing install options' -Detail 'Ubuntu is missing, so SYTA will show safe setup choices only.' -Current 2 -Total 2 -Accent Yellow
+::                 Show-LoadProgress -Title 'Installer' -Status 'Preparing install options' -Detail 'No WSL Linux distro is ready yet, so SYTA will show safe setup choices only.' -Current 2 -Total 2 -Accent Yellow
 ::             }
 ::             Read-Menu -Title 'Installer' -Subtitle 'Install or repair WSL Ubuntu and supported coding CLIs.' -Items (Get-InstallItems)
 ::         } catch {
@@ -2684,12 +2728,49 @@ exit /b %errorlevel%
 ::     Write-Host (T 'Windows Terminal default profile set to PowerShell.' 'Le profil par defaut de Windows Terminal a ete defini sur PowerShell.') -ForegroundColor Green
 :: }
 ::
-:: Write-Stage 'Install PowerShell 7' 'Installer PowerShell 7'
-:: if (-not (Get-Command winget.exe -ErrorAction SilentlyContinue)) {
-::     throw (T 'winget.exe is not available on this Windows system.' 'winget.exe n''est pas disponible sur ce systeme Windows.')
+:: function Resolve-WinGet {
+::     $cmd = Get-Command winget.exe -ErrorAction SilentlyContinue
+::     if ($cmd) {
+::         return $cmd.Source
+::     }
+::
+::     Write-Stage 'Repair WinGet registration' 'Reparer l''enregistrement WinGet'
+::     try {
+::         Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe -ErrorAction Stop | Out-Null
+::     } catch {
+::         throw (T 'winget.exe is not available and WinGet registration repair failed.' 'winget.exe est indisponible et la reparation de son enregistrement a echoue.')
+::     }
+::
+::     $cmd = Get-Command winget.exe -ErrorAction SilentlyContinue
+::     if ($cmd) {
+::         return $cmd.Source
+::     }
+::
+::     throw (T 'winget.exe is still not available after registration repair.' 'winget.exe reste indisponible apres la reparation de son enregistrement.')
 :: }
 ::
-:: winget install --id Microsoft.PowerShell --source winget --accept-package-agreements --accept-source-agreements
+:: Write-Stage 'Install PowerShell 7' 'Installer PowerShell 7'
+:: $winget = Resolve-WinGet
+:: $pwshExisting = Get-Command pwsh.exe -ErrorAction SilentlyContinue
+:: $wingetArgs = @(
+::     '--id', 'Microsoft.PowerShell',
+::     '--source', 'winget',
+::     '--exact',
+::     '--accept-package-agreements',
+::     '--accept-source-agreements',
+::     '--disable-interactivity',
+::     '--silent'
+:: )
+::
+:: if ($pwshExisting) {
+::     & $winget upgrade @wingetArgs
+:: } else {
+::     & $winget install @wingetArgs
+:: }
+::
+:: if ($LASTEXITCODE -ne 0) {
+::     throw (T 'PowerShell 7 installation or upgrade failed.' 'L''installation ou la mise a niveau de PowerShell 7 a echoue.')
+:: }
 ::
 :: Write-Stage 'Verify pwsh' 'Verifier pwsh'
 :: $pwsh = Get-Command pwsh.exe -ErrorAction Stop
@@ -2732,7 +2813,7 @@ exit /b %errorlevel%
 ::       session_ok) printf 'Operation terminee.\n' ;;
 ::       session_failed) printf 'Operation terminee avec une erreur.\n' ;;
 ::       return_main) printf 'Revenez a la fenetre principale de SYTA pour choisir autre chose ou lancer une installation.\n' ;;
-::       close_window) printf 'Appuyez sur Entree pour fermer cette fenetre.\n' ;;
+::       close_window) printf 'Appuyez sur Entree pour terminer cette session. Si l''onglet reste ouvert, fermez-le puis revenez a SYTA.\n' ;;
 ::     esac
 ::   else
 ::     case "$key" in
@@ -2743,7 +2824,7 @@ exit /b %errorlevel%
 ::       session_ok) printf 'Operation completed.\n' ;;
 ::       session_failed) printf 'Operation finished with an error.\n' ;;
 ::       return_main) printf 'Go back to the main SYTA window to choose another action or install the missing tool.\n' ;;
-::       close_window) printf 'Press Enter to close this window.\n' ;;
+::       close_window) printf 'Press Enter to finish this session. If the tab stays open, close it and return to SYTA.\n' ;;
 ::     esac
 ::   fi
 :: }
@@ -2813,13 +2894,13 @@ exit /b %errorlevel%
 ::   failure_text="Operation terminee avec une erreur."
 ::   exit_prefix="Code de sortie de session : "
 ::   return_text="Revenez a la fenetre principale de SYTA pour choisir autre chose ou lancer une installation."
-::   close_text="Appuyez sur Entree pour fermer cette fenetre."
+::   close_text="Appuyez sur Entree pour terminer cette session. Si l'onglet reste ouvert, fermez-le puis revenez a SYTA."
 :: else
 ::   success_text="Operation completed."
 ::   failure_text="Operation finished with an error."
 ::   exit_prefix="Session exit code: "
 ::   return_text="Go back to the main SYTA window to choose another action or install the missing tool."
-::   close_text="Press Enter to close this window."
+::   close_text="Press Enter to finish this session. If the tab stays open, close it and return to SYTA."
 :: fi
 ::
 :: payload="$runner_cmd; syta_rc=\$?; printf '\n'; if [ \"\$syta_rc\" -eq 0 ]; then printf '%s\n' $(quote_arg "$success_text"); else printf '%s\n' $(quote_arg "$failure_text"); fi; printf '%s%s\n\n' $(quote_arg "$exit_prefix") \"\$syta_rc\"; printf '%s\n' $(quote_arg "$return_text"); printf '%s\n' $(quote_arg "$close_text"); read -r _syta_close_prompt || true; exit \"\$syta_rc\""
@@ -3860,11 +3941,54 @@ exit /b %errorlevel%
 ::     throw 'wsl.exe was not found on this Windows system.'
 :: }
 ::
+:: function Get-WslDistroNames {
+::     $raw = & $wslExe -l -q 2>$null
+::     if ($LASTEXITCODE -ne 0 -or -not $raw) {
+::         return @()
+::     }
+::
+::     return @($raw | ForEach-Object { ($_ -replace "`0", '').Trim() } | Where-Object { $_ })
+:: }
+::
+:: function Wait-ForUbuntuRegistration {
+::     param([int]$TimeoutSeconds = 25)
+::
+::     for ($i = 0; $i -lt $TimeoutSeconds; $i++) {
+::         $distros = @(Get-WslDistroNames)
+::         $ubuntu = @($distros | Where-Object { $_ -match '^Ubuntu' } | Select-Object -First 1)
+::         if ($ubuntu.Count -gt 0) {
+::             return $ubuntu[0]
+::         }
+::
+::         Start-Sleep -Seconds 1
+::     }
+::
+::     return $null
+:: }
+::
 :: Write-Stage 'Install WSL Ubuntu'
 :: & $wslExe --install -d Ubuntu
+:: $installExitCode = $LASTEXITCODE
 ::
+:: if ($installExitCode -ne 0) {
+::     Write-Stage 'Retry WSL install using web download'
+::     & $wslExe --install --web-download -d Ubuntu
+::     $installExitCode = $LASTEXITCODE
+:: }
+::
+:: if ($installExitCode -ne 0) {
+::     throw "WSL Ubuntu install command failed with exit code $installExitCode."
+:: }
+::
+:: $registeredUbuntu = Wait-ForUbuntuRegistration
 :: Write-Host ''
-:: Write-Host 'WSL Ubuntu install command completed.' -ForegroundColor Green
+:: if ($registeredUbuntu) {
+::     Write-Host ("WSL distro registered: {0}" -f $registeredUbuntu) -ForegroundColor Green
+::     Write-Host 'If Ubuntu asks you to create your Linux user, finish that step and then rerun First install.' -ForegroundColor Yellow
+:: } else {
+::     Write-Host 'WSL install command completed, but Ubuntu is not registered yet.' -ForegroundColor Yellow
+::     Write-Host 'If Windows asks for a reboot, restart Windows first, then launch Ubuntu once and rerun First install.' -ForegroundColor Yellow
+:: }
 ::END:syta-install-wsl-ubuntu.ps1
 ::BEGIN:syta-self-update.ps1
 :: param(

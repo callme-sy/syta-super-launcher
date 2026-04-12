@@ -60,8 +60,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-12-061942Z'
-:: $script:ReleaseTag = 'v1.5.2'
+:: $script:BuildId = 'SYTA-build-2026-04-12-062631Z'
+:: $script:ReleaseTag = 'v1.5.3'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -1105,7 +1105,7 @@ exit /b %errorlevel%
 ::     }
 ::
 ::     $configPath = if ($Raw.config) { $Raw.config } else { $null }
-::     $statusText = if ($installed) { Localize-Text "Installed ($sourceLabel)" } elseif ($configPath) { Localize-Text 'Configured only' } else { Localize-Text 'Missing' }
+::     $statusText = if ($installSource -eq 'config' -or $configPath) { Localize-Text 'Configured only' } elseif ($installed) { Localize-Text "Installed ($sourceLabel)" } else { Localize-Text 'Missing' }
 ::
 ::     $diag = [pscustomobject]@{
 ::         Key = $ResolvedKey
@@ -1113,7 +1113,7 @@ exit /b %errorlevel%
 ::         Path = $path
 ::         PathText = if ($path) { $path } elseif ($configPath) { $configPath } else { $spec.InstallHint }
 ::         Version = $version
-::         VersionText = if ($installed) { if ($version) { $version } else { (Localize-Text 'version not detected') } } elseif ($configPath) { (Localize-Text 'binary not found on PATH') } else { (Localize-Text 'not installed') }
+::         VersionText = if ($installSource -eq 'config' -or $configPath) { (Localize-Text 'binary not found on PATH') } elseif ($installed) { if ($version) { $version } else { (Localize-Text 'version not detected') } } else { (Localize-Text 'not installed') }
 ::         AuthRaw = $authRaw
 ::         AuthText = Format-AuthStatus -Raw $authRaw
 ::         InstallSource = $installSource
@@ -2702,8 +2702,17 @@ exit /b %errorlevel%
 ::       { [ -n "${GEMINI_API_KEY:-}" ] || [ -n "${GOOGLE_API_KEY:-}" ]; } && auth='env-key'
 ::       [ "$auth" = 'not-detected' ] && { [ -d "$HOME/.config/gemini" ] || [ -d "$HOME/.config/google" ]; } && auth='config-present'
 ::       ;;
+::     oh-my-openagent)
+::       [ -f "$HOME/.config/opencode/oh-my-openagent.jsonc" ] && config="$HOME/.config/opencode/oh-my-openagent.jsonc" && auth='config-present'
+::       [ -z "$config" ] && [ -f "$HOME/.config/opencode/oh-my-openagent.json" ] && config="$HOME/.config/opencode/oh-my-openagent.json" && auth='config-present'
+::       [ -z "$config" ] && [ -f "$HOME/.config/opencode/oh-my-opencode.jsonc" ] && config="$HOME/.config/opencode/oh-my-opencode.jsonc" && auth='config-present'
+::       [ -z "$config" ] && [ -f "$HOME/.config/opencode/oh-my-opencode.json" ] && config="$HOME/.config/opencode/oh-my-opencode.json" && auth='config-present'
+::       [ -z "$config" ] && [ -f "$HOME/.config/opencode/opencode.json" ] && grep -Eq '"oh-my-openagent"|"oh-my-opencode"' "$HOME/.config/opencode/opencode.json" && config="$HOME/.config/opencode/opencode.json" && auth='config-present'
+::       [ -z "$config" ] && [ -f "$HOME/.config/opencode/opencode.jsonc" ] && grep -Eq '"oh-my-openagent"|"oh-my-opencode"' "$HOME/.config/opencode/opencode.jsonc" && config="$HOME/.config/opencode/opencode.jsonc" && auth='config-present'
+::       ;;
 ::     oh-my-opencode-slim)
 ::       [ -f "$HOME/.config/opencode/oh-my-opencode-slim.json" ] && config="$HOME/.config/opencode/oh-my-opencode-slim.json" && auth='config-present'
+::       [ -z "$config" ] && [ -f "$HOME/.config/opencode/oh-my-opencode-slim.jsonc" ] && config="$HOME/.config/opencode/oh-my-opencode-slim.jsonc" && auth='config-present'
 ::       ;;
 ::     *)
 ::       print_kv key "$key"
@@ -2736,7 +2745,7 @@ exit /b %errorlevel%
 ::     fi
 ::   fi
 ::
-::   if [ "$key" = 'oh-my-opencode-slim' ] && [ -n "$config" ]; then
+::   if { [ "$key" = 'oh-my-opencode-slim' ] || [ "$key" = 'oh-my-openagent' ]; } && [ -n "$config" ]; then
 ::     installed=1
 ::     path="$config"
 ::     install_source='config'

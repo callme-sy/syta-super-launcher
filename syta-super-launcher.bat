@@ -60,8 +60,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-12-062631Z'
-:: $script:ReleaseTag = 'v1.5.3'
+:: $script:BuildId = 'SYTA-build-2026-04-12-062938Z'
+:: $script:ReleaseTag = 'v1.5.4'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -229,6 +229,11 @@ exit /b %errorlevel%
 ::         'Scope   : Older nvm Node versions, duplicate PATH entries, user-scoped npm installs' = 'Portee  : anciennes versions Node nvm, doublons du PATH, installations npm utilisateur'
 ::         'Oh My OpenAgent' = 'Oh My OpenAgent'
 ::         'OpenCode + the full Oh My OpenAgent harness with its interactive installer.' = 'OpenCode + le harnais complet Oh My OpenAgent avec son installateur interactif.'
+::         'This is an OpenCode add-on, not a separate coding CLI.' = 'Ceci est un add-on pour OpenCode, pas une CLI de code separee.'
+::         'OpenCode should be installed first. SYTA will install it automatically if needed.' = 'OpenCode doit etre installe d''abord. SYTA l''installera automatiquement si besoin.'
+::         'Best if you already use OpenCode and want more helper features around it.' = 'A conseiller surtout si vous utilisez deja OpenCode et voulez plus d''aides autour.'
+::         'Best if you want a lighter OpenCode add-on instead of the bigger OpenAgent setup.' = 'A conseiller si vous voulez un add-on OpenCode plus leger que le gros setup OpenAgent.'
+::         'OpenCode : ' = 'OpenCode : '
 ::         'Loading live tool diagnostics' = 'Chargement des diagnostics des outils'
 ::         'Checking Windows prerequisites' = 'Verification des prerequis Windows'
 ::         'Loading WSL tool diagnostics' = 'Chargement des diagnostics WSL'
@@ -2501,6 +2506,31 @@ exit /b %errorlevel%
 ::             return
 ::         }
 ::         return
+::     } elseif ($selection.Key -eq 'oh-my-openagent' -or $selection.Key -eq 'oh-my-opencode-slim') {
+::         $diag = Get-ToolDiagnostics -Key $selection.Key -Refresh
+::         $opencodeDiag = Get-ToolDiagnostics -Key 'opencode'
+::         $extraLines = if ($selection.Key -eq 'oh-my-openagent') {
+::             @(
+::                 'This is an OpenCode add-on, not a separate coding CLI.',
+::                 'OpenCode should be installed first. SYTA will install it automatically if needed.',
+::                 'Best if you already use OpenCode and want more helper features around it.'
+::             )
+::         } else {
+::             @(
+::                 'This is an OpenCode add-on, not a separate coding CLI.',
+::                 'OpenCode should be installed first. SYTA will install it automatically if needed.',
+::                 'Best if you want a lighter OpenCode add-on instead of the bigger OpenAgent setup.'
+::             )
+::         }
+::
+::         Show-InfoBox -Title 'Install Preflight' -Accent Cyan -Hint 'A new terminal tab opens immediately after this screen' -Lines (@(
+::             "Target  : $($selection.Title)",
+::             "Current : $($diag.InstallText)",
+::             "Version : $($diag.VersionText)",
+::             "Auth    : $($diag.AuthText)",
+::             "Path    : $($diag.PathText)",
+::             ("OpenCode : {0}" -f $opencodeDiag.InstallText)
+::         ) + $extraLines)
 ::     } else {
 ::         $diag = Get-ToolDiagnostics -Key $selection.Key -Refresh
 ::         Show-InfoBox -Title 'Install Preflight' -Accent Cyan -Hint 'A new terminal tab opens immediately after this screen' -Lines @(

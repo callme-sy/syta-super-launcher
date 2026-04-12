@@ -103,8 +103,8 @@ The core bundle currently installs:
 `OpenCode`, `Oh My OpenAgent`, and `Oh My OpenCode Slim` are now separate lanes:
 
 - `OpenCode` is the normal coding CLI.
-- `Oh My OpenAgent` is the bigger add-on around OpenCode, with more helper features and more setup.
-- `Oh My OpenCode Slim` is the lighter add-on around OpenCode for people who want a smaller set of extras.
+- `Oh My OpenAgent` is the bigger add-on around OpenCode, with more helper features and more setup. It is not a separate coding CLI.
+- `Oh My OpenCode Slim` is the lighter add-on around OpenCode for people who want a smaller set of extras. It is not a separate coding CLI.
 
 ## Language
 

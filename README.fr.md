@@ -103,8 +103,8 @@ Le bundle de base installe actuellement :
 `OpenCode`, `Oh My OpenAgent` et `Oh My OpenCode Slim` sont maintenant trois voies distinctes :
 
 - `OpenCode` est la CLI de code normale.
-- `Oh My OpenAgent` est le plus gros add-on autour d'OpenCode, avec plus d'aides mais aussi plus de setup.
-- `Oh My OpenCode Slim` est l'add-on plus leger autour d'OpenCode pour les personnes qui veulent seulement quelques aides en plus.
+- `Oh My OpenAgent` est le plus gros add-on autour d'OpenCode, avec plus d'aides mais aussi plus de setup. Ce n'est pas une CLI de code separee.
+- `Oh My OpenCode Slim` est l'add-on plus leger autour d'OpenCode pour les personnes qui veulent seulement quelques aides en plus. Ce n'est pas une CLI de code separee.
 
 ## Langue
 

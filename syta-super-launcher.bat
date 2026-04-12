@@ -60,8 +60,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-12-054708Z'
-:: $script:ReleaseTag = 'v1.4.14'
+:: $script:BuildId = 'SYTA-build-2026-04-12-055502Z'
+:: $script:ReleaseTag = 'v1.4.15'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -153,10 +153,10 @@ exit /b %errorlevel%
 ::         'Update AI coding CLIs only: Codex, OMX, OpenCode, Claude Code, Gemini CLI.' = 'Mettre a jour seulement les CLI IA : Codex, OMX, OpenCode, Claude Code, Gemini CLI.'
 ::         'Run the broader toolchain update pass, including system package managers.' = 'Lancer la maintenance plus large de la chaine d''outils, y compris les gestionnaires systeme.'
 ::         'First install (recommended)' = 'Premiere installation (recommandee)'
-::         'Best beginner path for WSL Ubuntu, optional PowerShell 7, and all AI CLI tools.' = 'Meilleur parcours debutant pour WSL Ubuntu, PowerShell 7 en option et toutes les CLI IA.'
+::         'Best beginner path for WSL Ubuntu, optional PowerShell 7, and the core AI CLI tools.' = 'Meilleur parcours debutant pour WSL Ubuntu, PowerShell 7 en option et les CLI IA de base.'
 ::         'Recommended path for a new machine or first SYTA setup' = 'Parcours recommande pour une nouvelle machine ou une premiere installation SYTA'
-::         'CLI     : Ready to launch all AI CLI tools now' = 'CLI     : pret a lancer maintenant toutes les CLI IA'
-::         'CLI     : Full AI CLI install starts after Ubuntu is ready' = 'CLI     : l''installation complete des CLI IA demarre apres qu''Ubuntu soit pret'
+::         'CLI     : Ready to launch the core AI CLI tools now' = 'CLI     : pret a lancer maintenant les CLI IA de base'
+::         'CLI     : Full core AI CLI install starts after Ubuntu is ready' = 'CLI     : l''installation complete des CLI IA de base demarre apres qu''Ubuntu soit pret'
 ::         'Note    : Recommended path for a new machine or first SYTA setup' = 'Note    : parcours recommande pour une nouvelle machine ou une premiere installation SYTA'
 ::         'Note    : Ubuntu setup may require a reboot before CLI installs continue' = 'Note    : Ubuntu peut demander un redemarrage avant la suite des installations CLI'
 ::         'Note    : Ubuntu may also require first-run Linux account creation' = 'Note    : Ubuntu peut aussi demander la creation initiale du compte Linux'
@@ -188,15 +188,15 @@ exit /b %errorlevel%
 ::         'Choose what SYTA should do.' = 'Choisissez ce que SYTA doit faire.'
 ::         'Install or repair WSL Ubuntu and supported coding CLIs.' = 'Installer ou reparer WSL Ubuntu et les CLI de codage prises en charge.'
 ::         'First install' = 'Premiere installation'
-::         'Guided setup for WSL Ubuntu, optional PowerShell 7, and all AI CLI tools.' = 'Parcours guide pour WSL Ubuntu, PowerShell 7 en option, et toutes les CLI IA.'
+::         'Guided setup for WSL Ubuntu, optional PowerShell 7, and the core AI CLI tools.' = 'Parcours guide pour WSL Ubuntu, PowerShell 7 en option, et les CLI IA de base.'
 ::         'PowerShell 7 is already installed. Reinstall or repair it now?' = 'PowerShell 7 est deja installe. Le reinstaller ou le reparer maintenant ?'
 ::         'Would you like SYTA to install PowerShell 7 too?' = 'Voulez-vous aussi que SYTA installe PowerShell 7 ?'
 ::         'Skip PowerShell 7 for now' = 'Ignorer PowerShell 7 pour le moment'
 ::         'Continue without changing the Windows Terminal default profile.' = 'Continuer sans modifier le profil par defaut de Windows Terminal.'
 ::         'Install PowerShell 7 now' = 'Installer PowerShell 7 maintenant'
 ::         'Reinstall or repair PowerShell 7' = 'Reinstaller ou reparer PowerShell 7'
-::         'Install all AI CLI tools' = 'Installer toutes les CLI IA'
-::         'Run Codex, OMX, OpenCode, Claude Code, and Gemini CLI in one pass.' = 'Lancer Codex, OMX, OpenCode, Claude Code et Gemini CLI en une seule passe.'
+::         'Install all AI CLI tools' = 'Installer toutes les CLI IA de base'
+::         'Run Codex, OpenCode, Claude Code, and Gemini CLI in one pass.' = 'Lancer Codex, OpenCode, Claude Code et Gemini CLI en une seule passe.'
 ::         'Cleaner helper' = 'Assistant de nettoyage'
 ::         'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.' = 'Analyser les anciennes installations nvm/npm des CLI IA et les doublons du PATH avant nettoyage.'
 ::         'Reset tool configs' = 'Reinitialiser les configs des outils'
@@ -272,13 +272,14 @@ exit /b %errorlevel%
 ::         'WSL     : Will run wsl --install -d Ubuntu' = 'WSL     : executera wsl --install -d Ubuntu'
 ::         'Power   : SYTA will ask whether to install PowerShell 7' = 'Power   : SYTA demandera s''il faut installer PowerShell 7'
 ::         'Power   : PowerShell 7 already installed; SYTA can repair it if needed' = 'Power   : PowerShell 7 deja installe ; SYTA peut le reparer si besoin'
-::         'CLI     : Install all AI CLI tools once a Linux distro is ready' = 'CLI     : installer toutes les CLI IA une fois une distribution Linux prete'
+::         'CLI     : Install the core AI CLI tools once a Linux distro is ready' = 'CLI     : installer les CLI IA de base une fois une distribution Linux prete'
+::         'Note    : Oh My Codex / OMX and the Oh My OpenCode variants stay optional installs' = 'Note    : Oh My Codex / OMX et les variantes Oh My OpenCode restent optionnels'
 ::         'Note    : Ubuntu setup may require a reboot or first-run Linux account creation before CLI installs can continue' = 'Note    : l''installation d''Ubuntu peut necessiter un redemarrage ou la creation initiale du compte Linux avant de poursuivre les CLI'
 ::         'Ubuntu setup was started in a separate PowerShell window.' = 'L''installation d''Ubuntu a ete lancee dans une fenetre PowerShell separee.'
 ::         'After Ubuntu finishes installing, rerun First install to continue with AI CLI tools.' = 'Une fois Ubuntu installe, relancez Premiere installation pour continuer avec les CLI IA.'
 ::         'If Windows asks for a reboot, restart Windows first.' = 'Si Windows demande un redemarrage, redemarrez Windows d''abord.'
 ::         'If Ubuntu asks you to create your Linux user, finish that step first.' = 'Si Ubuntu demande de creer votre utilisateur Linux, terminez d''abord cette etape.'
-::         'You can also use Install all AI CLI tools later if Ubuntu is already ready.' = 'Vous pourrez aussi utiliser Installer toutes les CLI IA plus tard si Ubuntu est deja pret.'
+::         'You can also use Install all AI CLI tools later if Ubuntu is already ready.' = 'Vous pourrez aussi utiliser Installer toutes les CLI IA de base plus tard si Ubuntu est deja pret.'
 ::         'Unknown tool' = 'Outil inconnu'
 ::         'Auth via env key' = 'Auth via cle d''environnement'
 ::         'Auth/config detected' = 'Auth/config detectee'
@@ -2014,7 +2015,7 @@ exit /b %errorlevel%
 ::             Key = 'wsl-ubuntu'
 ::         }
 ::         [pscustomobject]@{ Title = 'PowerShell 7'; Subtitle = $pwshInfo.MenuText; Accent = if ($pwshInfo.Installed) { 'Green' } else { 'Yellow' }; Key = 'powershell-7' }
-::         [pscustomobject]@{ Title = 'Install all AI CLI tools'; Subtitle = if ($distroReady) { 'Run Codex, OMX, OpenCode, Claude Code, and Gemini CLI in one pass.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Green' } else { 'Yellow' }; Key = 'all-ai-cli-tools' }
+::         [pscustomobject]@{ Title = 'Install all AI CLI tools'; Subtitle = if ($distroReady) { 'Run Codex, OpenCode, Claude Code, and Gemini CLI in one pass.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Green' } else { 'Yellow' }; Key = 'all-ai-cli-tools' }
 ::         [pscustomobject]@{ Title = 'Cleaner helper'; Subtitle = if ($distroReady) { 'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Cyan' } else { 'Yellow' }; Key = 'cleaner-helper' }
 ::         [pscustomobject]@{ Title = 'Reset tool configs'; Subtitle = if ($distroReady) { 'Review tracked config/auth paths and remove only the ones you confirm.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Yellow' } else { 'Yellow' }; Key = 'reset-tool-configs' }
 ::         [pscustomobject]@{ Title = 'Codex CLI'; Subtitle = $codexDiag.MenuText; Accent = if ($codexDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'codex' }
@@ -2031,7 +2032,6 @@ exit /b %errorlevel%
 :: function Get-CodingCliSummaryLines {
 ::     $items = @(
 ::         [pscustomobject]@{ Label = 'Codex'; Key = 'codex' }
-::         [pscustomobject]@{ Label = 'OMX'; Key = 'omx' }
 ::         [pscustomobject]@{ Label = 'OpenCode'; Key = 'opencode' }
 ::         [pscustomobject]@{ Label = 'Claude'; Key = 'claude-code' }
 ::         [pscustomobject]@{ Label = 'Gemini'; Key = 'gemini-cli' }
@@ -2194,13 +2194,14 @@ exit /b %errorlevel%
 ::     $wslLine = if ($distroReady) { 'WSL     : Linux distro already installed' } else { 'WSL     : Will run wsl --install -d Ubuntu' }
 ::     $powerLine = if ($pwshInfo.Installed) { 'Power   : PowerShell 7 already installed; SYTA can repair it if needed' } else { 'Power   : SYTA will ask whether to install PowerShell 7' }
 ::
-::     $cliLine = if ($distroReady) { 'CLI     : Ready to launch all AI CLI tools now' } else { 'CLI     : Install all AI CLI tools once a Linux distro is ready' }
+::     $cliLine = if ($distroReady) { 'CLI     : Ready to launch the core AI CLI tools now' } else { 'CLI     : Install the core AI CLI tools once a Linux distro is ready' }
 ::     $lines = @(
 ::         'Target  : First install',
 ::         $wslLine,
 ::         $powerLine,
 ::         $cliLine,
-::         'Note    : Recommended path for a new machine or first SYTA setup'
+::         'Note    : Recommended path for a new machine or first SYTA setup',
+::         'Note    : Oh My Codex / OMX and the Oh My OpenCode variants stay optional installs'
 ::     )
 ::     if (-not $distroReady) {
 ::         $lines += 'Note    : Ubuntu setup may require a reboot or first-run Linux account creation before CLI installs can continue'
@@ -3361,7 +3362,6 @@ exit /b %errorlevel%
 ::   install_claude_code || overall=1
 ::   install_gemini_cli || overall=1
 ::   install_opencode || overall=1
-::   install_omx || overall=1
 ::   return "$overall"
 :: }
 ::

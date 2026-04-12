@@ -85,7 +85,16 @@ Le menu d’installation prend actuellement en charge :
 - `Gemini CLI`
 - `Oh My OpenCode Slim`
 
-`First install` est le parcours debutant : il lance WSL Ubuntu si besoin, demande s'il faut installer ou reparer PowerShell 7, puis lance l'installation groupee des CLI IA quand Ubuntu est pret. Si Ubuntu demande encore un redemarrage ou la creation initiale du compte Linux, SYTA indique de relancer `First install` ensuite.
+`First install` est le parcours debutant : il lance WSL Ubuntu si besoin, demande s'il faut installer ou reparer PowerShell 7, puis lance l'installation des CLI IA de base quand Ubuntu est pret. Si Ubuntu demande encore un redemarrage ou la creation initiale du compte Linux, SYTA indique de relancer `First install` ensuite.
+
+Le bundle de base installe actuellement :
+
+- `Codex`
+- `OpenCode`
+- `Claude Code`
+- `Gemini CLI`
+
+`Oh My Codex / OMX`, `Oh My OpenAgent` et `Oh My OpenCode Slim` restent des installations optionnelles separees dans le menu d'installation.
 
 `Cleaner helper` est disponible directement depuis le menu principal et aussi dans le menu d'installation. Il analyse les installations des CLI IA laissees dans d'anciennes versions Node gerees par `nvm`, ainsi que les doublons du PATH, puis demande avant de supprimer les npm globaux obsoletes qu'il peut nettoyer sans risque.
 
@@ -162,7 +171,7 @@ Le lanceur est pensé pour des machines réelles, pas pour un environnement parf
 
 Comportements importants :
 
-- `First install` guide une nouvelle machine a travers WSL Ubuntu, PowerShell 7 en option, puis toutes les CLI IA une fois Ubuntu pret.
+- `First install` guide une nouvelle machine a travers WSL Ubuntu, PowerShell 7 en option, puis les CLI IA de base une fois Ubuntu pret. Les voies `Oh My x` restent optionnelles.
 - `Cleaner helper` reste un raccourci de maintenance depuis le menu principal tout en verifiant les anciennes installations npm des CLI IA dans les versions `nvm` plus vieilles avant nettoyage.
 - `Reset tool configs` donne un moyen conservateur d'annuler des chemins config/auth suivis, avec un second menu pour choisir un outil precis ou `Toutes les configs suivies`.
 - Les menus utilisent un affichage plus lisible avec un panneau de detail et une progression pendant la preparation des donnees projet ou outil.

@@ -85,7 +85,16 @@ The installer currently supports:
 - `Gemini CLI`
 - `Oh My OpenCode Slim`
 
-`First install` is the beginner lane: it starts WSL Ubuntu when needed, asks whether PowerShell 7 should be installed or repaired, then runs the all-in-one AI CLI installer once Ubuntu is ready. If Ubuntu still needs a reboot or first-run account setup, SYTA tells the user to rerun `First install` afterward.
+`First install` is the beginner lane: it starts WSL Ubuntu when needed, asks whether PowerShell 7 should be installed or repaired, then runs the core AI CLI installer once Ubuntu is ready. If Ubuntu still needs a reboot or first-run account setup, SYTA tells the user to rerun `First install` afterward.
+
+The core bundle currently installs:
+
+- `Codex`
+- `OpenCode`
+- `Claude Code`
+- `Gemini CLI`
+
+`Oh My Codex / OMX`, `Oh My OpenAgent`, and `Oh My OpenCode Slim` remain separate optional installs from the install menu.
 
 `Cleaner helper` is available directly from the main menu and also in the install menu. It scans for tracked AI CLI installs left behind in older `nvm` Node versions, plus duplicate PATH hits, then asks before removing stale npm globals it can safely clean.
 
@@ -162,7 +171,7 @@ This launcher is designed for real-world machines, not idealized clean-room setu
 
 Important behaviors:
 
-- `First install` guides a new machine through WSL Ubuntu, optional PowerShell 7, then the full AI CLI toolchain when Ubuntu is ready.
+- `First install` guides a new machine through WSL Ubuntu, optional PowerShell 7, then the core AI CLI tools when Ubuntu is ready. The `Oh My x` lanes remain optional.
 - `Cleaner helper` is reachable from the main menu for faster maintenance and still checks stale npm-based AI CLI installs across older `nvm` versions before cleanup.
 - `Reset tool configs` gives users a conservative way to undo tracked tool config/auth paths, with a second menu for tool-specific reset choices or `All tracked configs`.
 - Menus use a cleaner focused-detail layout and loading progress when project or tool data takes time to prepare.

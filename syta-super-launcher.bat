@@ -60,8 +60,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-12-055502Z'
-:: $script:ReleaseTag = 'v1.4.15'
+:: $script:BuildId = 'SYTA-build-2026-04-12-060254Z'
+:: $script:ReleaseTag = 'v1.4.16'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -274,6 +274,15 @@ exit /b %errorlevel%
 ::         'Power   : PowerShell 7 already installed; SYTA can repair it if needed' = 'Power   : PowerShell 7 deja installe ; SYTA peut le reparer si besoin'
 ::         'CLI     : Install the core AI CLI tools once a Linux distro is ready' = 'CLI     : installer les CLI IA de base une fois une distribution Linux prete'
 ::         'Note    : Oh My Codex / OMX and the Oh My OpenCode variants stay optional installs' = 'Note    : Oh My Codex / OMX et les variantes Oh My OpenCode restent optionnels'
+::         'WSL     : Linux distro ready for CLI installs' = 'WSL     : distribution Linux prete pour les installations CLI'
+::         'WSL     : Ubuntu is installed but first Linux-user setup is still required' = 'WSL     : Ubuntu est installe mais la creation initiale de l''utilisateur Linux reste a faire'
+::         'Note    : Launch Ubuntu once and finish Linux user creation before installing CLI tools' = 'Note    : lancez Ubuntu une fois et terminez la creation de l''utilisateur Linux avant d''installer les CLI'
+::         'Ubuntu is installed, but its first Linux-user setup is not finished yet.' = 'Ubuntu est installe, mais sa configuration initiale de l''utilisateur Linux n''est pas encore terminee.'
+::         'Launch Ubuntu once and finish Linux user creation before installing CLI tools.' = 'Lancez Ubuntu une fois et terminez la creation de l''utilisateur Linux avant d''installer les CLI.'
+::         'After that, rerun First install or this install action.' = 'Ensuite, relancez Premiere installation ou cette action d''installation.'
+::         'WSL Ubuntu is not ready yet.' = 'WSL Ubuntu n''est pas encore pret.'
+::         'Run First install or WSL Ubuntu first.' = 'Lancez d''abord Premiere installation ou WSL Ubuntu.'
+::         'Then come back here once Ubuntu setup is complete.' = 'Revenez ici une fois la configuration d''Ubuntu terminee.'
 ::         'Note    : Ubuntu setup may require a reboot or first-run Linux account creation before CLI installs can continue' = 'Note    : l''installation d''Ubuntu peut necessiter un redemarrage ou la creation initiale du compte Linux avant de poursuivre les CLI'
 ::         'Ubuntu setup was started in a separate PowerShell window.' = 'L''installation d''Ubuntu a ete lancee dans une fenetre PowerShell separee.'
 ::         'After Ubuntu finishes installing, rerun First install to continue with AI CLI tools.' = 'Une fois Ubuntu installe, relancez Premiere installation pour continuer avec les CLI IA.'
@@ -285,6 +294,7 @@ exit /b %errorlevel%
 ::         'Auth/config detected' = 'Auth/config detectee'
 ::         'Auth n/a' = 'Auth n/a'
 ::         'WSL Linux distro missing' = 'Aucune distribution Linux WSL prete'
+::         'WSL Linux setup incomplete' = 'Configuration Linux WSL incomplete'
 ::         'Auth not detected' = 'Auth non detectee'
 ::         'Auth unknown' = 'Auth inconnue'
 ::         'Installed' = 'Installe'
@@ -498,6 +508,16 @@ exit /b %errorlevel%
 ::     return @(Get-WslUserDistros).Count -gt 0
 :: }
 ::
+:: function Test-WslPreferredDistroReadyForCli {
+::     $distro = Get-PreferredWslDistro
+::     if (-not $distro) {
+::         return $false
+::     }
+::
+::     & wsl.exe -d $distro --exec sh -lc "grep -Ev '^nobody:' /etc/passwd | grep -Eq '^[^:]+:[^:]*:[1-9][0-9]{3,}:'" 2>$null
+::     return ($LASTEXITCODE -eq 0)
+:: }
+::
 :: function Test-UbuntuInstalled {
 ::     return @(Get-WslDistros | Where-Object { $_ -match '^Ubuntu' }).Count -gt 0
 :: }
@@ -562,7 +582,7 @@ exit /b %errorlevel%
 :: function Invoke-ToolDiagnosticsScript {
 ::     param([Parameter(Mandatory = $true)][string]$Key)
 ::
-::     if (-not (Test-WslUserDistroInstalled)) {
+::     if (-not (Test-WslPreferredDistroReadyForCli)) {
 ::         return $null
 ::     }
 ::
@@ -591,7 +611,7 @@ exit /b %errorlevel%
 :: function Invoke-ToolDiagnosticsBatchScript {
 ::     param([string[]]$Keys)
 ::
-::     if (-not (Test-WslUserDistroInstalled) -or -not $Keys -or $Keys.Count -eq 0) {
+::     if (-not (Test-WslPreferredDistroReadyForCli) -or -not $Keys -or $Keys.Count -eq 0) {
 ::         return @{}
 ::     }
 ::
@@ -994,6 +1014,7 @@ exit /b %errorlevel%
 ::         'config-present' { return (Localize-Text 'Auth/config detected') }
 ::         'not-installed' { return (Localize-Text 'Auth n/a') }
 ::         'wsl-missing' { return (Localize-Text 'WSL Linux distro missing') }
+::         'wsl-setup-incomplete' { return (Localize-Text 'WSL Linux setup incomplete') }
 ::         'not-detected' { return (Localize-Text 'Auth not detected') }
 ::         default {
 ::             if ([string]::IsNullOrWhiteSpace($Raw)) { return (Localize-Text 'Auth unknown') }
@@ -1032,19 +1053,23 @@ exit /b %errorlevel%
 ::         return $diag
 ::     }
 ::
-::     if (-not (Test-WslUserDistroInstalled)) {
+::     $distroInstalled = Test-WslUserDistroInstalled
+::     $distroReady = Test-WslPreferredDistroReadyForCli
+::     if (-not $distroReady) {
+::         $setupText = if ($distroInstalled) { (Localize-Text 'WSL Linux setup incomplete') } else { (Localize-Text 'WSL Linux distro missing') }
+::         $authRaw = if ($distroInstalled) { 'wsl-setup-incomplete' } else { 'wsl-missing' }
 ::         $diag = [pscustomobject]@{
 ::             Key = $resolvedKey
 ::             Installed = $false
 ::             Path = $null
 ::             PathText = $spec.InstallHint
 ::             Version = $null
-::             VersionText = (Localize-Text 'WSL Linux distro missing')
-::             AuthRaw = 'wsl-missing'
-::             AuthText = (Localize-Text 'WSL Linux distro missing')
+::             VersionText = $setupText
+::             AuthRaw = $authRaw
+::             AuthText = $setupText
 ::             InstallSource = 'unknown'
 ::             InstallText = (Localize-Text 'Missing')
-::             MenuText = (Localize-Text 'WSL Linux distro missing')
+::             MenuText = $setupText
 ::         }
 ::         $script:ToolDiagCache[$resolvedKey] = $diag
 ::         return $diag
@@ -1098,22 +1123,27 @@ exit /b %errorlevel%
 :: }
 ::
 :: function New-WslMissingToolDiagnostics {
-::     param([Parameter(Mandatory = $true)][string]$Key)
+::     param(
+::         [Parameter(Mandatory = $true)][string]$Key,
+::         [switch]$SetupIncomplete
+::     )
 ::
 ::     $resolvedKey = Resolve-ToolKey $Key
 ::     $spec = $script:ToolSpecs[$resolvedKey]
+::     $statusText = if ($SetupIncomplete) { (Localize-Text 'WSL Linux setup incomplete') } else { (Localize-Text 'WSL Linux distro missing') }
+::     $authRaw = if ($SetupIncomplete) { 'wsl-setup-incomplete' } else { 'wsl-missing' }
 ::     $diag = [pscustomobject]@{
 ::         Key = $resolvedKey
 ::         Installed = $false
 ::         Path = $null
 ::         PathText = $spec.InstallHint
 ::         Version = $null
-::         VersionText = (Localize-Text 'WSL Linux distro missing')
-::         AuthRaw = 'wsl-missing'
-::         AuthText = (Localize-Text 'WSL Linux distro missing')
+::         VersionText = $statusText
+::         AuthRaw = $authRaw
+::         AuthText = $statusText
 ::         InstallSource = 'unknown'
 ::         InstallText = (Localize-Text 'Missing')
-::         MenuText = (Localize-Text 'WSL Linux distro missing')
+::         MenuText = $statusText
 ::     }
 ::     return $diag
 :: }
@@ -1126,7 +1156,7 @@ exit /b %errorlevel%
 ::         return
 ::     }
 ::
-::     if (-not (Test-WslUserDistroInstalled)) {
+::     if (-not (Test-WslPreferredDistroReadyForCli)) {
 ::         foreach ($key in $resolvedKeys) {
 ::             $null = Get-ToolDiagnostics -Key $key
 ::         }
@@ -1980,7 +2010,8 @@ exit /b %errorlevel%
 ::
 :: function Get-InstallItems {
 ::     $script:ToolDiagCache = @{}
-::     $distroReady = Test-WslUserDistroInstalled
+::     $distroInstalled = Test-WslUserDistroInstalled
+::     $distroReady = Test-WslPreferredDistroReadyForCli
 ::     $pwshInfo = Get-PwshInfo
 ::     if ($distroReady) {
 ::         Warm-ToolDiagnosticsCache -Keys @('codex', 'omx', 'opencode', 'claude-code', 'gemini-cli', 'oh-my-openagent', 'oh-my-opencode-slim')
@@ -1992,26 +2023,27 @@ exit /b %errorlevel%
 ::         $omaDiag = Get-ToolDiagnostics -Key 'oh-my-openagent'
 ::         $omoDiag = Get-ToolDiagnostics -Key 'oh-my-opencode-slim'
 ::     } else {
-::         $codexDiag = New-WslMissingToolDiagnostics -Key 'codex'
-::         $omxDiag = New-WslMissingToolDiagnostics -Key 'omx'
-::         $opencodeDiag = New-WslMissingToolDiagnostics -Key 'opencode'
-::         $claudeDiag = New-WslMissingToolDiagnostics -Key 'claude-code'
-::         $geminiDiag = New-WslMissingToolDiagnostics -Key 'gemini-cli'
-::         $omaDiag = New-WslMissingToolDiagnostics -Key 'oh-my-openagent'
-::         $omoDiag = New-WslMissingToolDiagnostics -Key 'oh-my-opencode-slim'
+::         $setupIncomplete = $distroInstalled
+::         $codexDiag = New-WslMissingToolDiagnostics -Key 'codex' -SetupIncomplete:$setupIncomplete
+::         $omxDiag = New-WslMissingToolDiagnostics -Key 'omx' -SetupIncomplete:$setupIncomplete
+::         $opencodeDiag = New-WslMissingToolDiagnostics -Key 'opencode' -SetupIncomplete:$setupIncomplete
+::         $claudeDiag = New-WslMissingToolDiagnostics -Key 'claude-code' -SetupIncomplete:$setupIncomplete
+::         $geminiDiag = New-WslMissingToolDiagnostics -Key 'gemini-cli' -SetupIncomplete:$setupIncomplete
+::         $omaDiag = New-WslMissingToolDiagnostics -Key 'oh-my-openagent' -SetupIncomplete:$setupIncomplete
+::         $omoDiag = New-WslMissingToolDiagnostics -Key 'oh-my-opencode-slim' -SetupIncomplete:$setupIncomplete
 ::     }
 ::
 ::     return @(
 ::         [pscustomobject]@{
 ::             Title = 'First install (recommended)'
-::             Subtitle = 'Best beginner path for WSL Ubuntu, optional PowerShell 7, and all AI CLI tools.'
+::             Subtitle = 'Best beginner path for WSL Ubuntu, optional PowerShell 7, and the core AI CLI tools.'
 ::             Accent = if ($distroReady -and $pwshInfo.Installed) { 'Green' } else { 'Yellow' }
 ::             Key = 'first-install'
 ::         }
 ::         [pscustomobject]@{
 ::             Title = 'WSL Ubuntu'
-::             Subtitle = if ($distroReady) { "Installed | distros: $(@(Get-WslUserDistros).Count)" } else { 'Missing | runs wsl --install -d Ubuntu' }
-::             Accent = if ($distroReady) { 'Green' } else { 'Yellow' }
+::             Subtitle = if ($distroReady) { "Installed | ready | distros: $(@(Get-WslUserDistros).Count)" } elseif ($distroInstalled) { "Installed | finish Ubuntu first launch | distros: $(@(Get-WslUserDistros).Count)" } else { 'Missing | runs wsl --install -d Ubuntu' }
+::             Accent = if ($distroReady) { 'Green' } elseif ($distroInstalled) { 'Yellow' } else { 'Yellow' }
 ::             Key = 'wsl-ubuntu'
 ::         }
 ::         [pscustomobject]@{ Title = 'PowerShell 7'; Subtitle = $pwshInfo.MenuText; Accent = if ($pwshInfo.Installed) { 'Green' } else { 'Yellow' }; Key = 'powershell-7' }
@@ -2120,7 +2152,7 @@ exit /b %errorlevel%
 :: function Invoke-AllAiCliInstallFlow {
 ::     Show-InfoBox -Title 'Install Preflight' -Accent Cyan -Hint 'A new terminal tab opens immediately after this screen' -Lines (@(
 ::         'Target  : Install all AI CLI tools',
-::         'Scope   : Codex, OMX, OpenCode, Claude Code, Gemini CLI'
+::         'Scope   : Codex, OpenCode, Claude Code, Gemini CLI'
 ::     ) + (Get-CodingCliSummaryLines))
 ::
 ::     $result = Open-WslWindow `
@@ -2189,9 +2221,10 @@ exit /b %errorlevel%
 :: }
 ::
 :: function Invoke-FirstInstallFlow {
-::     $distroReady = Test-WslUserDistroInstalled
+::     $distroInstalled = Test-WslUserDistroInstalled
+::     $distroReady = Test-WslPreferredDistroReadyForCli
 ::     $pwshInfo = Get-PwshInfo
-::     $wslLine = if ($distroReady) { 'WSL     : Linux distro already installed' } else { 'WSL     : Will run wsl --install -d Ubuntu' }
+::     $wslLine = if ($distroReady) { 'WSL     : Linux distro ready for CLI installs' } elseif ($distroInstalled) { 'WSL     : Ubuntu is installed but first Linux-user setup is still required' } else { 'WSL     : Will run wsl --install -d Ubuntu' }
 ::     $powerLine = if ($pwshInfo.Installed) { 'Power   : PowerShell 7 already installed; SYTA can repair it if needed' } else { 'Power   : SYTA will ask whether to install PowerShell 7' }
 ::
 ::     $cliLine = if ($distroReady) { 'CLI     : Ready to launch the core AI CLI tools now' } else { 'CLI     : Install the core AI CLI tools once a Linux distro is ready' }
@@ -2205,6 +2238,9 @@ exit /b %errorlevel%
 ::     )
 ::     if (-not $distroReady) {
 ::         $lines += 'Note    : Ubuntu setup may require a reboot or first-run Linux account creation before CLI installs can continue'
+::         if ($distroInstalled) {
+::             $lines += 'Note    : Launch Ubuntu once and finish Linux user creation before installing CLI tools'
+::         }
 ::     }
 ::
 ::     Show-InfoBox -Title 'First Install' -Accent Yellow -Hint 'SYTA keeps this selector open while new tabs launch' -Lines $lines
@@ -2240,7 +2276,7 @@ exit /b %errorlevel%
 ::         return [pscustomobject]$result
 ::     }
 ::
-::     if (-not $distroReady) {
+::     if (-not $distroReady -and -not $distroInstalled) {
 ::         $result.WslInstall = Invoke-WslUbuntuInstallFlow
 ::     }
 ::
@@ -2250,7 +2286,7 @@ exit /b %errorlevel%
 ::
 ::     if (-not $distroReady) {
 ::         Show-InfoBox -Title 'Continue later' -Accent Yellow -Hint 'Back' -Lines @(
-::             'Ubuntu setup was started in a separate PowerShell window.',
+::             $(if ($distroInstalled) { 'Ubuntu is installed, but its first Linux-user setup is not finished yet.' } else { 'Ubuntu setup was started in a separate PowerShell window.' }),
 ::             'After Ubuntu finishes installing, rerun First install to continue with AI CLI tools.',
 ::             'If Windows asks for a reboot, restart Windows first.',
 ::             'If Ubuntu asks you to create your Linux user, finish that step first.',
@@ -2364,7 +2400,7 @@ exit /b %errorlevel%
 ::                 'You can still use First install from here for the guided beginner path.'
 ::             )
 ::             Read-Menu -Title 'Installer' -Subtitle 'Install or repair WSL Ubuntu and supported coding CLIs.' -Items @(
-::                 [pscustomobject]@{ Title = 'First install (recommended)'; Subtitle = 'Best beginner path for WSL Ubuntu, optional PowerShell 7, and all AI CLI tools.'; Accent = 'Yellow'; Key = 'first-install' }
+::                 [pscustomobject]@{ Title = 'First install (recommended)'; Subtitle = 'Best beginner path for WSL Ubuntu, optional PowerShell 7, and the core AI CLI tools.'; Accent = 'Yellow'; Key = 'first-install' }
 ::                 [pscustomobject]@{ Title = 'WSL Ubuntu'; Subtitle = 'Missing | runs wsl --install -d Ubuntu'; Accent = 'Yellow'; Key = 'wsl-ubuntu' }
 ::                 [pscustomobject]@{ Title = 'PowerShell 7'; Subtitle = 'Missing | install via winget and set as Windows Terminal default.'; Accent = 'Yellow'; Key = 'powershell-7' }
 ::                 [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the main menu.'; Accent = 'DarkGray'; Key = 'back' }
@@ -2399,6 +2435,39 @@ exit /b %errorlevel%
 ::             $result | ConvertTo-Json -Depth 4
 ::             return
 ::         }
+::         return
+::     }
+::
+::     $wslRequiredKeys = @('all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'codex', 'opencode', 'omx', 'claude-code', 'gemini-cli', 'oh-my-openagent', 'oh-my-opencode-slim')
+::     if ($wslRequiredKeys -contains $selection.Key -and -not (Test-WslPreferredDistroReadyForCli)) {
+::         $distroInstalled = Test-WslUserDistroInstalled
+::         $lines = if ($distroInstalled) {
+::             @(
+::                 'Ubuntu is installed, but its first Linux-user setup is not finished yet.',
+::                 'Launch Ubuntu once and finish Linux user creation before installing CLI tools.',
+::                 'After that, rerun First install or this install action.'
+::             )
+::         } else {
+::             @(
+::                 'WSL Ubuntu is not ready yet.',
+::                 'Run First install or WSL Ubuntu first.',
+::                 'Then come back here once Ubuntu setup is complete.'
+::             )
+::         }
+::
+::         if ($DryRun) {
+::             [pscustomobject]@{
+::                 Blocked = 'wsl-not-ready'
+::                 Key = $selection.Key
+::                 DistroInstalled = $distroInstalled
+::                 DistroReady = $false
+::                 Lines = $lines
+::             } | ConvertTo-Json -Depth 4
+::             return
+::         }
+::
+::         Show-InfoBox -Title 'Continue later' -Accent Yellow -Hint 'Back' -Lines $lines
+::         Start-Sleep -Milliseconds 1500
 ::         return
 ::     }
 ::
@@ -3966,6 +4035,13 @@ exit /b %errorlevel%
 ::     return $null
 :: }
 ::
+:: function Test-LinuxUserReady {
+::     param([Parameter(Mandatory = $true)][string]$DistroName)
+::
+::     & $wslExe -d $DistroName --exec sh -lc "grep -Ev '^nobody:' /etc/passwd | grep -Eq '^[^:]+:[^:]*:[1-9][0-9]{3,}:'" 2>$null
+::     return ($LASTEXITCODE -eq 0)
+:: }
+::
 :: Write-Stage 'Install WSL Ubuntu'
 :: & $wslExe --install -d Ubuntu
 :: $installExitCode = $LASTEXITCODE
@@ -3984,7 +4060,19 @@ exit /b %errorlevel%
 :: Write-Host ''
 :: if ($registeredUbuntu) {
 ::     Write-Host ("WSL distro registered: {0}" -f $registeredUbuntu) -ForegroundColor Green
-::     Write-Host 'If Ubuntu asks you to create your Linux user, finish that step and then rerun First install.' -ForegroundColor Yellow
+::     if (-not (Test-LinuxUserReady -DistroName $registeredUbuntu)) {
+::         Write-Stage 'Launch Ubuntu first-run setup'
+::         Write-Host 'Finish the Ubuntu first-run steps in this window. Create your Linux user if Ubuntu asks for it.' -ForegroundColor Yellow
+::         & $wslExe -d $registeredUbuntu
+::         Write-Host ''
+::     }
+::
+::     if (Test-LinuxUserReady -DistroName $registeredUbuntu) {
+::         Write-Host 'Ubuntu first-run setup is complete. You can rerun First install to continue with CLI installs.' -ForegroundColor Green
+::     } else {
+::         Write-Host 'Ubuntu is registered, but its first-run Linux-user setup still is not complete.' -ForegroundColor Yellow
+::         Write-Host 'Launch Ubuntu once, finish the Linux-user setup, then rerun First install.' -ForegroundColor Yellow
+::     }
 :: } else {
 ::     Write-Host 'WSL install command completed, but Ubuntu is not registered yet.' -ForegroundColor Yellow
 ::     Write-Host 'If Windows asks for a reboot, restart Windows first, then launch Ubuntu once and rerun First install.' -ForegroundColor Yellow

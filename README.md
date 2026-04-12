@@ -85,7 +85,7 @@ The installer currently supports:
 - `Gemini CLI`
 - `Oh My OpenCode Slim`
 
-`First install` is the beginner lane: it starts WSL Ubuntu when needed, asks whether PowerShell 7 should be installed or repaired, then runs the core AI CLI installer once Ubuntu is ready. If Ubuntu still needs a reboot or first-run account setup, SYTA tells the user to rerun `First install` afterward.
+`First install` is the beginner lane: it starts WSL Ubuntu when needed, asks whether PowerShell 7 should be installed or repaired, then runs the core AI CLI installer only once Ubuntu is actually ready for user-scoped CLI setup. If Ubuntu still needs a reboot or first-run account setup, SYTA tells the user to finish that step and rerun `First install` afterward.
 
 The core bundle currently installs:
 

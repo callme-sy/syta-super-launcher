@@ -85,7 +85,7 @@ Le menu d’installation prend actuellement en charge :
 - `Gemini CLI`
 - `Oh My OpenCode Slim`
 
-`First install` est le parcours debutant : il lance WSL Ubuntu si besoin, demande s'il faut installer ou reparer PowerShell 7, puis lance l'installation des CLI IA de base quand Ubuntu est pret. Si Ubuntu demande encore un redemarrage ou la creation initiale du compte Linux, SYTA indique de relancer `First install` ensuite.
+`First install` est le parcours debutant : il lance WSL Ubuntu si besoin, demande s'il faut installer ou reparer PowerShell 7, puis lance l'installation des CLI IA de base seulement quand Ubuntu est vraiment pret pour un setup CLI utilisateur. Si Ubuntu demande encore un redemarrage ou la creation initiale du compte Linux, SYTA indique de terminer cette etape puis de relancer `First install`.
 
 Le bundle de base installe actuellement :
 

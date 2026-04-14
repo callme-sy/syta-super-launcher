@@ -36,7 +36,7 @@ exit /b %errorlevel%
 ::     [string]$Mode,
 ::     [ValidateSet('codex-yolo', 'omx-madmax-high', 'opencode', 'claude-code', 'gemini-cli')]
 ::     [string]$Agent,
-::     [ValidateSet('first-install', 'wsl-ubuntu', 'powershell-7', 'all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'codex', 'opencode', 'omx', 'claude-code', 'gemini-cli', 'oh-my-openagent', 'oh-my-opencode-slim')]
+::     [ValidateSet('first-install', 'wsl-ubuntu', 'powershell-7', 'all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'codex', 'opencode', 'omx', 'claude-code', 'gemini-cli', 'droid-cli', 'oh-my-openagent', 'oh-my-opencode-slim')]
 ::     [string]$InstallTarget,
 ::     [ValidateSet('codex-omx', 'opencode', 'oh-my-openagent', 'oh-my-opencode-slim', 'claude-code', 'gemini-cli', 'all')]
 ::     [string]$ResetTarget,
@@ -60,8 +60,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-12-062938Z'
-:: $script:ReleaseTag = 'v1.5.4'
+:: $script:BuildId = 'SYTA-build-2026-04-14-002005Z'
+:: $script:ReleaseTag = 'v1.5.5'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -453,6 +453,13 @@ exit /b %errorlevel%
 ::         DetectScript = $null
 ::         AuthScript = 'if [ -n "${GEMINI_API_KEY:-}" ] || [ -n "${GOOGLE_API_KEY:-}" ]; then echo env-key; elif [ -d "$HOME/.config/gemini" ] || [ -d "$HOME/.config/google" ]; then echo config-present; else echo not-detected; fi'
 ::         InstallHint = 'Install from Install -> Gemini CLI.'
+::     }
+::     'droid-cli' = [pscustomobject]@{
+::         Command = 'droid'
+::         VersionScript = 'droid --version 2>/dev/null | head -n 1'
+::         DetectScript = $null
+::         AuthScript = 'if [ -n "${FACTORY_API_KEY:-}" ]; then echo env-key; elif [ -d "$HOME/.factory" ]; then echo config-present; else echo not-detected; fi'
+::         InstallHint = 'Install from Install -> DROID CLI.'
 ::     }
 ::     'oh-my-opencode-slim' = [pscustomobject]@{
 ::         Command = ''
@@ -2021,12 +2028,13 @@ exit /b %errorlevel%
 ::     $distroReady = Test-WslPreferredDistroReadyForCli
 ::     $pwshInfo = Get-PwshInfo
 ::     if ($distroReady) {
-::         Warm-ToolDiagnosticsCache -Keys @('codex', 'omx', 'opencode', 'claude-code', 'gemini-cli', 'oh-my-openagent', 'oh-my-opencode-slim')
+::         Warm-ToolDiagnosticsCache -Keys @('codex', 'omx', 'opencode', 'claude-code', 'gemini-cli', 'droid-cli', 'oh-my-openagent', 'oh-my-opencode-slim')
 ::         $codexDiag = Get-ToolDiagnostics -Key 'codex'
 ::         $omxDiag = Get-ToolDiagnostics -Key 'omx'
 ::         $opencodeDiag = Get-ToolDiagnostics -Key 'opencode'
 ::         $claudeDiag = Get-ToolDiagnostics -Key 'claude-code'
 ::         $geminiDiag = Get-ToolDiagnostics -Key 'gemini-cli'
+::         $droidDiag = Get-ToolDiagnostics -Key 'droid-cli'
 ::         $omaDiag = Get-ToolDiagnostics -Key 'oh-my-openagent'
 ::         $omoDiag = Get-ToolDiagnostics -Key 'oh-my-opencode-slim'
 ::     } else {
@@ -2036,6 +2044,7 @@ exit /b %errorlevel%
 ::         $opencodeDiag = New-WslMissingToolDiagnostics -Key 'opencode' -SetupIncomplete:$setupIncomplete
 ::         $claudeDiag = New-WslMissingToolDiagnostics -Key 'claude-code' -SetupIncomplete:$setupIncomplete
 ::         $geminiDiag = New-WslMissingToolDiagnostics -Key 'gemini-cli' -SetupIncomplete:$setupIncomplete
+::         $droidDiag = New-WslMissingToolDiagnostics -Key 'droid-cli' -SetupIncomplete:$setupIncomplete
 ::         $omaDiag = New-WslMissingToolDiagnostics -Key 'oh-my-openagent' -SetupIncomplete:$setupIncomplete
 ::         $omoDiag = New-WslMissingToolDiagnostics -Key 'oh-my-opencode-slim' -SetupIncomplete:$setupIncomplete
 ::     }
@@ -2063,6 +2072,7 @@ exit /b %errorlevel%
 ::         [pscustomobject]@{ Title = 'Oh My Codex / OMX | advanced optional'; Subtitle = $omxDiag.MenuText; Accent = if ($omxDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'omx' }
 ::         [pscustomobject]@{ Title = 'Claude Code | optional'; Subtitle = $claudeDiag.MenuText; Accent = if ($claudeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'claude-code' }
 ::         [pscustomobject]@{ Title = 'Gemini CLI | optional'; Subtitle = $geminiDiag.MenuText; Accent = if ($geminiDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'gemini-cli' }
+::         [pscustomobject]@{ Title = 'DROID CLI | optional'; Subtitle = $droidDiag.MenuText; Accent = if ($droidDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'droid-cli' }
 ::         [pscustomobject]@{ Title = 'Oh My OpenCode Slim | optional'; Subtitle = $omoDiag.MenuText; Accent = if ($omoDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Cyan' }; Key = 'oh-my-opencode-slim' }
 ::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the main menu.'; Accent = 'DarkGray'; Key = 'back' }
 ::     )
@@ -2448,7 +2458,7 @@ exit /b %errorlevel%
 ::         return
 ::     }
 ::
-::     $wslRequiredKeys = @('all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'codex', 'opencode', 'omx', 'claude-code', 'gemini-cli', 'oh-my-openagent', 'oh-my-opencode-slim')
+::     $wslRequiredKeys = @('all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'codex', 'opencode', 'omx', 'claude-code', 'gemini-cli', 'droid-cli', 'oh-my-openagent', 'oh-my-opencode-slim')
 ::     if ($wslRequiredKeys -contains $selection.Key -and -not (Test-WslPreferredDistroReadyForCli)) {
 ::         $distroInstalled = Test-WslUserDistroInstalled
 ::         $lines = if ($distroInstalled) {
@@ -2731,6 +2741,11 @@ exit /b %errorlevel%
 ::       command_name='gemini'
 ::       { [ -n "${GEMINI_API_KEY:-}" ] || [ -n "${GOOGLE_API_KEY:-}" ]; } && auth='env-key'
 ::       [ "$auth" = 'not-detected' ] && { [ -d "$HOME/.config/gemini" ] || [ -d "$HOME/.config/google" ]; } && auth='config-present'
+::       ;;
+::     droid-cli)
+::       command_name='droid'
+::       [ -n "${FACTORY_API_KEY:-}" ] && auth='env-key'
+::       [ "$auth" = 'not-detected' ] && [ -d "$HOME/.factory" ] && auth='config-present'
 ::       ;;
 ::     oh-my-openagent)
 ::       [ -f "$HOME/.config/opencode/oh-my-openagent.jsonc" ] && config="$HOME/.config/opencode/oh-my-openagent.jsonc" && auth='config-present'
@@ -3392,6 +3407,19 @@ exit /b %errorlevel%
 ::   with_nvm gemini --version 2>/dev/null || true
 :: }
 ::
+:: install_droid_cli() {
+::   ensure_curl || return 1
+::   run_step "Install DROID CLI" bash -lc 'curl -fsSL https://app.factory.ai/cli | sh' || return 1
+::   load_user_env
+::   if command -v droid >/dev/null 2>&1; then
+::     droid --version 2>/dev/null || true
+::     return 0
+::   fi
+::   printf 'DROID CLI install finished but droid is still not on PATH.
+:: '
+::   return 1
+:: }
+::
 :: install_opencode() {
 ::   ensure_curl || return 1
 ::   if run_step "Install OpenCode" bash -lc 'curl -fsSL https://opencode.ai/install | bash'; then
@@ -3689,6 +3717,7 @@ exit /b %errorlevel%
 ::   omx) install_omx || status=$? ;;
 ::   claude-code) install_claude_code || status=$? ;;
 ::   gemini-cli) install_gemini_cli || status=$? ;;
+::   droid-cli) install_droid_cli || status=$? ;;
 ::   oh-my-openagent) install_oh_my_openagent || status=$? ;;
 ::   oh-my-opencode-slim) install_oh_my_opencode_slim || status=$? ;;
 ::   *) printf 'Unknown install target: %s

@@ -83,6 +83,7 @@ Le menu d’installation prend actuellement en charge :
 - `Oh My Codex / OMX`
 - `Claude Code`
 - `Gemini CLI`
+- `DROID CLI`
 - `Oh My OpenCode Slim`
 
 `First install` est le parcours debutant : il lance WSL Ubuntu si besoin, demande s'il faut installer ou reparer PowerShell 7, puis lance l'installation des CLI IA de base seulement quand Ubuntu est vraiment pret pour un setup CLI utilisateur. Si Ubuntu demande encore un redemarrage ou la creation initiale du compte Linux, SYTA indique de terminer cette etape puis de relancer `First install`.
@@ -94,7 +95,9 @@ Le bundle de base installe actuellement :
 - `Claude Code`
 - `Gemini CLI`
 
-`Oh My Codex / OMX`, `Oh My OpenAgent` et `Oh My OpenCode Slim` restent des installations optionnelles separees dans le menu d'installation.
+`Oh My Codex / OMX`, `Oh My OpenAgent`, `DROID CLI` et `Oh My OpenCode Slim` restent des installations optionnelles separees dans le menu d'installation.
+
+`DROID CLI` est la CLI de Factory AI. SYTA l'installe via la commande officielle de bootstrap Linux de Factory AI dans WSL.
 
 `Cleaner helper` est disponible directement depuis le menu principal et aussi dans le menu d'installation. Il analyse les installations des CLI IA laissees dans d'anciennes versions Node gerees par `nvm`, ainsi que les doublons du PATH, puis demande avant de supprimer les npm globaux obsoletes qu'il peut nettoyer sans risque.
 

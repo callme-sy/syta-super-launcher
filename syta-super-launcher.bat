@@ -68,8 +68,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-15-013500Z'
-:: $script:ReleaseTag = 'v1.6.2'
+:: $script:BuildId = 'SYTA-build-2026-04-15-014800Z'
+:: $script:ReleaseTag = 'v1.6.3'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -1073,7 +1073,8 @@ exit /b %errorlevel%
 :: function Get-MenuViewport {
 ::     param(
 ::         [int]$ItemCount,
-::         [int]$SelectedIndex
+::         [int]$SelectedIndex,
+::         [int]$ItemRowCost = 1
 ::     )
 ::
 ::     if ($ItemCount -le 0) {
@@ -1086,10 +1087,12 @@ exit /b %errorlevel%
 ::         $windowHeight = 0
 ::     }
 ::
+::     $rowCost = [Math]::Max(1, $ItemRowCost)
+::
 ::     $visible = if ($windowHeight -gt 0) {
-::         [Math]::Max(5, [Math]::Min($ItemCount, ($windowHeight - 18)))
+::         [Math]::Max(3, [Math]::Min($ItemCount, [Math]::Floor(($windowHeight - 18) / $rowCost)))
 ::     } else {
-::         [Math]::Min($ItemCount, 9)
+::         [Math]::Min($ItemCount, 5)
 ::     }
 ::
 ::     $start = [Math]::Max(0, [Math]::Min(($SelectedIndex - [Math]::Floor($visible / 2)), ($ItemCount - $visible)))
@@ -1854,8 +1857,9 @@ exit /b %errorlevel%
 ::         Write-UiBorderLine -Color DarkGray
 ::         Write-Host ''
 ::
-::         $viewport = Get-MenuViewport -ItemCount $Items.Count -SelectedIndex $index
+::         $viewport = Get-MenuViewport -ItemCount $Items.Count -SelectedIndex $index -ItemRowCost 2
 ::         $labelMax = [Math]::Max(24, (Get-UiContentWidth) - 6)
+::         $detailMax = [Math]::Max(24, (Get-UiContentWidth) - 8)
 ::
 ::         if ($viewport.Start -gt 0) {
 ::             Write-Host '  ...' -ForegroundColor DarkGray
@@ -1869,11 +1873,17 @@ exit /b %errorlevel%
 ::             } else {
 ::                 'Gray'
 ::             }
+::             $detailColor = if ($selected) { 'White' } else { 'DarkGray' }
 ::             $prefix = if ($selected) { '> ' } else { '  ' }
 ::             $label = if ($item.PSObject.Properties.Match('Title').Count) { $item.Title } else { [string]$item }
+::             $detail = if ($item.PSObject.Properties.Match('Subtitle').Count) { $item.Subtitle } else { '' }
 ::
 ::             $label = Localize-Text $label
+::             $detail = Localize-Text $detail
 ::             Write-Host ('  ' + $prefix + (Shorten-Text -Text $label -Max $labelMax)) -ForegroundColor $titleColor
+::             if ($detail) {
+::                 Write-Host ('     ' + (Shorten-Text -Text $detail -Max $detailMax)) -ForegroundColor $detailColor
+::             }
 ::         }
 ::
 ::         if ($viewport.End -lt ($Items.Count - 1)) {

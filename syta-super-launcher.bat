@@ -68,8 +68,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-15-005000Z'
-:: $script:ReleaseTag = 'v1.6.0'
+:: $script:BuildId = 'SYTA-build-2026-04-15-011500Z'
+:: $script:ReleaseTag = 'v1.6.1'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -138,10 +138,12 @@ exit /b %errorlevel%
 ::             'Avoid characters Windows cannot use in folder names.' = '避免使用 Windows 不能用于文件夹名的字符。'
 ::             'Try another name' = '换一个名称'
 ::             'Back' = '返回'
+::             'Exit' = '退出'
 ::             'Project Selector' = '项目选择'
 ::             'Recent Projects' = '最近项目'
 ::             'Existing Projects' = '现有项目'
 ::             'Search Projects' = '搜索项目'
+::             'Search Results' = '搜索结果'
 ::             'Search scans existing folders under C:\.CODEX.' = '搜索会扫描 C:\.CODEX 下现有的文件夹。'
 ::             'Search is case-insensitive and matches partial words.' = '搜索不区分大小写，并支持部分词匹配。'
 ::             '   Search term' = '   搜索词'
@@ -175,11 +177,17 @@ exit /b %errorlevel%
 ::             'Learn what the tools are, who they are for, and what SYTA recommends.' = '了解这些工具是什么、适合谁，以及 SYTA 的推荐。'
 ::             'Learn what the tools are, what SYTA recommends, and how to choose a setup.' = '了解这些工具是什么、SYTA 的推荐，以及如何选择安装方案。'
 ::             'Beginner guide' = '新手指南'
+::             'Beginner guide | simple' = '新手指南 | 简单版'
 ::             'Ultra-beginner explanation of each tool and the easiest path through SYTA.' = '面向完全新手的工具说明和最简单的 SYTA 路径。'
+::             'Very simple explanation of each tool and the easiest place to start.' = '用最简单的方式解释每个工具，以及最容易开始的路径。'
 ::             'Advanced guide' = '进阶指南'
+::             'Advanced guide | more detail' = '进阶指南 | 更多细节'
 ::             'Higher-level tradeoffs, workflows, and why you might pick one tool over another.' = '更高层次的取舍、工作流，以及为何选择某个工具。'
+::             'More detail about the differences between the tools and when to pick each one.' = '更详细地说明这些工具的差异，以及何时选择它们。'
 ::             'What should I install?' = '我该安装什么？'
+::             'What should I install? | short answer' = '我该安装什么？ | 简短答案'
 ::             'Straight recommendation based on simplicity, budget, and how hands-off you want setup to be.' = '基于简单性、预算和你想要多省心的直接推荐。'
+::             'Direct recommendation if you just want the short answer.' = '如果你只想看简短答案，这里给出直接建议。'
 ::             'Press any key to return.' = '按任意键返回。'
 ::             'Codex: OpenAI coding agent with strong editing and reasoning.' = 'Codex：OpenAI 的编码代理，编辑和推理能力都很强。'
 ::             'OMX: power-user wrapper around Codex for planning, orchestration, and heavier workflows.' = 'OMX：Codex 上层的进阶封装，适合更强的自动化、规划和重型工作流。'
@@ -197,8 +205,25 @@ exit /b %errorlevel%
 ::             'Install Oh My OpenAgent if you want the full harness. Install Slim if you want a lighter preset.' = '想要完整扩展就装 Oh My OpenAgent；想要更轻的预设就装 Slim。'
 ::             'Skip tools you do not have keys, subscriptions, or a real workflow for.' = '跳过你没有 key、订阅或实际工作流需求的工具。'
 ::             'Choose what SYTA should do.' = '选择 SYTA 要执行的操作。'
+::             'Launch an agent with project selection, diagnostics, and recent-project support.' = '通过项目选择、诊断和最近项目支持来启动代理。'
+::             'Install WSL Ubuntu or supported coding CLIs with preflight diagnostics.' = '通过预检诊断来安装 WSL Ubuntu 或受支持的编码 CLI。'
+::             'Close the launcher.' = '关闭启动器。'
 ::             'Install or repair WSL Ubuntu and supported coding CLIs.' = '安装或修复 WSL Ubuntu 以及受支持的编码 CLI。'
 ::             'First install' = '首次安装'
+::             'First install | recommended' = '首次安装 | 推荐'
+::             'WSL Ubuntu | system setup' = 'WSL Ubuntu | 系统设置'
+::             'PowerShell 7 | optional' = 'PowerShell 7 | 可选'
+::             'Install core AI CLI tools | simple' = '安装核心 AI CLI 工具 | 简单'
+::             'Cleaner helper | maintenance' = '清理助手 | 维护'
+::             'Reset tool configs | maintenance' = '重置工具配置 | 维护'
+::             'Codex CLI | guided' = 'Codex CLI | 引导'
+::             'OpenCode | simple' = 'OpenCode | 简单'
+::             'Oh My OpenAgent | advanced optional' = 'Oh My OpenAgent | 进阶可选'
+::             'Oh My Codex / OMX | advanced optional' = 'Oh My Codex / OMX | 进阶可选'
+::             'Claude Code | optional' = 'Claude Code | 可选'
+::             'Gemini CLI | optional' = 'Gemini CLI | 可选'
+::             'DROID CLI | optional' = 'DROID CLI | 可选'
+::             'Oh My OpenCode Slim | optional' = 'Oh My OpenCode Slim | 可选'
 ::             'Guided setup for WSL Ubuntu, optional PowerShell 7, and the core AI CLI tools.' = 'WSL Ubuntu、可选 PowerShell 7 和核心 AI CLI 工具的引导安装。'
 ::             'PowerShell 7 is already installed. Reinstall or repair it now?' = 'PowerShell 7 已安装。现在要重装或修复吗？'
 ::             'Would you like SYTA to install PowerShell 7 too?' = '你希望 SYTA 一并安装 PowerShell 7 吗？'
@@ -354,10 +379,12 @@ exit /b %errorlevel%
 ::             'Avoid characters Windows cannot use in folder names.' = 'Evitez les caracteres interdits dans les noms de dossier Windows.'
 ::             'Try another name' = 'Essayez un autre nom'
 ::             'Back' = 'Retour'
+::             'Exit' = 'Quitter'
 ::             'Project Selector' = 'Selection du projet'
 ::             'Recent Projects' = 'Projets recents'
 ::             'Existing Projects' = 'Projets existants'
 ::             'Search Projects' = 'Rechercher des projets'
+::             'Search Results' = 'Resultats de recherche'
 ::             'Search scans existing folders under C:\.CODEX.' = 'La recherche parcourt les dossiers existants sous C:\.CODEX.'
 ::             'Search is case-insensitive and matches partial words.' = 'La recherche ignore la casse et reconnait les mots partiels.'
 ::             '   Search term' = '   Terme de recherche'
@@ -391,11 +418,17 @@ exit /b %errorlevel%
 ::             'Learn what the tools are, who they are for, and what SYTA recommends.' = 'Comprendre simplement a quoi servent les outils et quoi choisir en premier.'
 ::             'Learn what the tools are, what SYTA recommends, and how to choose a setup.' = 'Comprendre simplement a quoi servent les outils, ce que SYTA recommande et quoi choisir.'
 ::             'Beginner guide' = 'Guide debutant'
+::             'Beginner guide | simple' = 'Guide debutant | simple'
 ::             'Ultra-beginner explanation of each tool and the easiest path through SYTA.' = 'Explication tres simple de chaque outil et du chemin le plus facile dans SYTA.'
+::             'Very simple explanation of each tool and the easiest place to start.' = 'Explication tres simple de chaque outil et du point de depart le plus facile.'
 ::             'Advanced guide' = 'Guide avance'
+::             'Advanced guide | more detail' = 'Guide avance | plus de details'
 ::             'Higher-level tradeoffs, workflows, and why you might pick one tool over another.' = 'Vue plus detaillee des differences entre les outils et de quand les choisir.'
+::             'More detail about the differences between the tools and when to pick each one.' = 'Plus de details sur les differences entre les outils et quand choisir chacun.'
 ::             'What should I install?' = 'Que dois-je installer ?'
+::             'What should I install? | short answer' = 'Que dois-je installer ? | reponse courte'
 ::             'Straight recommendation based on simplicity, budget, and how hands-off you want setup to be.' = 'Recommandation directe selon ce qui est le plus simple, le moins prise de tete, et vos abonnements.'
+::             'Direct recommendation if you just want the short answer.' = 'Recommandation directe si vous voulez seulement la reponse courte.'
 ::             'Press any key to return.' = 'Appuyez sur une touche pour revenir.'
 ::             'Codex: OpenAI coding agent with strong editing and reasoning.' = 'Codex : l''outil OpenAI pour coder avec de l''aide. Bon choix si vous voulez un assistant serieux pour lire, modifier et expliquer du code.'
 ::             'OMX: power-user wrapper around Codex for planning, orchestration, and heavier workflows.' = 'OMX : une couche en plus par-dessus Codex. A utiliser surtout si vous voulez plus d''automatisation, plus de structure, et des workflows plus lourds.'
@@ -413,8 +446,25 @@ exit /b %errorlevel%
 ::             'Install Oh My OpenAgent if you want the full harness. Install Slim if you want a lighter preset.' = 'Installez Oh My OpenAgent si vous voulez beaucoup d''aides autour d''OpenCode. Installez Slim si vous voulez une version plus simple.'
 ::             'Skip tools you do not have keys, subscriptions, or a real workflow for.' = 'Ignorez les outils pour lesquels vous n''avez pas de cle, d''abonnement ou de vrai besoin.'
 ::             'Choose what SYTA should do.' = 'Choisissez ce que SYTA doit faire.'
+::             'Launch an agent with project selection, diagnostics, and recent-project support.' = 'Lancer un agent avec selection de projet, diagnostics et prise en charge des projets recents.'
+::             'Install WSL Ubuntu or supported coding CLIs with preflight diagnostics.' = 'Installer WSL Ubuntu ou les CLI de code prises en charge avec diagnostics prealables.'
+::             'Close the launcher.' = 'Fermer le lanceur.'
 ::             'Install or repair WSL Ubuntu and supported coding CLIs.' = 'Installer ou reparer WSL Ubuntu et les CLI de codage prises en charge.'
 ::             'First install' = 'Premiere installation'
+::             'First install | recommended' = 'Premiere installation | recommandee'
+::             'WSL Ubuntu | system setup' = 'WSL Ubuntu | configuration systeme'
+::             'PowerShell 7 | optional' = 'PowerShell 7 | optionnel'
+::             'Install core AI CLI tools | simple' = 'Installer les CLI IA de base | simple'
+::             'Cleaner helper | maintenance' = 'Assistant de nettoyage | maintenance'
+::             'Reset tool configs | maintenance' = 'Reinitialiser les configs des outils | maintenance'
+::             'Codex CLI | guided' = 'Codex CLI | guide'
+::             'OpenCode | simple' = 'OpenCode | simple'
+::             'Oh My OpenAgent | advanced optional' = 'Oh My OpenAgent | option avancee'
+::             'Oh My Codex / OMX | advanced optional' = 'Oh My Codex / OMX | option avancee'
+::             'Claude Code | optional' = 'Claude Code | optionnel'
+::             'Gemini CLI | optional' = 'Gemini CLI | optionnel'
+::             'DROID CLI | optional' = 'DROID CLI | optionnel'
+::             'Oh My OpenCode Slim | optional' = 'Oh My OpenCode Slim | optionnel'
 ::             'Guided setup for WSL Ubuntu, optional PowerShell 7, and the core AI CLI tools.' = 'Parcours guide pour WSL Ubuntu, PowerShell 7 en option, et les CLI IA de base.'
 ::             'PowerShell 7 is already installed. Reinstall or repair it now?' = 'PowerShell 7 est deja installe. Le reinstaller ou le reparer maintenant ?'
 ::             'Would you like SYTA to install PowerShell 7 too?' = 'Voulez-vous aussi que SYTA installe PowerShell 7 ?'
@@ -554,6 +604,7 @@ exit /b %errorlevel%
 ::         if ($Text -match '^Hint: (.+)$') { return "提示：$(Localize-Text $Matches[1])" }
 ::         if ($Text -match '^Folder root: (.+)$') { return "文件夹根目录：$($Matches[1])" }
 ::         if ($Text -match '^Recent project in (.+)$') { return "$($Matches[1]) 中的最近项目" }
+::         if ($Text -match '^Recent project folder in (.+)$') { return "$($Matches[1]) 中的最近项目文件夹" }
 ::         if ($Text -match '^Project folder at (.+)$') { return "项目文件夹位于 $($Matches[1])" }
 ::         if ($Text -match '^Project folder in (.+)$') { return "项目文件夹位于 $($Matches[1])" }
 ::         if ($Text -match '^Choose how to work inside (.+)\.$') { return "选择如何在 $($Matches[1]) 中工作。" }
@@ -585,6 +636,7 @@ exit /b %errorlevel%
 ::     if ($Text -match '^Hint: (.+)$') { return "Astuce : $(Localize-Text $Matches[1])" }
 ::     if ($Text -match '^Folder root: (.+)$') { return "Racine du dossier : $($Matches[1])" }
 ::     if ($Text -match '^Recent project in (.+)$') { return "Projet recent dans $($Matches[1])" }
+::     if ($Text -match '^Recent project folder in (.+)$') { return "Dossier recent du projet dans $($Matches[1])" }
 ::     if ($Text -match '^Project folder at (.+)$') { return "Dossier du projet dans $($Matches[1])" }
 ::     if ($Text -match '^Project folder in (.+)$') { return "Dossier du projet dans $($Matches[1])" }
 ::     if ($Text -match '^Choose how to work inside (.+)\.$') { return "Choisissez comment travailler dans $($Matches[1])." }
@@ -1613,9 +1665,10 @@ exit /b %errorlevel%
 ::
 ::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
 ::     $localizedLabel = Localize-Text $Label
-::     Write-BoxLine -Content ("{0}: {1}" -f $localizedLabel, $Title) -Color $Accent
+::     $localizedTitle = Localize-Text $Title
+::     Write-BoxLine -Content ("{0}: {1}" -f $localizedLabel, $localizedTitle) -Color $Accent
 ::     if ($Detail) {
-::         Write-BoxLine -Content $Detail -Color Gray
+::         Write-BoxLine -Content (Localize-Text $Detail) -Color Gray
 ::     }
 ::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
 :: }

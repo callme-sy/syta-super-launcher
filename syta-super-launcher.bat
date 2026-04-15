@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul 2>nul
 setlocal EnableExtensions DisableDelayedExpansion
 
 set "SYTA_PORTABLE_ROOT=%~dp0"
@@ -10,12 +11,12 @@ powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command ^
   "$self=$env:SYTA_SELF;" ^
   "$out=$env:SYTA_RUNTIME;" ^
   "New-Item -ItemType Directory -Force -Path $out | Out-Null;" ^
-  "$lines=Get-Content -LiteralPath $self;" ^
+  "$lines=Get-Content -LiteralPath $self -Encoding UTF8;" ^
   "$name=$null;" ^
   "$buf=New-Object System.Collections.Generic.List[string];" ^
   "foreach($line in $lines){" ^
   "  if($line -like '::BEGIN:*'){ $name=$line.Substring(8); $buf.Clear(); continue }" ^
-  "  if($line -like '::END:*'){ [IO.File]::WriteAllText((Join-Path $out $name), ($buf -join \"`n\"), (New-Object Text.UTF8Encoding $false)); $name=$null; continue }" ^
+  "  if($line -like '::END:*'){ $enc = if($name -like '*.ps1'){ New-Object Text.UTF8Encoding $true } else { New-Object Text.UTF8Encoding $false }; [IO.File]::WriteAllText((Join-Path $out $name), ($buf -join \"`n\"), $enc); $name=$null; continue }" ^
   "  if($null -ne $name){ if($line -eq '::'){ $buf.Add('') } elseif($line.StartsWith(':: ')){ $buf.Add($line.Substring(3)) } }" ^
   "}" ^
   "if(-not (Test-Path (Join-Path $out 'syta-agentic-launcher.ps1'))){ throw 'Portable launcher extraction failed.' }"
@@ -45,12 +46,19 @@ exit /b %errorlevel%
 ::     [switch]$NoMaximize,
 ::     [switch]$DryRun,
 ::     [switch]$SmokeTest,
-::     [ValidateSet('auto', 'fr', 'en')]
+::     [ValidateSet('auto', 'fr', 'en', 'zh')]
 ::     [Alias('Lang')]
 ::     [string]$UiLanguage = 'auto'
 :: )
 ::
 :: $ErrorActionPreference = 'Stop'
+::
+:: try {
+::     [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false
+::     [Console]::InputEncoding = New-Object System.Text.UTF8Encoding $false
+::     $OutputEncoding = [Console]::OutputEncoding
+:: } catch {
+:: }
 ::
 :: $script:ScriptDir = [System.IO.Path]::GetFullPath((Split-Path -Parent $PSCommandPath)).TrimEnd('\')
 :: $script:ProjectsRoot = 'C:\.CODEX'
@@ -60,8 +68,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-14-002005Z'
-:: $script:ReleaseTag = 'v1.5.5'
+:: $script:BuildId = 'SYTA-build-2026-04-15-005000Z'
+:: $script:ReleaseTag = 'v1.6.0'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -81,6 +89,7 @@ exit /b %errorlevel%
 ::     if ($candidate) {
 ::         $normalized = $candidate.ToLowerInvariant()
 ::         if ($normalized -match '^fr') { return 'fr' }
+::         if ($normalized -match '^zh') { return 'zh' }
 ::         if ($normalized -match '^en') { return 'en' }
 ::     }
 ::
@@ -91,233 +100,485 @@ exit /b %errorlevel%
 ::     }
 ::
 ::     if ($culture -match '^fr') { return 'fr' }
+::     if ($culture -match '^zh') { return 'zh' }
 ::     return 'en'
 :: }
 ::
 :: function Localize-Text {
 ::     param([string]$Text)
 ::
-::     if ([string]::IsNullOrEmpty($Text) -or $script:Language -ne 'fr') {
+::     if ([string]::IsNullOrEmpty($Text) -or $script:Language -eq 'en') {
 ::         return $Text
 ::     }
 ::
-::     $map = @{
-::         'Selector' = 'Selection'
-::         'Arrows move, Enter selects, Esc goes back' = 'Fleches pour naviguer, Entree pour valider, Echap pour revenir'
-::         'Please wait' = 'Veuillez patienter'
-::         'Launching in a new terminal tab' = 'Ouverture immediate dans un nouvel onglet du terminal'
-::         'SYTA keeps this selector open while new tabs launch' = 'SYTA garde ce selecteur ouvert pendant l''ouverture des nouveaux onglets'
-::         'Boot sequence' = 'Demarrage'
-::         'unpacking portable runtime' = 'extraction du runtime portable'
-::         'loading command deck' = 'chargement du poste de commande'
-::         'scanning WSL bridge' = 'analyse du pont WSL'
-::         'mapping project roots' = 'cartographie des projets'
-::         'arming install matrix' = 'preparation de la matrice d''installation'
-::         'warming AI launch lanes' = 'prechauffage des voies IA'
-::         'routing terminal host' = 'configuration de l''hote terminal'
-::         'syncing updater engines' = 'synchronisation des moteurs de mise a jour'
-::         'locking flight path' = 'verrouillage de la trajectoire'
-::         'SYTA ready' = 'SYTA pret'
-::         'telemetry: launcher online, diagnostics cache cold, routes ready' = 'telemetrie : lanceur en ligne, cache de diagnostic vide, routes pretes'
-::         'Create New Project' = 'Creer un nouveau projet'
-::         'Leave blank to cancel' = 'Laisser vide pour annuler'
-::         'Choose a short Windows-safe folder name.' = 'Choisissez un nom de dossier court et compatible Windows.'
-::         '   Project name' = '   Nom du projet'
-::         'Invalid project name' = 'Nom de projet invalide'
-::         'Avoid characters Windows cannot use in folder names.' = 'Evitez les caracteres interdits dans les noms de dossier Windows.'
-::         'Try another name' = 'Essayez un autre nom'
-::         'Back' = 'Retour'
-::         'Project Selector' = 'Selection du projet'
-::         'Recent Projects' = 'Projets recents'
-::         'Existing Projects' = 'Projets existants'
-::         'Search Projects' = 'Rechercher des projets'
-::         'Search scans existing folders under C:\.CODEX.' = 'La recherche parcourt les dossiers existants sous C:\.CODEX.'
-::         'Search is case-insensitive and matches partial words.' = 'La recherche ignore la casse et reconnait les mots partiels.'
-::         '   Search term' = '   Terme de recherche'
-::         'No project matches' = 'Aucun projet correspondant'
-::         'Try another search' = 'Essayez une autre recherche'
-::         'Open existing project' = 'Ouvrir un projet existant'
-::         'Type a fresh project name and create its folder.' = 'Saisissez un nouveau nom de projet et creez son dossier.'
-::         'Filter existing projects by a search term.' = 'Filtrer les projets existants par terme de recherche.'
-::         'Choose a recently used project folder.' = 'Choisissez un dossier de projet recent.'
-::         'Choose a project folder to open.' = 'Choisissez un dossier de projet a ouvrir.'
-::         'Choose the tool to launch in the project workspace.' = 'Choisissez l''outil a lancer dans l''espace de travail du projet.'
-::         'Agent Selector' = 'Selection de l''agent'
-::         'Mode Selector' = 'Selection du mode'
-::         'Explanations' = 'Explications'
-::         'Update' = 'Mise a jour'
-::         'Choose which update lane to run.' = 'Choisissez le type de mise a jour a lancer.'
-::         'Run a lighter AI-tools-only update or the broader full maintenance pass.' = 'Lancer soit une mise a jour legere des outils IA, soit la maintenance complete.'
-::         'Light update' = 'Mise a jour legere'
-::         'Update all' = 'Mise a jour complete'
-::         'Update AI coding CLIs only: Codex, OMX, OpenCode, Claude Code, Gemini CLI.' = 'Mettre a jour seulement les CLI IA : Codex, OMX, OpenCode, Claude Code, Gemini CLI.'
-::         'Run the broader toolchain update pass, including system package managers.' = 'Lancer la maintenance plus large de la chaine d''outils, y compris les gestionnaires systeme.'
-::         'First install (recommended)' = 'Premiere installation (recommandee)'
-::         'Best beginner path for WSL Ubuntu, optional PowerShell 7, and the core AI CLI tools.' = 'Meilleur parcours debutant pour WSL Ubuntu, PowerShell 7 en option et les CLI IA de base.'
-::         'Recommended path for a new machine or first SYTA setup' = 'Parcours recommande pour une nouvelle machine ou une premiere installation SYTA'
-::         'CLI     : Ready to launch the core AI CLI tools now' = 'CLI     : pret a lancer maintenant les CLI IA de base'
-::         'CLI     : Full core AI CLI install starts after Ubuntu is ready' = 'CLI     : l''installation complete des CLI IA de base demarre apres qu''Ubuntu soit pret'
-::         'Note    : Recommended path for a new machine or first SYTA setup' = 'Note    : parcours recommande pour une nouvelle machine ou une premiere installation SYTA'
-::         'Note    : Ubuntu setup may require a reboot before CLI installs continue' = 'Note    : Ubuntu peut demander un redemarrage avant la suite des installations CLI'
-::         'Note    : Ubuntu may also require first-run Linux account creation' = 'Note    : Ubuntu peut aussi demander la creation initiale du compte Linux'
-::         'You can still use First install from here for the guided beginner path.' = 'Vous pouvez toujours utiliser Premiere installation ici pour le parcours debutant guide.'
-::         'Learn what the tools are, who they are for, and what SYTA recommends.' = 'Comprendre simplement a quoi servent les outils et quoi choisir en premier.'
-::         'Learn what the tools are, what SYTA recommends, and how to choose a setup.' = 'Comprendre simplement a quoi servent les outils, ce que SYTA recommande et quoi choisir.'
-::         'Beginner guide' = 'Guide debutant'
-::         'Ultra-beginner explanation of each tool and the easiest path through SYTA.' = 'Explication tres simple de chaque outil et du chemin le plus facile dans SYTA.'
-::         'Advanced guide' = 'Guide avance'
-::         'Higher-level tradeoffs, workflows, and why you might pick one tool over another.' = 'Vue plus detaillee des differences entre les outils et de quand les choisir.'
-::         'What should I install?' = 'Que dois-je installer ?'
-::         'Straight recommendation based on simplicity, budget, and how hands-off you want setup to be.' = 'Recommandation directe selon ce qui est le plus simple, le moins prise de tete, et vos abonnements.'
-::         'Press any key to return.' = 'Appuyez sur une touche pour revenir.'
-::         'Codex: OpenAI coding agent with strong editing and reasoning.' = 'Codex : l''outil OpenAI pour coder avec de l''aide. Bon choix si vous voulez un assistant serieux pour lire, modifier et expliquer du code.'
-::         'OMX: power-user wrapper around Codex for planning, orchestration, and heavier workflows.' = 'OMX : une couche en plus par-dessus Codex. A utiliser surtout si vous voulez plus d''automatisation, plus de structure, et des workflows plus lourds.'
-::         'OpenCode: lightweight coding CLI and usually the easiest first start.' = 'OpenCode : l''outil le plus leger et souvent le plus simple pour commencer.'
-::         'Claude Code and Gemini CLI: best if you already use those ecosystems.' = 'Claude Code et Gemini CLI : utiles surtout si vous payez deja ces services ou preferez deja ces ecosystemes.'
-::         'Best beginner path: Install -> First install, then start with OpenCode or Codex.' = 'Meilleur parcours debutant : Installation -> Premiere installation, puis commencer avec OpenCode ou Codex.'
-::         'Oh My OpenAgent is the full OpenCode harness. Oh My OpenCode Slim keeps a lighter preset.' = 'Oh My OpenAgent ajoute plein d''aides autour d''OpenCode. Oh My OpenCode Slim garde seulement une partie plus legere de ces aides.'
-::         'Codex is the direct OpenAI lane; OMX adds more opinionated automation and orchestration.' = 'Codex est la voie OpenAI directe. OMX ajoute une facon plus guidee et plus automatique de travailler.'
-::         'OpenCode is often the lightest workflow; Codex and OMX are better when you want stronger guided execution.' = 'OpenCode est souvent le plus simple. Codex et surtout OMX sont plus utiles si vous voulez etre davantage guide.'
-::         'Install only the CLIs you will actually use. More tools means more auth, updates, and overlap.' = 'Installez seulement les CLI que vous utiliserez vraiment. Plus d''outils signifie plus d''authentification, de mises a jour et de chevauchements.'
-::         'Oh My OpenAgent is the broader OpenCode harness; Slim keeps a lighter OpenCode-focused preset.' = 'Oh My OpenAgent ajoute beaucoup d''outils autour d''OpenCode ; Slim garde une version plus simple de cette idee.'
-::         'Brand-new Windows machine: Install -> First install.' = 'Nouvelle machine Windows : Installation -> Premiere installation.'
-::         'Lowest-friction start: OpenCode.' = 'Demarrage le plus simple : OpenCode.'
-::         'Best OpenAI-first path: Codex, then OMX if you want deeper automation.' = 'Meilleur parcours si vous voulez surtout OpenAI : Codex d''abord, puis OMX seulement si vous voulez aller plus loin.'
-::         'Install Oh My OpenAgent if you want the full harness. Install Slim if you want a lighter preset.' = 'Installez Oh My OpenAgent si vous voulez beaucoup d''aides autour d''OpenCode. Installez Slim si vous voulez une version plus simple.'
-::         'Skip tools you do not have keys, subscriptions, or a real workflow for.' = 'Ignorez les outils pour lesquels vous n''avez pas de cle, d''abonnement ou de vrai besoin.'
-::         'Choose what SYTA should do.' = 'Choisissez ce que SYTA doit faire.'
-::         'Install or repair WSL Ubuntu and supported coding CLIs.' = 'Installer ou reparer WSL Ubuntu et les CLI de codage prises en charge.'
-::         'First install' = 'Premiere installation'
-::         'Guided setup for WSL Ubuntu, optional PowerShell 7, and the core AI CLI tools.' = 'Parcours guide pour WSL Ubuntu, PowerShell 7 en option, et les CLI IA de base.'
-::         'PowerShell 7 is already installed. Reinstall or repair it now?' = 'PowerShell 7 est deja installe. Le reinstaller ou le reparer maintenant ?'
-::         'Would you like SYTA to install PowerShell 7 too?' = 'Voulez-vous aussi que SYTA installe PowerShell 7 ?'
-::         'Skip PowerShell 7 for now' = 'Ignorer PowerShell 7 pour le moment'
-::         'Continue without changing the Windows Terminal default profile.' = 'Continuer sans modifier le profil par defaut de Windows Terminal.'
-::         'Install PowerShell 7 now' = 'Installer PowerShell 7 maintenant'
-::         'Reinstall or repair PowerShell 7' = 'Reinstaller ou reparer PowerShell 7'
-::         'Install core AI CLI tools' = 'Installer les CLI IA de base'
-::         'Run Codex, OpenCode, Claude Code, and Gemini CLI in one pass.' = 'Lancer Codex, OpenCode, Claude Code et Gemini CLI en une seule passe.'
-::         'WSL Linux setup incomplete | launch Ubuntu once first.' = 'Configuration Linux WSL incomplete | lancez Ubuntu une fois d''abord.'
-::         'Cleaner helper' = 'Assistant de nettoyage'
-::         'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.' = 'Analyser les anciennes installations nvm/npm des CLI IA et les doublons du PATH avant nettoyage.'
-::         'Reset tool configs' = 'Reinitialiser les configs des outils'
-::         'Review tracked config/auth paths and remove only the ones you confirm.' = 'Examiner les chemins config/auth suivis et supprimer seulement ceux que vous confirmez.'
-::         'Choose which tool configs to reset.' = 'Choisissez quelles configs d''outils reinitialiser.'
-::         'Pick one tool family, or reset every tracked config path.' = 'Choisissez une famille d''outils, ou reinitialisez tous les chemins config suivis.'
-::         'Codex / OMX configs' = 'Configs Codex / OMX'
-::         'Remove tracked Codex and OMX auth/config files.' = 'Supprimer les fichiers config/auth suivis de Codex et OMX.'
-::         'OpenCode configs' = 'Configs OpenCode'
-::         'Remove tracked OpenCode base config files.' = 'Supprimer les fichiers de config principaux suivis d''OpenCode.'
-::         'Oh My OpenAgent configs' = 'Configs Oh My OpenAgent'
-::         'Remove tracked Oh My OpenAgent compatibility config files.' = 'Supprimer les fichiers de config de compatibilite suivis d''Oh My OpenAgent.'
-::         'Oh My OpenCode Slim configs' = 'Configs Oh My OpenCode Slim'
-::         'Remove tracked Oh My OpenCode Slim config files.' = 'Supprimer les fichiers de config suivis d''Oh My OpenCode Slim.'
-::         'Claude Code configs' = 'Configs Claude Code'
-::         'Remove tracked Claude Code config files.' = 'Supprimer les fichiers de config suivis de Claude Code.'
-::         'Gemini CLI configs' = 'Configs Gemini CLI'
-::         'Remove tracked Gemini and Google AI config folders.' = 'Supprimer les dossiers de config suivis de Gemini et Google AI.'
-::         'All tracked configs' = 'Toutes les configs suivies'
-::         'Remove every tracked config/auth path shown by SYTA.' = 'Supprimer tous les chemins config/auth suivis affiches par SYTA.'
-::         'SYTA Install - Config Reset Helper' = 'SYTA Installation - Assistant de reinitialisation des configs'
-::         'Target  : Reset tool configs' = 'Cible   : Reinitialiser les configs des outils'
-::         'Action  : Review tracked config/auth paths and confirm which ones to remove' = 'Action  : examiner les chemins config/auth suivis et confirmer ceux a supprimer'
-::         'Scope   : Selected tracked config/auth paths, or all tracked config/auth paths' = 'Portee  : chemins config/auth suivis selectionnes, ou tous les chemins config/auth suivis'
-::         'Selection : ' = 'Selection : '
-::         'SYTA Install - Cleaner Helper' = 'SYTA Installation - Assistant de nettoyage'
-::         'Target  : Cleaner helper' = 'Cible   : Assistant de nettoyage'
-::         'Action  : Scan stale AI CLI installs and ask before removing old npm globals' = 'Action  : analyser les CLI IA obsoletes et demander avant de supprimer les npm globaux anciens'
-::         'Scope   : Older nvm Node versions, duplicate PATH entries, user-scoped npm installs' = 'Portee  : anciennes versions Node nvm, doublons du PATH, installations npm utilisateur'
-::         'Oh My OpenAgent' = 'Oh My OpenAgent'
-::         'OpenCode + the full Oh My OpenAgent harness with its interactive installer.' = 'OpenCode + le harnais complet Oh My OpenAgent avec son installateur interactif.'
-::         'This is an OpenCode add-on, not a separate coding CLI.' = 'Ceci est un add-on pour OpenCode, pas une CLI de code separee.'
-::         'OpenCode should be installed first. SYTA will install it automatically if needed.' = 'OpenCode doit etre installe d''abord. SYTA l''installera automatiquement si besoin.'
-::         'Best if you already use OpenCode and want more helper features around it.' = 'A conseiller surtout si vous utilisez deja OpenCode et voulez plus d''aides autour.'
-::         'Best if you want a lighter OpenCode add-on instead of the bigger OpenAgent setup.' = 'A conseiller si vous voulez un add-on OpenCode plus leger que le gros setup OpenAgent.'
-::         'OpenCode : ' = 'OpenCode : '
-::         'Loading live tool diagnostics' = 'Chargement des diagnostics des outils'
-::         'Checking Windows prerequisites' = 'Verification des prerequis Windows'
-::         'Loading WSL tool diagnostics' = 'Chargement des diagnostics WSL'
-::         'Preparing install options' = 'Preparation des options d''installation'
-::         'No WSL Linux distro is ready yet, so SYTA will show safe setup choices only.' = 'Aucune distribution Linux WSL n''est encore prete, SYTA affiche donc uniquement des options d''installation sures.'
-::         'Live diagnostics were unavailable, so SYTA switched to a safe fallback install menu.' = 'Les diagnostics live etaient indisponibles, SYTA a bascule vers un menu d''installation de secours.'
-::         'You can still install WSL Ubuntu or PowerShell 7 from here.' = 'Vous pouvez toujours installer WSL Ubuntu ou PowerShell 7 depuis ici.'
-::         'Loading recent projects' = 'Chargement des projets recents'
-::         'Scanning project folders' = 'Analyse des dossiers projet'
-::         'Selected item' = 'Element selectionne'
-::         'Press Enter to choose the focused item.' = 'Appuyez sur Entree pour choisir l''element selectionne.'
-::         'Launcher Update Available' = 'Mise a jour du lanceur disponible'
-::         'Update now' = 'Mettre a jour maintenant'
-::         'Later' = 'Plus tard'
-::         'Skip this version' = 'Ignorer cette version'
-::         'Download the latest portable batch and replace the current launcher.' = 'Telecharger le dernier batch portable et remplacer le lanceur actuel.'
-::         'Keep using this version and check again later.' = 'Continuer avec cette version et reverifier plus tard.'
-::         'Do not prompt again for' = 'Ne plus proposer pour'
-::         'Download' = 'Telechargement'
-::         'Verify download' = 'Verification du telechargement'
-::         'Replace launcher' = 'Remplacement du lanceur'
-::         'Relaunch updated launcher' = 'Relance du lanceur mis a jour'
-::         'SYTA was updated to' = 'SYTA a ete mis a jour vers'
-::         'Install PowerShell 7 with winget and set Windows Terminal default profile to PowerShell' = 'Installer PowerShell 7 avec winget et definir PowerShell comme profil par defaut de Windows Terminal'
-::         'Install via winget and set Windows Terminal default profile to PowerShell.' = 'Installer via winget et definir PowerShell comme profil par defaut de Windows Terminal.'
-::         'Return to the main menu.' = 'Revenir au menu principal.'
-::         'Return to the previous menu.' = 'Revenir au menu precedent.'
-::         'Launch Preflight' = 'Pre-verification avant lancement'
-::         'Full Update Preflight' = 'Pre-verification avant mise a jour complete'
-::         'Light Update Preflight' = 'Pre-verification avant mise a jour legere'
-::         'Install Preflight' = 'Pre-verification avant installation'
-::         'A new terminal tab opens immediately after this screen' = 'Un nouvel onglet du terminal s''ouvre juste apres cet ecran'
-::         'A PowerShell window opens immediately after this screen' = 'Une fenetre PowerShell s''ouvre juste apres cet ecran'
-::         'SYTA WSL Ubuntu Install' = 'SYTA Installation WSL Ubuntu'
-::         'SYTA PowerShell 7 Install' = 'SYTA Installation PowerShell 7'
-::         'SYTA Install - Core AI CLI Tools' = 'SYTA Installation - CLI IA de base'
-::         'SYTA Light Updater' = 'SYTA Mise a jour legere'
-::         'SYTA Updater' = 'SYTA Mise a jour complete'
-::         'Continue later' = 'Continuer plus tard'
-::         'Target  : First install' = 'Cible   : Premiere installation'
-::         'WSL     : Linux distro already installed' = 'WSL     : distribution Linux deja installee'
-::         'WSL     : Will run wsl --install -d Ubuntu' = 'WSL     : executera wsl --install -d Ubuntu'
-::         'Power   : SYTA will ask whether to install PowerShell 7' = 'Power   : SYTA demandera s''il faut installer PowerShell 7'
-::         'Power   : PowerShell 7 already installed; SYTA can repair it if needed' = 'Power   : PowerShell 7 deja installe ; SYTA peut le reparer si besoin'
-::         'CLI     : Install the core AI CLI tools once a Linux distro is ready' = 'CLI     : installer les CLI IA de base une fois une distribution Linux prete'
-::         'Note    : Oh My Codex / OMX and the Oh My OpenCode variants stay optional installs' = 'Note    : Oh My Codex / OMX et les variantes Oh My OpenCode restent optionnels'
-::         'WSL     : Linux distro ready for CLI installs' = 'WSL     : distribution Linux prete pour les installations CLI'
-::         'WSL     : Ubuntu is installed but first Linux-user setup is still required' = 'WSL     : Ubuntu est installe mais la creation initiale de l''utilisateur Linux reste a faire'
-::         'Note    : Launch Ubuntu once and finish Linux user creation before installing CLI tools' = 'Note    : lancez Ubuntu une fois et terminez la creation de l''utilisateur Linux avant d''installer les CLI'
-::         'Ubuntu is installed, but its first Linux-user setup is not finished yet.' = 'Ubuntu est installe, mais sa configuration initiale de l''utilisateur Linux n''est pas encore terminee.'
-::         'Launch Ubuntu once and finish Linux user creation before installing CLI tools.' = 'Lancez Ubuntu une fois et terminez la creation de l''utilisateur Linux avant d''installer les CLI.'
-::         'After that, rerun First install or this install action.' = 'Ensuite, relancez Premiere installation ou cette action d''installation.'
-::         'WSL Ubuntu is not ready yet.' = 'WSL Ubuntu n''est pas encore pret.'
-::         'Run First install or WSL Ubuntu first.' = 'Lancez d''abord Premiere installation ou WSL Ubuntu.'
-::         'Then come back here once Ubuntu setup is complete.' = 'Revenez ici une fois la configuration d''Ubuntu terminee.'
-::         'Note    : Ubuntu setup may require a reboot or first-run Linux account creation before CLI installs can continue' = 'Note    : l''installation d''Ubuntu peut necessiter un redemarrage ou la creation initiale du compte Linux avant de poursuivre les CLI'
-::         'Ubuntu setup was started in a separate PowerShell window.' = 'L''installation d''Ubuntu a ete lancee dans une fenetre PowerShell separee.'
-::         'After Ubuntu finishes installing, rerun First install to continue with the core AI CLI tools.' = 'Une fois Ubuntu installe, relancez Premiere installation pour continuer avec les CLI IA de base.'
-::         'If Windows asks for a reboot, restart Windows first.' = 'Si Windows demande un redemarrage, redemarrez Windows d''abord.'
-::         'If Ubuntu asks you to create your Linux user, finish that step first.' = 'Si Ubuntu demande de creer votre utilisateur Linux, terminez d''abord cette etape.'
-::         'You can also use Install core AI CLI tools later if Ubuntu is already ready.' = 'Vous pourrez aussi utiliser Installer les CLI IA de base plus tard si Ubuntu est deja pret.'
-::         'Unknown tool' = 'Outil inconnu'
-::         'Auth via env key' = 'Auth via cle d''environnement'
-::         'Auth/config detected' = 'Auth/config detectee'
-::         'Auth n/a' = 'Auth n/a'
-::         'WSL Linux distro missing' = 'Aucune distribution Linux WSL prete'
-::         'WSL Linux setup incomplete' = 'Configuration Linux WSL incomplete'
-::         'Auth not detected' = 'Auth non detectee'
-::         'Auth unknown' = 'Auth inconnue'
-::         'Installed' = 'Installe'
-::         'Configured only' = 'Configuration detectee seulement'
-::         'Missing' = 'Absent'
-::         'version not detected' = 'version non detectee'
-::         'binary not found on PATH' = 'binaire introuvable dans le PATH'
-::         'not installed' = 'non installe'
-::         'via nvm' = 'via nvm'
-::         'user-local' = 'utilisateur local'
-::         'system-wide' = 'systeme'
-::         'config-only' = 'config seulement'
-::         'custom path' = 'chemin personnalise'
-::         'unknown source' = 'source inconnue'
+::     $map = if ($script:Language -eq 'zh') {
+::         @{
+::             'Selector' = '选择器'
+::             'Arrows move, Enter selects, Esc goes back' = '方向键移动，Enter 选择，Esc 返回'
+::             'Please wait' = '请稍候'
+::             'Launching in a new terminal tab' = '正在新终端标签页中启动'
+::             'SYTA keeps this selector open while new tabs launch' = 'SYTA 会在新标签页启动时保持此选择器打开'
+::             'Boot sequence' = '启动序列'
+::             'unpacking portable runtime' = '正在解包便携运行时'
+::             'loading command deck' = '正在加载命令面板'
+::             'scanning WSL bridge' = '正在扫描 WSL 桥接'
+::             'mapping project roots' = '正在映射项目根目录'
+::             'arming install matrix' = '正在准备安装矩阵'
+::             'warming AI launch lanes' = '正在预热 AI 启动通道'
+::             'routing terminal host' = '正在配置终端宿主'
+::             'syncing updater engines' = '正在同步更新引擎'
+::             'locking flight path' = '正在锁定执行路径'
+::             'SYTA ready' = 'SYTA 已就绪'
+::             'telemetry: launcher online, diagnostics cache cold, routes ready' = '遥测：启动器已上线，诊断缓存为空，路线已就绪'
+::             'Create New Project' = '创建新项目'
+::             'Leave blank to cancel' = '留空以取消'
+::             'Choose a short Windows-safe folder name.' = '请选择一个简短且兼容 Windows 的文件夹名。'
+::             '   Project name' = '   项目名称'
+::             'Invalid project name' = '项目名称无效'
+::             'Avoid characters Windows cannot use in folder names.' = '避免使用 Windows 不能用于文件夹名的字符。'
+::             'Try another name' = '换一个名称'
+::             'Back' = '返回'
+::             'Project Selector' = '项目选择'
+::             'Recent Projects' = '最近项目'
+::             'Existing Projects' = '现有项目'
+::             'Search Projects' = '搜索项目'
+::             'Search scans existing folders under C:\.CODEX.' = '搜索会扫描 C:\.CODEX 下现有的文件夹。'
+::             'Search is case-insensitive and matches partial words.' = '搜索不区分大小写，并支持部分词匹配。'
+::             '   Search term' = '   搜索词'
+::             'No project matches' = '没有匹配的项目'
+::             'Try another search' = '换一个搜索词'
+::             'Open existing project' = '打开现有项目'
+::             'Type a fresh project name and create its folder.' = '输入新项目名并创建其文件夹。'
+::             'Filter existing projects by a search term.' = '用搜索词筛选现有项目。'
+::             'Choose a recently used project folder.' = '选择最近使用的项目文件夹。'
+::             'Choose a project folder to open.' = '选择要打开的项目文件夹。'
+::             'Choose the tool to launch in the project workspace.' = '选择要在该项目工作区中启动的工具。'
+::             'Agent Selector' = '代理选择'
+::             'Mode Selector' = '模式选择'
+::             'Explanations' = '说明'
+::             'Update' = '更新'
+::             'Choose which update lane to run.' = '选择要运行的更新方式。'
+::             'Run a lighter AI-tools-only update or the broader full maintenance pass.' = '仅更新 AI 工具，或运行更全面的维护更新。'
+::             'Light update' = '轻量更新'
+::             'Update all' = '全量更新'
+::             'Update AI coding CLIs only: Codex, OMX, OpenCode, Claude Code, Gemini CLI.' = '仅更新 AI 编码 CLI：Codex、OMX、OpenCode、Claude Code、Gemini CLI。'
+::             'Run the broader toolchain update pass, including system package managers.' = '运行更全面的工具链更新，包括系统包管理器。'
+::             'First install (recommended)' = '首次安装（推荐）'
+::             'Best beginner path for WSL Ubuntu, optional PowerShell 7, and the core AI CLI tools.' = '面向新手的最佳路径：WSL Ubuntu、可选 PowerShell 7，以及核心 AI CLI 工具。'
+::             'Recommended path for a new machine or first SYTA setup' = '适用于新机器或首次 SYTA 安装的推荐路径'
+::             'CLI     : Ready to launch the core AI CLI tools now' = 'CLI     : 现在即可启动核心 AI CLI 工具'
+::             'CLI     : Full core AI CLI install starts after Ubuntu is ready' = 'CLI     : Ubuntu 准备好后再启动完整的核心 AI CLI 安装'
+::             'Note    : Recommended path for a new machine or first SYTA setup' = 'Note    : 适用于新机器或首次 SYTA 安装的推荐路径'
+::             'Note    : Ubuntu setup may require a reboot before CLI installs continue' = 'Note    : 在 CLI 安装继续前，Ubuntu 设置可能需要重启'
+::             'Note    : Ubuntu may also require first-run Linux account creation' = 'Note    : Ubuntu 也可能需要先完成首次 Linux 账户创建'
+::             'You can still use First install from here for the guided beginner path.' = '你仍然可以从这里使用“首次安装”这一新手引导路径。'
+::             'Learn what the tools are, who they are for, and what SYTA recommends.' = '了解这些工具是什么、适合谁，以及 SYTA 的推荐。'
+::             'Learn what the tools are, what SYTA recommends, and how to choose a setup.' = '了解这些工具是什么、SYTA 的推荐，以及如何选择安装方案。'
+::             'Beginner guide' = '新手指南'
+::             'Ultra-beginner explanation of each tool and the easiest path through SYTA.' = '面向完全新手的工具说明和最简单的 SYTA 路径。'
+::             'Advanced guide' = '进阶指南'
+::             'Higher-level tradeoffs, workflows, and why you might pick one tool over another.' = '更高层次的取舍、工作流，以及为何选择某个工具。'
+::             'What should I install?' = '我该安装什么？'
+::             'Straight recommendation based on simplicity, budget, and how hands-off you want setup to be.' = '基于简单性、预算和你想要多省心的直接推荐。'
+::             'Press any key to return.' = '按任意键返回。'
+::             'Codex: OpenAI coding agent with strong editing and reasoning.' = 'Codex：OpenAI 的编码代理，编辑和推理能力都很强。'
+::             'OMX: power-user wrapper around Codex for planning, orchestration, and heavier workflows.' = 'OMX：Codex 上层的进阶封装，适合更强的自动化、规划和重型工作流。'
+::             'OpenCode: lightweight coding CLI and usually the easiest first start.' = 'OpenCode：轻量编码 CLI，通常也是最容易上手的起点。'
+::             'Claude Code and Gemini CLI: best if you already use those ecosystems.' = 'Claude Code 和 Gemini CLI：如果你已经在用这些生态，更值得装。'
+::             'Best beginner path: Install -> First install, then start with OpenCode or Codex.' = '新手最佳路径：安装 -> 首次安装，然后从 OpenCode 或 Codex 开始。'
+::             'Oh My OpenAgent is the full OpenCode harness. Oh My OpenCode Slim keeps a lighter preset.' = 'Oh My OpenAgent 是完整的 OpenCode 扩展，Oh My OpenCode Slim 是更轻的预设。'
+::             'Codex is the direct OpenAI lane; OMX adds more opinionated automation and orchestration.' = 'Codex 是直接的 OpenAI 路线；OMX 在其上增加更有主见的自动化和编排。'
+::             'OpenCode is often the lightest workflow; Codex and OMX are better when you want stronger guided execution.' = 'OpenCode 通常最轻量；如果你想要更强的引导执行，Codex 和 OMX 更合适。'
+::             'Install only the CLIs you will actually use. More tools means more auth, updates, and overlap.' = '只安装你真正会用的 CLI。工具越多，认证、更新和重叠就越多。'
+::             'Oh My OpenAgent is the broader OpenCode harness; Slim keeps a lighter OpenCode-focused preset.' = 'Oh My OpenAgent 是更完整的 OpenCode 扩展；Slim 则保留更轻量的 OpenCode 预设。'
+::             'Brand-new Windows machine: Install -> First install.' = '全新 Windows 机器：安装 -> 首次安装。'
+::             'Lowest-friction start: OpenCode.' = '最低摩擦的起点：OpenCode。'
+::             'Best OpenAI-first path: Codex, then OMX if you want deeper automation.' = '最佳 OpenAI 优先路径：先 Codex，如果想要更深的自动化再加 OMX。'
+::             'Install Oh My OpenAgent if you want the full harness. Install Slim if you want a lighter preset.' = '想要完整扩展就装 Oh My OpenAgent；想要更轻的预设就装 Slim。'
+::             'Skip tools you do not have keys, subscriptions, or a real workflow for.' = '跳过你没有 key、订阅或实际工作流需求的工具。'
+::             'Choose what SYTA should do.' = '选择 SYTA 要执行的操作。'
+::             'Install or repair WSL Ubuntu and supported coding CLIs.' = '安装或修复 WSL Ubuntu 以及受支持的编码 CLI。'
+::             'First install' = '首次安装'
+::             'Guided setup for WSL Ubuntu, optional PowerShell 7, and the core AI CLI tools.' = 'WSL Ubuntu、可选 PowerShell 7 和核心 AI CLI 工具的引导安装。'
+::             'PowerShell 7 is already installed. Reinstall or repair it now?' = 'PowerShell 7 已安装。现在要重装或修复吗？'
+::             'Would you like SYTA to install PowerShell 7 too?' = '你希望 SYTA 一并安装 PowerShell 7 吗？'
+::             'Skip PowerShell 7 for now' = '暂时跳过 PowerShell 7'
+::             'Continue without changing the Windows Terminal default profile.' = '继续，但不更改 Windows Terminal 默认配置文件。'
+::             'Install PowerShell 7 now' = '现在安装 PowerShell 7'
+::             'Reinstall or repair PowerShell 7' = '重新安装或修复 PowerShell 7'
+::             'Install core AI CLI tools' = '安装核心 AI CLI 工具'
+::             'Run Codex, OpenCode, Claude Code, and Gemini CLI in one pass.' = '一次运行 Codex、OpenCode、Claude Code 和 Gemini CLI 的安装。'
+::             'WSL Linux setup incomplete | launch Ubuntu once first.' = 'WSL Linux 设置未完成 | 请先启动一次 Ubuntu。'
+::             'Cleaner helper' = '清理助手'
+::             'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.' = '清理前扫描旧的 nvm/npm AI CLI 安装和重复的 PATH 项。'
+::             'Reset tool configs' = '重置工具配置'
+::             'Review tracked config/auth paths and remove only the ones you confirm.' = '检查已跟踪的配置/认证路径，只删除你确认的项。'
+::             'Choose which tool configs to reset.' = '选择要重置哪些工具配置。'
+::             'Pick one tool family, or reset every tracked config path.' = '选择一个工具类别，或重置所有已跟踪的配置路径。'
+::             'Codex / OMX configs' = 'Codex / OMX 配置'
+::             'Remove tracked Codex and OMX auth/config files.' = '删除已跟踪的 Codex 和 OMX 认证/配置文件。'
+::             'OpenCode configs' = 'OpenCode 配置'
+::             'Remove tracked OpenCode base config files.' = '删除已跟踪的 OpenCode 基础配置文件。'
+::             'Oh My OpenAgent configs' = 'Oh My OpenAgent 配置'
+::             'Remove tracked Oh My OpenAgent compatibility config files.' = '删除已跟踪的 Oh My OpenAgent 兼容配置文件。'
+::             'Oh My OpenCode Slim configs' = 'Oh My OpenCode Slim 配置'
+::             'Remove tracked Oh My OpenCode Slim config files.' = '删除已跟踪的 Oh My OpenCode Slim 配置文件。'
+::             'Claude Code configs' = 'Claude Code 配置'
+::             'Remove tracked Claude Code config files.' = '删除已跟踪的 Claude Code 配置文件。'
+::             'Gemini CLI configs' = 'Gemini CLI 配置'
+::             'Remove tracked Gemini and Google AI config folders.' = '删除已跟踪的 Gemini 和 Google AI 配置目录。'
+::             'All tracked configs' = '所有已跟踪的配置'
+::             'Remove every tracked config/auth path shown by SYTA.' = '删除 SYTA 显示的所有已跟踪配置/认证路径。'
+::             'SYTA Install - Config Reset Helper' = 'SYTA 安装 - 配置重置助手'
+::             'Target  : Reset tool configs' = '目标   : 重置工具配置'
+::             'Action  : Review tracked config/auth paths and confirm which ones to remove' = '操作   : 检查已跟踪的配置/认证路径并确认要删除的项'
+::             'Scope   : Selected tracked config/auth paths, or all tracked config/auth paths' = '范围   : 选定的配置/认证路径，或所有已跟踪的配置/认证路径'
+::             'Selection : ' = '选择   : '
+::             'SYTA Install - Cleaner Helper' = 'SYTA 安装 - 清理助手'
+::             'Target  : Cleaner helper' = '目标   : 清理助手'
+::             'Action  : Scan stale AI CLI installs and ask before removing old npm globals' = '操作   : 扫描过时的 AI CLI 安装，并在删除旧 npm 全局包前询问'
+::             'Scope   : Older nvm Node versions, duplicate PATH entries, user-scoped npm installs' = '范围   : 较旧的 nvm Node 版本、重复 PATH 条目、用户级 npm 安装'
+::             'Oh My OpenAgent' = 'Oh My OpenAgent'
+::             'OpenCode + the full Oh My OpenAgent harness with its interactive installer.' = 'OpenCode + 完整的 Oh My OpenAgent 扩展及其交互式安装器。'
+::             'This is an OpenCode add-on, not a separate coding CLI.' = '这是 OpenCode 的附加组件，不是单独的编码 CLI。'
+::             'OpenCode should be installed first. SYTA will install it automatically if needed.' = '应先安装 OpenCode。必要时 SYTA 会自动安装它。'
+::             'Best if you already use OpenCode and want more helper features around it.' = '如果你已经在用 OpenCode 并想要更多辅助功能，这最合适。'
+::             'Best if you want a lighter OpenCode add-on instead of the bigger OpenAgent setup.' = '如果你想要比 OpenAgent 更轻的 OpenCode 附加组件，这最合适。'
+::             'OpenCode : ' = 'OpenCode：'
+::             'Loading live tool diagnostics' = '正在加载实时工具诊断'
+::             'Checking Windows prerequisites' = '正在检查 Windows 前置条件'
+::             'Loading WSL tool diagnostics' = '正在加载 WSL 工具诊断'
+::             'Preparing install options' = '正在准备安装选项'
+::             'No WSL Linux distro is ready yet, so SYTA will show safe setup choices only.' = '当前还没有可用的 WSL Linux 发行版，因此 SYTA 只会显示安全的安装选项。'
+::             'Live diagnostics were unavailable, so SYTA switched to a safe fallback install menu.' = '实时诊断不可用，因此 SYTA 已切换到安全的回退安装菜单。'
+::             'You can still install WSL Ubuntu or PowerShell 7 from here.' = '你仍然可以从这里安装 WSL Ubuntu 或 PowerShell 7。'
+::             'Loading recent projects' = '正在加载最近项目'
+::             'Scanning project folders' = '正在扫描项目文件夹'
+::             'Selected item' = '当前选中项'
+::             'Press Enter to choose the focused item.' = '按 Enter 选择当前聚焦项。'
+::             'Launcher Update Available' = '有可用的启动器更新'
+::             'Update now' = '立即更新'
+::             'Later' = '稍后'
+::             'Skip this version' = '跳过此版本'
+::             'Download the latest portable batch and replace the current launcher.' = '下载最新便携 batch 并替换当前启动器。'
+::             'Keep using this version and check again later.' = '继续使用当前版本，稍后再检查。'
+::             'Do not prompt again for' = '不再提示'
+::             'Download' = '下载'
+::             'Verify download' = '验证下载'
+::             'Replace launcher' = '替换启动器'
+::             'Relaunch updated launcher' = '重新启动已更新的启动器'
+::             'SYTA was updated to' = 'SYTA 已更新为'
+::             'Install PowerShell 7 with winget and set Windows Terminal default profile to PowerShell' = '使用 winget 安装 PowerShell 7 并将 Windows Terminal 默认配置文件设为 PowerShell'
+::             'Install via winget and set Windows Terminal default profile to PowerShell.' = '通过 winget 安装并将 Windows Terminal 默认配置文件设为 PowerShell。'
+::             'Return to the main menu.' = '返回主菜单。'
+::             'Return to the previous menu.' = '返回上一级菜单。'
+::             'Launch Preflight' = '启动前检查'
+::             'Full Update Preflight' = '全量更新前检查'
+::             'Light Update Preflight' = '轻量更新前检查'
+::             'Install Preflight' = '安装前检查'
+::             'A new terminal tab opens immediately after this screen' = '此界面后会立即打开一个新的终端标签页'
+::             'A PowerShell window opens immediately after this screen' = '此界面后会立即打开一个 PowerShell 窗口'
+::             'SYTA WSL Ubuntu Install' = 'SYTA WSL Ubuntu 安装'
+::             'SYTA PowerShell 7 Install' = 'SYTA PowerShell 7 安装'
+::             'SYTA Install - Core AI CLI Tools' = 'SYTA 安装 - 核心 AI CLI 工具'
+::             'SYTA Light Updater' = 'SYTA 轻量更新'
+::             'SYTA Updater' = 'SYTA 更新器'
+::             'Continue later' = '稍后继续'
+::             'Target  : First install' = '目标   : 首次安装'
+::             'WSL     : Linux distro already installed' = 'WSL     : Linux 发行版已安装'
+::             'WSL     : Will run wsl --install -d Ubuntu' = 'WSL     : 将运行 wsl --install -d Ubuntu'
+::             'Power   : SYTA will ask whether to install PowerShell 7' = 'Power   : SYTA 将询问是否安装 PowerShell 7'
+::             'Power   : PowerShell 7 already installed; SYTA can repair it if needed' = 'Power   : PowerShell 7 已安装；如有需要，SYTA 可进行修复'
+::             'CLI     : Install the core AI CLI tools once a Linux distro is ready' = 'CLI     : Linux 发行版就绪后安装核心 AI CLI 工具'
+::             'Note    : Oh My Codex / OMX and the Oh My OpenCode variants stay optional installs' = 'Note    : Oh My Codex / OMX 和 Oh My OpenCode 系列仍为可选安装'
+::             'WSL     : Linux distro ready for CLI installs' = 'WSL     : Linux 发行版已就绪，可安装 CLI'
+::             'WSL     : Ubuntu is installed but first Linux-user setup is still required' = 'WSL     : Ubuntu 已安装，但仍需完成首次 Linux 用户设置'
+::             'Note    : Launch Ubuntu once and finish Linux user creation before installing CLI tools' = 'Note    : 先启动一次 Ubuntu 并完成 Linux 用户创建，再安装 CLI 工具'
+::             'Ubuntu is installed, but its first Linux-user setup is not finished yet.' = 'Ubuntu 已安装，但其首次 Linux 用户设置尚未完成。'
+::             'Launch Ubuntu once and finish Linux user creation before installing CLI tools.' = '先启动一次 Ubuntu 并完成 Linux 用户创建，再安装 CLI 工具。'
+::             'After that, rerun First install or this install action.' = '完成后重新运行“首次安装”或当前安装操作。'
+::             'WSL Ubuntu is not ready yet.' = 'WSL Ubuntu 还未就绪。'
+::             'Run First install or WSL Ubuntu first.' = '请先运行“首次安装”或 WSL Ubuntu。'
+::             'Then come back here once Ubuntu setup is complete.' = '完成 Ubuntu 设置后再回到这里。'
+::             'Note    : Ubuntu setup may require a reboot or first-run Linux account creation before CLI installs can continue' = 'Note    : Ubuntu 安装可能需要重启或首次 Linux 用户创建，然后 CLI 安装才能继续'
+::             'Ubuntu setup was started in a separate PowerShell window.' = 'Ubuntu 安装已在单独的 PowerShell 窗口中启动。'
+::             'After Ubuntu finishes installing, rerun First install to continue with the core AI CLI tools.' = 'Ubuntu 安装完成后，请重新运行“首次安装”以继续安装核心 AI CLI 工具。'
+::             'If Windows asks for a reboot, restart Windows first.' = '如果 Windows 要求重启，请先重启 Windows。'
+::             'If Ubuntu asks you to create your Linux user, finish that step first.' = '如果 Ubuntu 要求你创建 Linux 用户，请先完成该步骤。'
+::             'You can also use Install core AI CLI tools later if Ubuntu is already ready.' = '如果 Ubuntu 已就绪，你也可以稍后使用“安装核心 AI CLI 工具”。'
+::             'Unknown tool' = '未知工具'
+::             'Auth via env key' = '通过环境变量 key 认证'
+::             'Auth/config detected' = '已检测到认证/配置'
+::             'Auth n/a' = '无需认证'
+::             'WSL Linux distro missing' = '缺少 WSL Linux 发行版'
+::             'WSL Linux setup incomplete' = 'WSL Linux 设置未完成'
+::             'Auth not detected' = '未检测到认证'
+::             'Auth unknown' = '认证状态未知'
+::             'Installed' = '已安装'
+::             'Configured only' = '仅检测到配置'
+::             'Missing' = '缺失'
+::             'version not detected' = '未检测到版本'
+::             'binary not found on PATH' = 'PATH 中未找到可执行文件'
+::             'not installed' = '未安装'
+::             'via nvm' = '通过 nvm'
+::             'user-local' = '用户本地'
+::             'system-wide' = '系统级'
+::             'config-only' = '仅配置'
+::             'custom path' = '自定义路径'
+::             'unknown source' = '未知来源'
+::         }
+::     } else {
+::         @{
+::             'Selector' = 'Selection'
+::             'Arrows move, Enter selects, Esc goes back' = 'Fleches pour naviguer, Entree pour valider, Echap pour revenir'
+::             'Please wait' = 'Veuillez patienter'
+::             'Launching in a new terminal tab' = 'Ouverture immediate dans un nouvel onglet du terminal'
+::             'SYTA keeps this selector open while new tabs launch' = 'SYTA garde ce selecteur ouvert pendant l''ouverture des nouveaux onglets'
+::             'Boot sequence' = 'Demarrage'
+::             'unpacking portable runtime' = 'extraction du runtime portable'
+::             'loading command deck' = 'chargement du poste de commande'
+::             'scanning WSL bridge' = 'analyse du pont WSL'
+::             'mapping project roots' = 'cartographie des projets'
+::             'arming install matrix' = 'preparation de la matrice d''installation'
+::             'warming AI launch lanes' = 'prechauffage des voies IA'
+::             'routing terminal host' = 'configuration de l''hote terminal'
+::             'syncing updater engines' = 'synchronisation des moteurs de mise a jour'
+::             'locking flight path' = 'verrouillage de la trajectoire'
+::             'SYTA ready' = 'SYTA pret'
+::             'telemetry: launcher online, diagnostics cache cold, routes ready' = 'telemetrie : lanceur en ligne, cache de diagnostic vide, routes pretes'
+::             'Create New Project' = 'Creer un nouveau projet'
+::             'Leave blank to cancel' = 'Laisser vide pour annuler'
+::             'Choose a short Windows-safe folder name.' = 'Choisissez un nom de dossier court et compatible Windows.'
+::             '   Project name' = '   Nom du projet'
+::             'Invalid project name' = 'Nom de projet invalide'
+::             'Avoid characters Windows cannot use in folder names.' = 'Evitez les caracteres interdits dans les noms de dossier Windows.'
+::             'Try another name' = 'Essayez un autre nom'
+::             'Back' = 'Retour'
+::             'Project Selector' = 'Selection du projet'
+::             'Recent Projects' = 'Projets recents'
+::             'Existing Projects' = 'Projets existants'
+::             'Search Projects' = 'Rechercher des projets'
+::             'Search scans existing folders under C:\.CODEX.' = 'La recherche parcourt les dossiers existants sous C:\.CODEX.'
+::             'Search is case-insensitive and matches partial words.' = 'La recherche ignore la casse et reconnait les mots partiels.'
+::             '   Search term' = '   Terme de recherche'
+::             'No project matches' = 'Aucun projet correspondant'
+::             'Try another search' = 'Essayez une autre recherche'
+::             'Open existing project' = 'Ouvrir un projet existant'
+::             'Type a fresh project name and create its folder.' = 'Saisissez un nouveau nom de projet et creez son dossier.'
+::             'Filter existing projects by a search term.' = 'Filtrer les projets existants par terme de recherche.'
+::             'Choose a recently used project folder.' = 'Choisissez un dossier de projet recent.'
+::             'Choose a project folder to open.' = 'Choisissez un dossier de projet a ouvrir.'
+::             'Choose the tool to launch in the project workspace.' = 'Choisissez l''outil a lancer dans l''espace de travail du projet.'
+::             'Agent Selector' = 'Selection de l''agent'
+::             'Mode Selector' = 'Selection du mode'
+::             'Explanations' = 'Explications'
+::             'Update' = 'Mise a jour'
+::             'Choose which update lane to run.' = 'Choisissez le type de mise a jour a lancer.'
+::             'Run a lighter AI-tools-only update or the broader full maintenance pass.' = 'Lancer soit une mise a jour legere des outils IA, soit la maintenance complete.'
+::             'Light update' = 'Mise a jour legere'
+::             'Update all' = 'Mise a jour complete'
+::             'Update AI coding CLIs only: Codex, OMX, OpenCode, Claude Code, Gemini CLI.' = 'Mettre a jour seulement les CLI IA : Codex, OMX, OpenCode, Claude Code, Gemini CLI.'
+::             'Run the broader toolchain update pass, including system package managers.' = 'Lancer la maintenance plus large de la chaine d''outils, y compris les gestionnaires systeme.'
+::             'First install (recommended)' = 'Premiere installation (recommandee)'
+::             'Best beginner path for WSL Ubuntu, optional PowerShell 7, and the core AI CLI tools.' = 'Meilleur parcours debutant pour WSL Ubuntu, PowerShell 7 en option et les CLI IA de base.'
+::             'Recommended path for a new machine or first SYTA setup' = 'Parcours recommande pour une nouvelle machine ou une premiere installation SYTA'
+::             'CLI     : Ready to launch the core AI CLI tools now' = 'CLI     : pret a lancer maintenant les CLI IA de base'
+::             'CLI     : Full core AI CLI install starts after Ubuntu is ready' = 'CLI     : l''installation complete des CLI IA de base demarre apres qu''Ubuntu soit pret'
+::             'Note    : Recommended path for a new machine or first SYTA setup' = 'Note    : parcours recommande pour une nouvelle machine ou une premiere installation SYTA'
+::             'Note    : Ubuntu setup may require a reboot before CLI installs continue' = 'Note    : Ubuntu peut demander un redemarrage avant la suite des installations CLI'
+::             'Note    : Ubuntu may also require first-run Linux account creation' = 'Note    : Ubuntu peut aussi demander la creation initiale du compte Linux'
+::             'You can still use First install from here for the guided beginner path.' = 'Vous pouvez toujours utiliser Premiere installation ici pour le parcours debutant guide.'
+::             'Learn what the tools are, who they are for, and what SYTA recommends.' = 'Comprendre simplement a quoi servent les outils et quoi choisir en premier.'
+::             'Learn what the tools are, what SYTA recommends, and how to choose a setup.' = 'Comprendre simplement a quoi servent les outils, ce que SYTA recommande et quoi choisir.'
+::             'Beginner guide' = 'Guide debutant'
+::             'Ultra-beginner explanation of each tool and the easiest path through SYTA.' = 'Explication tres simple de chaque outil et du chemin le plus facile dans SYTA.'
+::             'Advanced guide' = 'Guide avance'
+::             'Higher-level tradeoffs, workflows, and why you might pick one tool over another.' = 'Vue plus detaillee des differences entre les outils et de quand les choisir.'
+::             'What should I install?' = 'Que dois-je installer ?'
+::             'Straight recommendation based on simplicity, budget, and how hands-off you want setup to be.' = 'Recommandation directe selon ce qui est le plus simple, le moins prise de tete, et vos abonnements.'
+::             'Press any key to return.' = 'Appuyez sur une touche pour revenir.'
+::             'Codex: OpenAI coding agent with strong editing and reasoning.' = 'Codex : l''outil OpenAI pour coder avec de l''aide. Bon choix si vous voulez un assistant serieux pour lire, modifier et expliquer du code.'
+::             'OMX: power-user wrapper around Codex for planning, orchestration, and heavier workflows.' = 'OMX : une couche en plus par-dessus Codex. A utiliser surtout si vous voulez plus d''automatisation, plus de structure, et des workflows plus lourds.'
+::             'OpenCode: lightweight coding CLI and usually the easiest first start.' = 'OpenCode : l''outil le plus leger et souvent le plus simple pour commencer.'
+::             'Claude Code and Gemini CLI: best if you already use those ecosystems.' = 'Claude Code et Gemini CLI : utiles surtout si vous payez deja ces services ou preferez deja ces ecosystemes.'
+::             'Best beginner path: Install -> First install, then start with OpenCode or Codex.' = 'Meilleur parcours debutant : Installation -> Premiere installation, puis commencer avec OpenCode ou Codex.'
+::             'Oh My OpenAgent is the full OpenCode harness. Oh My OpenCode Slim keeps a lighter preset.' = 'Oh My OpenAgent ajoute plein d''aides autour d''OpenCode. Oh My OpenCode Slim garde seulement une partie plus legere de ces aides.'
+::             'Codex is the direct OpenAI lane; OMX adds more opinionated automation and orchestration.' = 'Codex est la voie OpenAI directe. OMX ajoute une facon plus guidee et plus automatique de travailler.'
+::             'OpenCode is often the lightest workflow; Codex and OMX are better when you want stronger guided execution.' = 'OpenCode est souvent le plus simple. Codex et surtout OMX sont plus utiles si vous voulez etre davantage guide.'
+::             'Install only the CLIs you will actually use. More tools means more auth, updates, and overlap.' = 'Installez seulement les CLI que vous utiliserez vraiment. Plus d''outils signifie plus d''authentification, de mises a jour et de chevauchements.'
+::             'Oh My OpenAgent is the broader OpenCode harness; Slim keeps a lighter OpenCode-focused preset.' = 'Oh My OpenAgent ajoute beaucoup d''outils autour d''OpenCode ; Slim garde une version plus simple de cette idee.'
+::             'Brand-new Windows machine: Install -> First install.' = 'Nouvelle machine Windows : Installation -> Premiere installation.'
+::             'Lowest-friction start: OpenCode.' = 'Demarrage le plus simple : OpenCode.'
+::             'Best OpenAI-first path: Codex, then OMX if you want deeper automation.' = 'Meilleur parcours si vous voulez surtout OpenAI : Codex d''abord, puis OMX seulement si vous voulez aller plus loin.'
+::             'Install Oh My OpenAgent if you want the full harness. Install Slim if you want a lighter preset.' = 'Installez Oh My OpenAgent si vous voulez beaucoup d''aides autour d''OpenCode. Installez Slim si vous voulez une version plus simple.'
+::             'Skip tools you do not have keys, subscriptions, or a real workflow for.' = 'Ignorez les outils pour lesquels vous n''avez pas de cle, d''abonnement ou de vrai besoin.'
+::             'Choose what SYTA should do.' = 'Choisissez ce que SYTA doit faire.'
+::             'Install or repair WSL Ubuntu and supported coding CLIs.' = 'Installer ou reparer WSL Ubuntu et les CLI de codage prises en charge.'
+::             'First install' = 'Premiere installation'
+::             'Guided setup for WSL Ubuntu, optional PowerShell 7, and the core AI CLI tools.' = 'Parcours guide pour WSL Ubuntu, PowerShell 7 en option, et les CLI IA de base.'
+::             'PowerShell 7 is already installed. Reinstall or repair it now?' = 'PowerShell 7 est deja installe. Le reinstaller ou le reparer maintenant ?'
+::             'Would you like SYTA to install PowerShell 7 too?' = 'Voulez-vous aussi que SYTA installe PowerShell 7 ?'
+::             'Skip PowerShell 7 for now' = 'Ignorer PowerShell 7 pour le moment'
+::             'Continue without changing the Windows Terminal default profile.' = 'Continuer sans modifier le profil par defaut de Windows Terminal.'
+::             'Install PowerShell 7 now' = 'Installer PowerShell 7 maintenant'
+::             'Reinstall or repair PowerShell 7' = 'Reinstaller ou reparer PowerShell 7'
+::             'Install core AI CLI tools' = 'Installer les CLI IA de base'
+::             'Run Codex, OpenCode, Claude Code, and Gemini CLI in one pass.' = 'Lancer Codex, OpenCode, Claude Code et Gemini CLI en une seule passe.'
+::             'WSL Linux setup incomplete | launch Ubuntu once first.' = 'Configuration Linux WSL incomplete | lancez Ubuntu une fois d''abord.'
+::             'Cleaner helper' = 'Assistant de nettoyage'
+::             'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.' = 'Analyser les anciennes installations nvm/npm des CLI IA et les doublons du PATH avant nettoyage.'
+::             'Reset tool configs' = 'Reinitialiser les configs des outils'
+::             'Review tracked config/auth paths and remove only the ones you confirm.' = 'Examiner les chemins config/auth suivis et supprimer seulement ceux que vous confirmez.'
+::             'Choose which tool configs to reset.' = 'Choisissez quelles configs d''outils reinitialiser.'
+::             'Pick one tool family, or reset every tracked config path.' = 'Choisissez une famille d''outils, ou reinitialisez tous les chemins config suivis.'
+::             'Codex / OMX configs' = 'Configs Codex / OMX'
+::             'Remove tracked Codex and OMX auth/config files.' = 'Supprimer les fichiers config/auth suivis de Codex et OMX.'
+::             'OpenCode configs' = 'Configs OpenCode'
+::             'Remove tracked OpenCode base config files.' = 'Supprimer les fichiers de config principaux suivis d''OpenCode.'
+::             'Oh My OpenAgent configs' = 'Configs Oh My OpenAgent'
+::             'Remove tracked Oh My OpenAgent compatibility config files.' = 'Supprimer les fichiers de config de compatibilite suivis d''Oh My OpenAgent.'
+::             'Oh My OpenCode Slim configs' = 'Configs Oh My OpenCode Slim'
+::             'Remove tracked Oh My OpenCode Slim config files.' = 'Supprimer les fichiers de config suivis d''Oh My OpenCode Slim.'
+::             'Claude Code configs' = 'Configs Claude Code'
+::             'Remove tracked Claude Code config files.' = 'Supprimer les fichiers de config suivis de Claude Code.'
+::             'Gemini CLI configs' = 'Configs Gemini CLI'
+::             'Remove tracked Gemini and Google AI config folders.' = 'Supprimer les dossiers de config suivis de Gemini et Google AI.'
+::             'All tracked configs' = 'Toutes les configs suivies'
+::             'Remove every tracked config/auth path shown by SYTA.' = 'Supprimer tous les chemins config/auth suivis affiches par SYTA.'
+::             'SYTA Install - Config Reset Helper' = 'SYTA Installation - Assistant de reinitialisation des configs'
+::             'Target  : Reset tool configs' = 'Cible   : Reinitialiser les configs des outils'
+::             'Action  : Review tracked config/auth paths and confirm which ones to remove' = 'Action  : examiner les chemins config/auth suivis et confirmer ceux a supprimer'
+::             'Scope   : Selected tracked config/auth paths, or all tracked config/auth paths' = 'Portee  : chemins config/auth suivis selectionnes, ou tous les chemins config/auth suivis'
+::             'Selection : ' = 'Selection : '
+::             'SYTA Install - Cleaner Helper' = 'SYTA Installation - Assistant de nettoyage'
+::             'Target  : Cleaner helper' = 'Cible   : Assistant de nettoyage'
+::             'Action  : Scan stale AI CLI installs and ask before removing old npm globals' = 'Action  : analyser les CLI IA obsoletes et demander avant de supprimer les npm globaux anciens'
+::             'Scope   : Older nvm Node versions, duplicate PATH entries, user-scoped npm installs' = 'Portee  : anciennes versions Node nvm, doublons du PATH, installations npm utilisateur'
+::             'Oh My OpenAgent' = 'Oh My OpenAgent'
+::             'OpenCode + the full Oh My OpenAgent harness with its interactive installer.' = 'OpenCode + le harnais complet Oh My OpenAgent avec son installateur interactif.'
+::             'This is an OpenCode add-on, not a separate coding CLI.' = 'Ceci est un add-on pour OpenCode, pas une CLI de code separee.'
+::             'OpenCode should be installed first. SYTA will install it automatically if needed.' = 'OpenCode doit etre installe d''abord. SYTA l''installera automatiquement si besoin.'
+::             'Best if you already use OpenCode and want more helper features around it.' = 'A conseiller surtout si vous utilisez deja OpenCode et voulez plus d''aides autour.'
+::             'Best if you want a lighter OpenCode add-on instead of the bigger OpenAgent setup.' = 'A conseiller si vous voulez un add-on OpenCode plus leger que le gros setup OpenAgent.'
+::             'OpenCode : ' = 'OpenCode : '
+::             'Loading live tool diagnostics' = 'Chargement des diagnostics des outils'
+::             'Checking Windows prerequisites' = 'Verification des prerequis Windows'
+::             'Loading WSL tool diagnostics' = 'Chargement des diagnostics WSL'
+::             'Preparing install options' = 'Preparation des options d''installation'
+::             'No WSL Linux distro is ready yet, so SYTA will show safe setup choices only.' = 'Aucune distribution Linux WSL n''est encore prete, SYTA affiche donc uniquement des options d''installation sures.'
+::             'Live diagnostics were unavailable, so SYTA switched to a safe fallback install menu.' = 'Les diagnostics live etaient indisponibles, SYTA a bascule vers un menu d''installation de secours.'
+::             'You can still install WSL Ubuntu or PowerShell 7 from here.' = 'Vous pouvez toujours installer WSL Ubuntu ou PowerShell 7 depuis ici.'
+::             'Loading recent projects' = 'Chargement des projets recents'
+::             'Scanning project folders' = 'Analyse des dossiers projet'
+::             'Selected item' = 'Element selectionne'
+::             'Press Enter to choose the focused item.' = 'Appuyez sur Entree pour choisir l''element selectionne.'
+::             'Launcher Update Available' = 'Mise a jour du lanceur disponible'
+::             'Update now' = 'Mettre a jour maintenant'
+::             'Later' = 'Plus tard'
+::             'Skip this version' = 'Ignorer cette version'
+::             'Download the latest portable batch and replace the current launcher.' = 'Telecharger le dernier batch portable et remplacer le lanceur actuel.'
+::             'Keep using this version and check again later.' = 'Continuer avec cette version et reverifier plus tard.'
+::             'Do not prompt again for' = 'Ne plus proposer pour'
+::             'Download' = 'Telechargement'
+::             'Verify download' = 'Verification du telechargement'
+::             'Replace launcher' = 'Remplacement du lanceur'
+::             'Relaunch updated launcher' = 'Relance du lanceur mis a jour'
+::             'SYTA was updated to' = 'SYTA a ete mis a jour vers'
+::             'Install PowerShell 7 with winget and set Windows Terminal default profile to PowerShell' = 'Installer PowerShell 7 avec winget et definir PowerShell comme profil par defaut de Windows Terminal'
+::             'Install via winget and set Windows Terminal default profile to PowerShell.' = 'Installer via winget et definir PowerShell comme profil par defaut de Windows Terminal.'
+::             'Return to the main menu.' = 'Revenir au menu principal.'
+::             'Return to the previous menu.' = 'Revenir au menu precedent.'
+::             'Launch Preflight' = 'Pre-verification avant lancement'
+::             'Full Update Preflight' = 'Pre-verification avant mise a jour complete'
+::             'Light Update Preflight' = 'Pre-verification avant mise a jour legere'
+::             'Install Preflight' = 'Pre-verification avant installation'
+::             'A new terminal tab opens immediately after this screen' = 'Un nouvel onglet du terminal s''ouvre juste apres cet ecran'
+::             'A PowerShell window opens immediately after this screen' = 'Une fenetre PowerShell s''ouvre juste apres cet ecran'
+::             'SYTA WSL Ubuntu Install' = 'SYTA Installation WSL Ubuntu'
+::             'SYTA PowerShell 7 Install' = 'SYTA Installation PowerShell 7'
+::             'SYTA Install - Core AI CLI Tools' = 'SYTA Installation - CLI IA de base'
+::             'SYTA Light Updater' = 'SYTA Mise a jour legere'
+::             'SYTA Updater' = 'SYTA Mise a jour complete'
+::             'Continue later' = 'Continuer plus tard'
+::             'Target  : First install' = 'Cible   : Premiere installation'
+::             'WSL     : Linux distro already installed' = 'WSL     : distribution Linux deja installee'
+::             'WSL     : Will run wsl --install -d Ubuntu' = 'WSL     : executera wsl --install -d Ubuntu'
+::             'Power   : SYTA will ask whether to install PowerShell 7' = 'Power   : SYTA demandera s''il faut installer PowerShell 7'
+::             'Power   : PowerShell 7 already installed; SYTA can repair it if needed' = 'Power   : PowerShell 7 deja installe ; SYTA peut le reparer si besoin'
+::             'CLI     : Install the core AI CLI tools once a Linux distro is ready' = 'CLI     : installer les CLI IA de base une fois une distribution Linux prete'
+::             'Note    : Oh My Codex / OMX and the Oh My OpenCode variants stay optional installs' = 'Note    : Oh My Codex / OMX et les variantes Oh My OpenCode restent optionnels'
+::             'WSL     : Linux distro ready for CLI installs' = 'WSL     : distribution Linux prete pour les installations CLI'
+::             'WSL     : Ubuntu is installed but first Linux-user setup is still required' = 'WSL     : Ubuntu est installe mais la creation initiale de l''utilisateur Linux reste a faire'
+::             'Note    : Launch Ubuntu once and finish Linux user creation before installing CLI tools' = 'Note    : lancez Ubuntu une fois et terminez la creation de l''utilisateur Linux avant d''installer les CLI'
+::             'Ubuntu is installed, but its first Linux-user setup is not finished yet.' = 'Ubuntu est installe, mais sa configuration initiale de l''utilisateur Linux n''est pas encore terminee.'
+::             'Launch Ubuntu once and finish Linux user creation before installing CLI tools.' = 'Lancez Ubuntu une fois et terminez la creation de l''utilisateur Linux avant d''installer les CLI.'
+::             'After that, rerun First install or this install action.' = 'Ensuite, relancez Premiere installation ou cette action d''installation.'
+::             'WSL Ubuntu is not ready yet.' = 'WSL Ubuntu n''est pas encore pret.'
+::             'Run First install or WSL Ubuntu first.' = 'Lancez d''abord Premiere installation ou WSL Ubuntu.'
+::             'Then come back here once Ubuntu setup is complete.' = 'Revenez ici une fois la configuration d''Ubuntu terminee.'
+::             'Note    : Ubuntu setup may require a reboot or first-run Linux account creation before CLI installs can continue' = 'Note    : l''installation d''Ubuntu peut necessiter un redemarrage ou la creation initiale du compte Linux avant de poursuivre les CLI'
+::             'Ubuntu setup was started in a separate PowerShell window.' = 'L''installation d''Ubuntu a ete lancee dans une fenetre PowerShell separee.'
+::             'After Ubuntu finishes installing, rerun First install to continue with the core AI CLI tools.' = 'Une fois Ubuntu installe, relancez Premiere installation pour continuer avec les CLI IA de base.'
+::             'If Windows asks for a reboot, restart Windows first.' = 'Si Windows demande un redemarrage, redemarrez Windows d''abord.'
+::             'If Ubuntu asks you to create your Linux user, finish that step first.' = 'Si Ubuntu demande de creer votre utilisateur Linux, terminez d''abord cette etape.'
+::             'You can also use Install core AI CLI tools later if Ubuntu is already ready.' = 'Vous pourrez aussi utiliser Installer les CLI IA de base plus tard si Ubuntu est deja pret.'
+::             'Unknown tool' = 'Outil inconnu'
+::             'Auth via env key' = 'Auth via cle d''environnement'
+::             'Auth/config detected' = 'Auth/config detectee'
+::             'Auth n/a' = 'Auth n/a'
+::             'WSL Linux distro missing' = 'Aucune distribution Linux WSL prete'
+::             'WSL Linux setup incomplete' = 'Configuration Linux WSL incomplete'
+::             'Auth not detected' = 'Auth non detectee'
+::             'Auth unknown' = 'Auth inconnue'
+::             'Installed' = 'Installe'
+::             'Configured only' = 'Configuration detectee seulement'
+::             'Missing' = 'Absent'
+::             'version not detected' = 'version non detectee'
+::             'binary not found on PATH' = 'binaire introuvable dans le PATH'
+::             'not installed' = 'non installe'
+::             'via nvm' = 'via nvm'
+::             'user-local' = 'utilisateur local'
+::             'system-wide' = 'systeme'
+::             'config-only' = 'config seulement'
+::             'custom path' = 'chemin personnalise'
+::             'unknown source' = 'source inconnue'
+::         }
 ::     }
 ::
 ::     if ($map.ContainsKey($Text)) { return $map[$Text] }
+::
+::     if ($script:Language -eq 'zh') {
+::         if ($Text -match '^Projects root: (.+)$') { return "项目根目录：$($Matches[1])" }
+::         if ($Text -match '^Build: (.+)$') { return "构建：$($Matches[1])" }
+::         if ($Text -match '^Recent projects tracked: (.+)$') { return "已跟踪最近项目数：$($Matches[1])" }
+::         if ($Text -match '^Hint: (.+)$') { return "提示：$(Localize-Text $Matches[1])" }
+::         if ($Text -match '^Folder root: (.+)$') { return "文件夹根目录：$($Matches[1])" }
+::         if ($Text -match '^Recent project in (.+)$') { return "$($Matches[1]) 中的最近项目" }
+::         if ($Text -match '^Project folder at (.+)$') { return "项目文件夹位于 $($Matches[1])" }
+::         if ($Text -match '^Project folder in (.+)$') { return "项目文件夹位于 $($Matches[1])" }
+::         if ($Text -match '^Choose how to work inside (.+)\.$') { return "选择如何在 $($Matches[1]) 中工作。" }
+::         if ($Text -match '^Jump into one of (.+) recently used project\(s\)\.$') { return "打开 $($Matches[1]) 个最近使用的项目之一。" }
+::         if ($Text -match '^Browse (.+) existing project folder\(s\)\.$') { return "浏览 $($Matches[1]) 个现有项目文件夹。" }
+::         if ($Text -match '^No existing project matched ''(.+)''\.$') { return "没有现有项目匹配 '$($Matches[1])'。" }
+::         if ($Text -match '^Projects matching ''(.+)''\.$') { return "与 '$($Matches[1])' 匹配的项目。" }
+::         if ($Text -match '^Project : (.+)$') { return "项目   : $($Matches[1])" }
+::         if ($Text -match '^Tool    : (.+)$') { return "工具   : $(Localize-Text $Matches[1])" }
+::         if ($Text -match '^Install : (.+)$') { return "安装   : $(Localize-Text $Matches[1])" }
+::         if ($Text -match '^Version : (.+)$') { return "版本   : $(Localize-Text $Matches[1])" }
+::         if ($Text -match '^Auth    : (.+)$') { return "认证   : $(Localize-Text $Matches[1])" }
+::         if ($Text -match '^Path    : (.+)$') { return "路径   : $($Matches[1])" }
+::         if ($Text -match '^Scope   : (.+)$') { return "范围   : $($Matches[1])" }
+::         if ($Text -match '^Folder  : (.+)$') { return "文件夹 : $($Matches[1])" }
+::         if ($Text -match '^Target  : (.+)$') { return "目标   : $(Localize-Text $Matches[1])" }
+::         if ($Text -match '^Current : (.+)$') { return "当前   : $(Localize-Text $Matches[1])" }
+::         if ($Text -match '^Action  : (.+)$') { return "操作   : $(Localize-Text $Matches[1])" }
+::         if ($Text -match '^Impact  : (.+)$') { return "影响   : $(Localize-Text $Matches[1])" }
+::         if ($Text -match '^Step (\d+)/(\d+)$') { return "步骤 $($Matches[1])/$($Matches[2])" }
+::         if ($Text -match '^Items: (\d+) \| Selected: (\d+)/(\d+)$') { return "条目：$($Matches[1]) | 选中：$($Matches[2])/$($Matches[3])" }
+::         if ($Text -match '^Installed \((.+)\)$') { return "已安装（$($Matches[1])）" }
+::         return $Text
+::     }
+::
 ::     if ($Text -match '^Projects root: (.+)$') { return "Racine des projets : $($Matches[1])" }
 ::     if ($Text -match '^Build: (.+)$') { return "Build : $($Matches[1])" }
 ::     if ($Text -match '^Recent projects tracked: (.+)$') { return "Projets recents suivis : $($Matches[1])" }
@@ -1385,25 +1646,25 @@ exit /b %errorlevel%
 ::     }
 ::
 ::     $wt = Get-Command wt.exe -ErrorAction SilentlyContinue
-::     $successMessage = if ($script:Language -eq 'fr') {
-::         'Operation terminee. Vous pouvez fermer cette fenetre et revenir a la fenetre principale SYTA.'
-::     } else {
-::         'Operation completed. You can close this window and go back to the main SYTA window.'
-::     }
-::     $failureMessage = if ($script:Language -eq 'fr') {
-::         'Operation terminee avec une erreur.'
-::     } else {
-::         'Operation finished with an error.'
-::     }
-::     $returnMessage = if ($script:Language -eq 'fr') {
-::         'Revenez a la fenetre principale SYTA pour choisir une autre action ou installer l''outil manquant.'
-::     } else {
-::         'Go back to the main SYTA window to choose another action or install the missing tool.'
-::     }
-::     $closePrompt = if ($script:Language -eq 'fr') {
-::         'Appuyez sur Entree pour fermer cette fenetre'
-::     } else {
-::         'Press Enter to close this window'
+::     switch ($script:Language) {
+::         'fr' {
+::             $successMessage = 'Operation terminee. Vous pouvez fermer cette fenetre et revenir a la fenetre principale SYTA.'
+::             $failureMessage = 'Operation terminee avec une erreur.'
+::             $returnMessage = 'Revenez a la fenetre principale SYTA pour choisir une autre action ou installer l''outil manquant.'
+::             $closePrompt = 'Appuyez sur Entree pour fermer cette fenetre'
+::         }
+::         'zh' {
+::             $successMessage = '操作已完成。你可以关闭此窗口并返回 SYTA 主窗口。'
+::             $failureMessage = '操作因错误结束。'
+::             $returnMessage = '返回主 SYTA 窗口以选择其他操作或安装缺失的工具。'
+::             $closePrompt = '按 Enter 关闭此窗口'
+::         }
+::         default {
+::             $successMessage = 'Operation completed. You can close this window and go back to the main SYTA window.'
+::             $failureMessage = 'Operation finished with an error.'
+::             $returnMessage = 'Go back to the main SYTA window to choose another action or install the missing tool.'
+::             $closePrompt = 'Press Enter to close this window'
+::         }
 ::     }
 ::     $escapedTitle = $Title.Replace("'", "''")
 ::     $escapedSuccess = $successMessage.Replace("'", "''")
@@ -2823,24 +3084,38 @@ exit /b %errorlevel%
 ::END:syta-tool-diagnostics.sh
 ::BEGIN:syta-install-powershell7.ps1
 :: $ErrorActionPreference = 'Stop'
-:: $script:Language = if (("$env:SYTA_LANGUAGE" -match '^fr') -or ("$env:SYTA_LANG" -match '^fr')) { 'fr' } else { 'en' }
+::
+:: try {
+::     [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false
+::     [Console]::InputEncoding = New-Object System.Text.UTF8Encoding $false
+::     $OutputEncoding = [Console]::OutputEncoding
+:: } catch {
+:: }
+:: if (("$env:SYTA_LANGUAGE" -match '^fr') -or ("$env:SYTA_LANG" -match '^fr')) {
+::     $script:Language = 'fr'
+:: } elseif (("$env:SYTA_LANGUAGE" -match '^zh') -or ("$env:SYTA_LANG" -match '^zh')) {
+::     $script:Language = 'zh'
+:: } else {
+::     $script:Language = 'en'
+:: }
 ::
 :: function T {
-::     param([string]$En, [string]$Fr)
+::     param([string]$En, [string]$Fr, [string]$Zh)
 ::     if ($script:Language -eq 'fr') { return $Fr }
+::     if ($script:Language -eq 'zh') { return $Zh }
 ::     return $En
 :: }
 ::
 :: function Write-Stage {
-::     param([string]$En, [string]$Fr)
+::     param([string]$En, [string]$Fr, [string]$Zh)
 ::     Write-Host ''
-::     Write-Host ("== " + (T $En $Fr) + " ==") -ForegroundColor Cyan
+::     Write-Host ("== " + (T $En $Fr $Zh) + " ==") -ForegroundColor Cyan
 :: }
 ::
 :: function Set-WindowsTerminalDefaultPowerShellProfile {
 ::     $wtPath = Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json'
 ::     if (-not (Test-Path -LiteralPath $wtPath)) {
-::         Write-Host (T 'Windows Terminal settings.json not found. Skipping default-profile update.' 'settings.json de Windows Terminal introuvable. Mise a jour du profil par defaut ignoree.') -ForegroundColor Yellow
+::         Write-Host (T 'Windows Terminal settings.json not found. Skipping default-profile update.' 'settings.json de Windows Terminal introuvable. Mise a jour du profil par defaut ignoree.' '未找到 Windows Terminal 的 settings.json。跳过默认配置文件更新。') -ForegroundColor Yellow
 ::         return
 ::     }
 ::
@@ -2854,7 +3129,7 @@ exit /b %errorlevel%
 ::     }
 ::
 ::     Set-Content -LiteralPath $wtPath -Value $raw -Encoding utf8
-::     Write-Host (T 'Windows Terminal default profile set to PowerShell.' 'Le profil par defaut de Windows Terminal a ete defini sur PowerShell.') -ForegroundColor Green
+::     Write-Host (T 'Windows Terminal default profile set to PowerShell.' 'Le profil par defaut de Windows Terminal a ete defini sur PowerShell.' 'Windows Terminal 默认配置文件已设为 PowerShell。') -ForegroundColor Green
 :: }
 ::
 :: function Resolve-WinGet {
@@ -2863,11 +3138,11 @@ exit /b %errorlevel%
 ::         return $cmd.Source
 ::     }
 ::
-::     Write-Stage 'Repair WinGet registration' 'Reparer l''enregistrement WinGet'
+::     Write-Stage 'Repair WinGet registration' 'Reparer l''enregistrement WinGet' '修复 WinGet 注册'
 ::     try {
 ::         Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe -ErrorAction Stop | Out-Null
 ::     } catch {
-::         throw (T 'winget.exe is not available and WinGet registration repair failed.' 'winget.exe est indisponible et la reparation de son enregistrement a echoue.')
+::         throw (T 'winget.exe is not available and WinGet registration repair failed.' 'winget.exe est indisponible et la reparation de son enregistrement a echoue.' 'winget.exe 不可用，修复 WinGet 注册失败。')
 ::     }
 ::
 ::     $cmd = Get-Command winget.exe -ErrorAction SilentlyContinue
@@ -2875,10 +3150,10 @@ exit /b %errorlevel%
 ::         return $cmd.Source
 ::     }
 ::
-::     throw (T 'winget.exe is still not available after registration repair.' 'winget.exe reste indisponible apres la reparation de son enregistrement.')
+::     throw (T 'winget.exe is still not available after registration repair.' 'winget.exe reste indisponible apres la reparation de son enregistrement.' '修复注册后 winget.exe 仍不可用。')
 :: }
 ::
-:: Write-Stage 'Install PowerShell 7' 'Installer PowerShell 7'
+:: Write-Stage 'Install PowerShell 7' 'Installer PowerShell 7' '安装 PowerShell 7'
 :: $winget = Resolve-WinGet
 :: $pwshExisting = Get-Command pwsh.exe -ErrorAction SilentlyContinue
 :: $wingetArgs = @(
@@ -2898,18 +3173,18 @@ exit /b %errorlevel%
 :: }
 ::
 :: if ($LASTEXITCODE -ne 0) {
-::     throw (T 'PowerShell 7 installation or upgrade failed.' 'L''installation ou la mise a niveau de PowerShell 7 a echoue.')
+::     throw (T 'PowerShell 7 installation or upgrade failed.' 'L''installation ou la mise a niveau de PowerShell 7 a echoue.' 'PowerShell 7 安装或升级失败。')
 :: }
 ::
-:: Write-Stage 'Verify pwsh' 'Verifier pwsh'
+:: Write-Stage 'Verify pwsh' 'Verifier pwsh' '验证 pwsh'
 :: $pwsh = Get-Command pwsh.exe -ErrorAction Stop
 :: & $pwsh.Source -NoLogo -NoProfile -Command '$PSVersionTable.PSVersion.ToString()'
 ::
-:: Write-Stage 'Set Windows Terminal default profile' 'Definir le profil par defaut Windows Terminal'
+:: Write-Stage 'Set Windows Terminal default profile' 'Definir le profil par defaut Windows Terminal' '设置 Windows Terminal 默认配置文件'
 :: Set-WindowsTerminalDefaultPowerShellProfile
 ::
 :: Write-Host ''
-:: Write-Host (T 'PowerShell 7 install flow completed.' 'Flux d''installation PowerShell 7 termine.') -ForegroundColor Green
+:: Write-Host (T 'PowerShell 7 install flow completed.' 'Flux d''installation PowerShell 7 termine.' 'PowerShell 7 安装流程已完成。') -ForegroundColor Green
 ::
 ::END:syta-install-powershell7.ps1
 ::BEGIN:syta-wsl-session.sh
@@ -2925,6 +3200,7 @@ exit /b %errorlevel%
 :: normalize_lang() {
 ::   case "${1:-auto}" in
 ::     fr*|FR*) printf 'fr\n' ;;
+::     zh*|ZH*) printf 'zh\n' ;;
 ::     en*|EN*) printf 'en\n' ;;
 ::     *) printf 'en\n' ;;
 ::   esac
@@ -2933,29 +3209,44 @@ exit /b %errorlevel%
 :: msg() {
 ::   local key="$1"
 ::   local value="${2:-}"
-::   if [ "$lang" = 'fr' ]; then
-::     case "$key" in
-::       missing_agent) printf 'Cle agent manquante.\n' ;;
-::       missing_install) printf 'Cible d''installation manquante.\n' ;;
-::       unknown_mode) printf 'Mode de session inconnu : %s\n' "$value" ;;
-::       session_exit) printf 'Code de sortie de session : %s\n' "$value" ;;
-::       session_ok) printf 'Operation terminee.\n' ;;
-::       session_failed) printf 'Operation terminee avec une erreur.\n' ;;
-::       return_main) printf 'Revenez a la fenetre principale de SYTA pour choisir autre chose ou lancer une installation.\n' ;;
-::       close_window) printf 'Appuyez sur Entree pour terminer cette session. Si l''onglet reste ouvert, fermez-le puis revenez a SYTA.\n' ;;
-::     esac
-::   else
-::     case "$key" in
-::       missing_agent) printf 'Missing agent key.\n' ;;
-::       missing_install) printf 'Missing install target.\n' ;;
-::       unknown_mode) printf 'Unknown session mode: %s\n' "$value" ;;
-::       session_exit) printf 'Session exit code: %s\n' "$value" ;;
-::       session_ok) printf 'Operation completed.\n' ;;
-::       session_failed) printf 'Operation finished with an error.\n' ;;
-::       return_main) printf 'Go back to the main SYTA window to choose another action or install the missing tool.\n' ;;
-::       close_window) printf 'Press Enter to finish this session. If the tab stays open, close it and return to SYTA.\n' ;;
-::     esac
-::   fi
+::   case "$lang" in
+::     fr)
+::       case "$key" in
+::         missing_agent) printf 'Cle agent manquante.\n' ;;
+::         missing_install) printf 'Cible d''installation manquante.\n' ;;
+::         unknown_mode) printf 'Mode de session inconnu : %s\n' "$value" ;;
+::         session_exit) printf 'Code de sortie de session : %s\n' "$value" ;;
+::         session_ok) printf 'Operation terminee.\n' ;;
+::         session_failed) printf 'Operation terminee avec une erreur.\n' ;;
+::         return_main) printf 'Revenez a la fenetre principale de SYTA pour choisir autre chose ou lancer une installation.\n' ;;
+::         close_window) printf 'Appuyez sur Entree pour terminer cette session. Si l''onglet reste ouvert, fermez-le puis revenez a SYTA.\n' ;;
+::       esac
+::       ;;
+::     zh)
+::       case "$key" in
+::         missing_agent) printf '缺少代理键。\n' ;;
+::         missing_install) printf '缺少安装目标。\n' ;;
+::         unknown_mode) printf '未知会话模式：%s\n' "$value" ;;
+::         session_exit) printf '会话退出码：%s\n' "$value" ;;
+::         session_ok) printf '操作已完成。\n' ;;
+::         session_failed) printf '操作因错误结束。\n' ;;
+::         return_main) printf '返回主 SYTA 窗口以选择其他操作或安装缺失的工具。\n' ;;
+::         close_window) printf '按 Enter 结束此会话。如果标签页仍保持打开，请关闭它并返回 SYTA。\n' ;;
+::       esac
+::       ;;
+::     *)
+::       case "$key" in
+::         missing_agent) printf 'Missing agent key.\n' ;;
+::         missing_install) printf 'Missing install target.\n' ;;
+::         unknown_mode) printf 'Unknown session mode: %s\n' "$value" ;;
+::         session_exit) printf 'Session exit code: %s\n' "$value" ;;
+::         session_ok) printf 'Operation completed.\n' ;;
+::         session_failed) printf 'Operation finished with an error.\n' ;;
+::         return_main) printf 'Go back to the main SYTA window to choose another action or install the missing tool.\n' ;;
+::         close_window) printf 'Press Enter to finish this session. If the tab stays open, close it and return to SYTA.\n' ;;
+::       esac
+::       ;;
+::   esac
 :: }
 ::
 :: detect_shell() {
@@ -3018,19 +3309,29 @@ exit /b %errorlevel%
 ::     ;;
 :: esac
 ::
-:: if [ "$lang" = 'fr' ]; then
-::   success_text="Operation terminee."
-::   failure_text="Operation terminee avec une erreur."
-::   exit_prefix="Code de sortie de session : "
-::   return_text="Revenez a la fenetre principale de SYTA pour choisir autre chose ou lancer une installation."
-::   close_text="Appuyez sur Entree pour terminer cette session. Si l'onglet reste ouvert, fermez-le puis revenez a SYTA."
-:: else
-::   success_text="Operation completed."
-::   failure_text="Operation finished with an error."
-::   exit_prefix="Session exit code: "
-::   return_text="Go back to the main SYTA window to choose another action or install the missing tool."
-::   close_text="Press Enter to finish this session. If the tab stays open, close it and return to SYTA."
-:: fi
+:: case "$lang" in
+::   fr)
+::     success_text="Operation terminee."
+::     failure_text="Operation terminee avec une erreur."
+::     exit_prefix="Code de sortie de session : "
+::     return_text="Revenez a la fenetre principale de SYTA pour choisir autre chose ou lancer une installation."
+::     close_text="Appuyez sur Entree pour terminer cette session. Si l'onglet reste ouvert, fermez-le puis revenez a SYTA."
+::     ;;
+::   zh)
+::     success_text="操作已完成。"
+::     failure_text="操作因错误结束。"
+::     exit_prefix="会话退出码："
+::     return_text="返回主 SYTA 窗口以选择其他操作或安装缺失的工具。"
+::     close_text="按 Enter 结束此会话。如果标签页仍保持打开，请关闭它并返回 SYTA。"
+::     ;;
+::   *)
+::     success_text="Operation completed."
+::     failure_text="Operation finished with an error."
+::     exit_prefix="Session exit code: "
+::     return_text="Go back to the main SYTA window to choose another action or install the missing tool."
+::     close_text="Press Enter to finish this session. If the tab stays open, close it and return to SYTA."
+::     ;;
+:: esac
 ::
 :: payload="$runner_cmd; syta_rc=\$?; printf '\n'; if [ \"\$syta_rc\" -eq 0 ]; then printf '%s\n' $(quote_arg "$success_text"); else printf '%s\n' $(quote_arg "$failure_text"); fi; printf '%s%s\n\n' $(quote_arg "$exit_prefix") \"\$syta_rc\"; printf '%s\n' $(quote_arg "$return_text"); printf '%s\n' $(quote_arg "$close_text"); read -r _syta_close_prompt || true; exit \"\$syta_rc\""
 :: run_in_shell "$payload"
@@ -3043,6 +3344,16 @@ exit /b %errorlevel%
 :: agent_key="${1:-}"
 :: lang="${SYTA_LANG:-en}"
 ::
+:: normalize_lang() {
+::   case "${1:-en}" in
+::     fr*|FR*) printf 'fr\n' ;;
+::     zh*|ZH*) printf 'zh\n' ;;
+::     *) printf 'en\n' ;;
+::   esac
+:: }
+::
+:: lang="$(normalize_lang "$lang")"
+::
 :: load_user_env() {
 ::   export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 ::   [ -d "$HOME/.opencode/bin" ] && export PATH="$HOME/.opencode/bin:$PATH"
@@ -3054,45 +3365,68 @@ exit /b %errorlevel%
 :: msg() {
 ::   local key="$1"
 ::   local value="${2:-}"
-::   if [ "$lang" = 'fr' ]; then
-::     case "$key" in
-::       workspace) printf ' Espace de travail : %s\n' "$value" ;;
-::       missing_bash) printf 'bash n''est pas disponible dans cet environnement WSL.\n' ;;
-::       current_path) printf 'PATH actuel : %s\n' "$value" ;;
-::       codex_missing) printf 'codex n''est pas disponible dans le PATH.\n' ;;
-::       omx_missing) printf 'omx n''est pas disponible dans le PATH.\n' ;;
-::       opencode_missing) printf 'opencode n''est pas disponible dans le PATH.\n' ;;
-::       claude_missing) printf 'claude n''est pas disponible dans le PATH.\n' ;;
-::       gemini_missing) printf 'gemini n''est pas disponible dans le PATH.\n' ;;
-::       launch_codex) printf 'Lancement de Codex YOLO...\n\n' ;;
-::       launch_omx) printf 'Lancement de OMX MADMAX HIGH...\n\n' ;;
-::       launch_opencode) printf 'Lancement de OpenCode...\n\n' ;;
-::       launch_claude) printf 'Lancement de Claude Code...\n\n' ;;
-::       launch_gemini) printf 'Lancement de Gemini CLI...\n\n' ;;
-::       unknown_agent) printf 'Cle agent inconnue : %s\n' "$value" ;;
-::       agent_exit) printf '\nL''agent s''est termine avec le code %s.\n' "$value" ;;
-::       session_end) printf '\nSession agent terminee.\n' ;;
-::     esac
-::   else
-::     case "$key" in
-::       workspace) printf ' Workspace: %s\n' "$value" ;;
-::       missing_bash) printf 'bash is not available in this WSL environment.\n' ;;
-::       current_path) printf 'Current PATH: %s\n' "$value" ;;
-::       codex_missing) printf 'codex is not available in PATH.\n' ;;
-::       omx_missing) printf 'omx is not available in PATH.\n' ;;
-::       opencode_missing) printf 'opencode is not available in PATH.\n' ;;
-::       claude_missing) printf 'claude is not available in PATH.\n' ;;
-::       gemini_missing) printf 'gemini is not available in PATH.\n' ;;
-::       launch_codex) printf 'Launching Codex YOLO...\n\n' ;;
-::       launch_omx) printf 'Launching OMX MADMAX HIGH...\n\n' ;;
-::       launch_opencode) printf 'Launching OpenCode...\n\n' ;;
-::       launch_claude) printf 'Launching Claude Code...\n\n' ;;
-::       launch_gemini) printf 'Launching Gemini CLI...\n\n' ;;
-::       unknown_agent) printf 'Unknown agent key: %s\n' "$value" ;;
-::       agent_exit) printf '\nAgent exited with status %s.\n' "$value" ;;
-::       session_end) printf '\nAgent session ended.\n' ;;
-::     esac
-::   fi
+::   case "$lang" in
+::     fr)
+::       case "$key" in
+::         workspace) printf ' Espace de travail : %s\n' "$value" ;;
+::         missing_bash) printf 'bash n''est pas disponible dans cet environnement WSL.\n' ;;
+::         current_path) printf 'PATH actuel : %s\n' "$value" ;;
+::         codex_missing) printf 'codex n''est pas disponible dans le PATH.\n' ;;
+::         omx_missing) printf 'omx n''est pas disponible dans le PATH.\n' ;;
+::         opencode_missing) printf 'opencode n''est pas disponible dans le PATH.\n' ;;
+::         claude_missing) printf 'claude n''est pas disponible dans le PATH.\n' ;;
+::         gemini_missing) printf 'gemini n''est pas disponible dans le PATH.\n' ;;
+::         launch_codex) printf 'Lancement de Codex YOLO...\n\n' ;;
+::         launch_omx) printf 'Lancement de OMX MADMAX HIGH...\n\n' ;;
+::         launch_opencode) printf 'Lancement de OpenCode...\n\n' ;;
+::         launch_claude) printf 'Lancement de Claude Code...\n\n' ;;
+::         launch_gemini) printf 'Lancement de Gemini CLI...\n\n' ;;
+::         unknown_agent) printf 'Cle agent inconnue : %s\n' "$value" ;;
+::         agent_exit) printf '\nL''agent s''est termine avec le code %s.\n' "$value" ;;
+::         session_end) printf '\nSession agent terminee.\n' ;;
+::       esac
+::       ;;
+::     zh)
+::       case "$key" in
+::         workspace) printf ' 工作区：%s\n' "$value" ;;
+::         missing_bash) printf '此 WSL 环境中没有 bash。\n' ;;
+::         current_path) printf '当前 PATH：%s\n' "$value" ;;
+::         codex_missing) printf 'PATH 中没有 codex。\n' ;;
+::         omx_missing) printf 'PATH 中没有 omx。\n' ;;
+::         opencode_missing) printf 'PATH 中没有 opencode。\n' ;;
+::         claude_missing) printf 'PATH 中没有 claude。\n' ;;
+::         gemini_missing) printf 'PATH 中没有 gemini。\n' ;;
+::         launch_codex) printf '正在启动 Codex YOLO...\n\n' ;;
+::         launch_omx) printf '正在启动 OMX MADMAX HIGH...\n\n' ;;
+::         launch_opencode) printf '正在启动 OpenCode...\n\n' ;;
+::         launch_claude) printf '正在启动 Claude Code...\n\n' ;;
+::         launch_gemini) printf '正在启动 Gemini CLI...\n\n' ;;
+::         unknown_agent) printf '未知代理键：%s\n' "$value" ;;
+::         agent_exit) printf '\n代理已退出，状态码为 %s。\n' "$value" ;;
+::         session_end) printf '\n代理会话已结束。\n' ;;
+::       esac
+::       ;;
+::     *)
+::       case "$key" in
+::         workspace) printf ' Workspace: %s\n' "$value" ;;
+::         missing_bash) printf 'bash is not available in this WSL environment.\n' ;;
+::         current_path) printf 'Current PATH: %s\n' "$value" ;;
+::         codex_missing) printf 'codex is not available in PATH.\n' ;;
+::         omx_missing) printf 'omx is not available in PATH.\n' ;;
+::         opencode_missing) printf 'opencode is not available in PATH.\n' ;;
+::         claude_missing) printf 'claude is not available in PATH.\n' ;;
+::         gemini_missing) printf 'gemini is not available in PATH.\n' ;;
+::         launch_codex) printf 'Launching Codex YOLO...\n\n' ;;
+::         launch_omx) printf 'Launching OMX MADMAX HIGH...\n\n' ;;
+::         launch_opencode) printf 'Launching OpenCode...\n\n' ;;
+::         launch_claude) printf 'Launching Claude Code...\n\n' ;;
+::         launch_gemini) printf 'Launching Gemini CLI...\n\n' ;;
+::         unknown_agent) printf 'Unknown agent key: %s\n' "$value" ;;
+::         agent_exit) printf '\nAgent exited with status %s.\n' "$value" ;;
+::         session_end) printf '\nAgent session ended.\n' ;;
+::       esac
+::       ;;
+::   esac
 :: }
 ::
 :: show_header() {
@@ -4065,10 +4399,32 @@ exit /b %errorlevel%
 ::BEGIN:syta-install-wsl-ubuntu.ps1
 :: $ErrorActionPreference = 'Stop'
 ::
+:: try {
+::     [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false
+::     [Console]::InputEncoding = New-Object System.Text.UTF8Encoding $false
+::     $OutputEncoding = [Console]::OutputEncoding
+:: } catch {
+:: }
+::
+:: if (("$env:SYTA_LANGUAGE" -match '^fr') -or ("$env:SYTA_LANG" -match '^fr')) {
+::     $script:Language = 'fr'
+:: } elseif (("$env:SYTA_LANGUAGE" -match '^zh') -or ("$env:SYTA_LANG" -match '^zh')) {
+::     $script:Language = 'zh'
+:: } else {
+::     $script:Language = 'en'
+:: }
+::
+:: function T {
+::     param([string]$En, [string]$Fr, [string]$Zh)
+::     if ($script:Language -eq 'fr') { return $Fr }
+::     if ($script:Language -eq 'zh') { return $Zh }
+::     return $En
+:: }
+::
 :: function Write-Stage {
-::     param([string]$Text)
+::     param([string]$En, [string]$Fr, [string]$Zh)
 ::     Write-Host ''
-::     Write-Host ("== " + $Text + " ==") -ForegroundColor Cyan
+::     Write-Host ("== " + (T $En $Fr $Zh) + " ==") -ForegroundColor Cyan
 :: }
 ::
 :: $wslExe = Join-Path $env:WINDIR 'System32\wsl.exe'
@@ -4080,7 +4436,7 @@ exit /b %errorlevel%
 :: }
 ::
 :: if (-not (Test-Path -LiteralPath $wslExe)) {
-::     throw 'wsl.exe was not found on this Windows system.'
+::     throw (T 'wsl.exe was not found on this Windows system.' 'wsl.exe est introuvable sur ce systeme Windows.' '在此 Windows 系统上未找到 wsl.exe。')
 :: }
 ::
 :: function Get-WslDistroNames {
@@ -4115,40 +4471,40 @@ exit /b %errorlevel%
 ::     return ($LASTEXITCODE -eq 0)
 :: }
 ::
-:: Write-Stage 'Install WSL Ubuntu'
+:: Write-Stage 'Install WSL Ubuntu' 'Installer WSL Ubuntu' '安装 WSL Ubuntu'
 :: & $wslExe --install -d Ubuntu
 :: $installExitCode = $LASTEXITCODE
 ::
 :: if ($installExitCode -ne 0) {
-::     Write-Stage 'Retry WSL install using web download'
+::     Write-Stage 'Retry WSL install using web download' 'Relancer l''installation WSL avec telechargement web' '使用网络下载重试 WSL 安装'
 ::     & $wslExe --install --web-download -d Ubuntu
 ::     $installExitCode = $LASTEXITCODE
 :: }
 ::
 :: if ($installExitCode -ne 0) {
-::     throw "WSL Ubuntu install command failed with exit code $installExitCode."
+::     throw (T "WSL Ubuntu install command failed with exit code $installExitCode." "La commande d''installation WSL Ubuntu a echoue avec le code $installExitCode." "WSL Ubuntu 安装命令失败，退出码为 $installExitCode。")
 :: }
 ::
 :: $registeredUbuntu = Wait-ForUbuntuRegistration
 :: Write-Host ''
 :: if ($registeredUbuntu) {
-::     Write-Host ("WSL distro registered: {0}" -f $registeredUbuntu) -ForegroundColor Green
+::     Write-Host ((T 'WSL distro registered: {0}' 'Distribution WSL enregistree : {0}' 'WSL 发行版已注册：{0}') -f $registeredUbuntu) -ForegroundColor Green
 ::     if (-not (Test-LinuxUserReady -DistroName $registeredUbuntu)) {
-::         Write-Stage 'Launch Ubuntu first-run setup'
-::         Write-Host 'Finish the Ubuntu first-run steps in this window. Create your Linux user if Ubuntu asks for it.' -ForegroundColor Yellow
+::         Write-Stage 'Launch Ubuntu first-run setup' 'Lancer la configuration initiale Ubuntu' '启动 Ubuntu 首次运行设置'
+::         Write-Host (T 'Finish the Ubuntu first-run steps in this window. Create your Linux user if Ubuntu asks for it.' 'Terminez les etapes de premier lancement Ubuntu dans cette fenetre. Creez votre utilisateur Linux si Ubuntu le demande.' '请在此窗口中完成 Ubuntu 首次运行步骤。如果 Ubuntu 要求，请创建你的 Linux 用户。') -ForegroundColor Yellow
 ::         & $wslExe -d $registeredUbuntu
 ::         Write-Host ''
 ::     }
 ::
 ::     if (Test-LinuxUserReady -DistroName $registeredUbuntu) {
-::         Write-Host 'Ubuntu first-run setup is complete. You can rerun First install to continue with CLI installs.' -ForegroundColor Green
+::         Write-Host (T 'Ubuntu first-run setup is complete. You can rerun First install to continue with CLI installs.' 'La configuration initiale Ubuntu est terminee. Vous pouvez relancer Premiere installation pour continuer les installations CLI.' 'Ubuntu 首次运行设置已完成。你可以重新运行“首次安装”以继续安装 CLI。') -ForegroundColor Green
 ::     } else {
-::         Write-Host 'Ubuntu is registered, but its first-run Linux-user setup still is not complete.' -ForegroundColor Yellow
-::         Write-Host 'Launch Ubuntu once, finish the Linux-user setup, then rerun First install.' -ForegroundColor Yellow
+::         Write-Host (T 'Ubuntu is registered, but its first-run Linux-user setup still is not complete.' 'Ubuntu est enregistre, mais la configuration initiale de l''utilisateur Linux n''est pas encore terminee.' 'Ubuntu 已注册，但首次 Linux 用户设置仍未完成。') -ForegroundColor Yellow
+::         Write-Host (T 'Launch Ubuntu once, finish the Linux-user setup, then rerun First install.' 'Lancez Ubuntu une fois, terminez la configuration de l''utilisateur Linux, puis relancez Premiere installation.' '先启动一次 Ubuntu，完成 Linux 用户设置，然后重新运行“首次安装”。') -ForegroundColor Yellow
 ::     }
 :: } else {
-::     Write-Host 'WSL install command completed, but Ubuntu is not registered yet.' -ForegroundColor Yellow
-::     Write-Host 'If Windows asks for a reboot, restart Windows first, then launch Ubuntu once and rerun First install.' -ForegroundColor Yellow
+::     Write-Host (T 'WSL install command completed, but Ubuntu is not registered yet.' 'La commande d''installation WSL est terminee, mais Ubuntu n''est pas encore enregistre.' 'WSL 安装命令已完成，但 Ubuntu 尚未注册。') -ForegroundColor Yellow
+::     Write-Host (T 'If Windows asks for a reboot, restart Windows first, then launch Ubuntu once and rerun First install.' 'Si Windows demande un redemarrage, redemarrez d''abord Windows, puis lancez Ubuntu une fois et relancez Premiere installation.' '如果 Windows 要求重启，请先重启 Windows，然后启动一次 Ubuntu 并重新运行“首次安装”。') -ForegroundColor Yellow
 :: }
 ::END:syta-install-wsl-ubuntu.ps1
 ::BEGIN:syta-self-update.ps1
@@ -4161,31 +4517,53 @@ exit /b %errorlevel%
 ::
 :: $ErrorActionPreference = 'Stop'
 ::
+:: try {
+::     [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false
+::     [Console]::InputEncoding = New-Object System.Text.UTF8Encoding $false
+::     $OutputEncoding = [Console]::OutputEncoding
+:: } catch {
+:: }
+::
+:: if (("$env:SYTA_LANGUAGE" -match '^fr') -or ("$env:SYTA_LANG" -match '^fr')) {
+::     $script:Language = 'fr'
+:: } elseif (("$env:SYTA_LANGUAGE" -match '^zh') -or ("$env:SYTA_LANG" -match '^zh')) {
+::     $script:Language = 'zh'
+:: } else {
+::     $script:Language = 'en'
+:: }
+::
+:: function T {
+::     param([string]$En, [string]$Fr, [string]$Zh)
+::     if ($script:Language -eq 'fr') { return $Fr }
+::     if ($script:Language -eq 'zh') { return $Zh }
+::     return $En
+:: }
+::
 :: function Write-Stage {
-::     param([string]$Text)
+::     param([string]$En, [string]$Fr, [string]$Zh)
 ::     Write-Host ''
-::     Write-Host ("== " + $Text + " ==") -ForegroundColor Cyan
+::     Write-Host ("== " + (T $En $Fr $Zh) + " ==") -ForegroundColor Cyan
 :: }
 ::
 :: if (-not (Test-Path -LiteralPath (Split-Path -Parent $TargetPath))) {
-::     throw "Target folder not found: $TargetPath"
+::     throw (T "Target folder not found: $TargetPath" "Dossier cible introuvable : $TargetPath" "未找到目标文件夹：$TargetPath")
 :: }
 ::
 :: $tempFile = Join-Path $env:TEMP ("syta-super-launcher-" + $ReleaseTag + ".bat")
 ::
-:: Write-Stage "Download $ReleaseTag"
+:: Write-Stage "Download $ReleaseTag" "Telecharger $ReleaseTag" "下载 $ReleaseTag"
 :: Invoke-WebRequest -Uri $DownloadUrl -OutFile $tempFile -UseBasicParsing
 ::
 :: if ($ExpectedDigest) {
-::     Write-Stage 'Verify digest'
+::     Write-Stage 'Verify digest' 'Verifier le digest' '验证摘要'
 ::     $actualDigest = (Get-FileHash -LiteralPath $tempFile -Algorithm SHA256).Hash.ToLowerInvariant()
 ::     $expected = ($ExpectedDigest -replace '^sha256:', '').ToLowerInvariant()
 ::     if ($actualDigest -ne $expected) {
-::         throw "Downloaded launcher digest mismatch. Expected $expected, got $actualDigest."
+::         throw (T "Downloaded launcher digest mismatch. Expected $expected, got $actualDigest." "Le digest du lanceur telecharge ne correspond pas. Attendu : $expected, obtenu : $actualDigest." "下载的启动器摘要不匹配。期望：$expected，实际：$actualDigest。")
 ::     }
 :: }
 ::
-:: Write-Stage 'Replace launcher'
+:: Write-Stage 'Replace launcher' 'Remplacer le lanceur' '替换启动器'
 :: $replaced = $false
 :: for ($attempt = 1; $attempt -le 12; $attempt++) {
 ::     try {
@@ -4198,12 +4576,12 @@ exit /b %errorlevel%
 :: }
 ::
 :: if (-not $replaced) {
-::     throw "Unable to replace launcher at $TargetPath."
+::     throw (T "Unable to replace launcher at $TargetPath." "Impossible de remplacer le lanceur a l''emplacement $TargetPath." "无法替换位于 $TargetPath 的启动器。")
 :: }
 ::
-:: Write-Stage 'Relaunch launcher'
+:: Write-Stage 'Relaunch launcher' 'Relancer le lanceur' '重新启动启动器'
 :: Start-Process -FilePath $TargetPath | Out-Null
 ::
 :: Write-Host ''
-:: Write-Host "Launcher updated to $ReleaseTag and relaunched." -ForegroundColor Green
+:: Write-Host (T "Launcher updated to $ReleaseTag and relaunched." "Le lanceur a ete mis a jour vers $ReleaseTag puis relance." "启动器已更新到 $ReleaseTag 并重新启动。") -ForegroundColor Green
 ::END:syta-self-update.ps1

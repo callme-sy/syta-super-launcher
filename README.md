@@ -53,7 +53,7 @@ The entire runtime is embedded into the batch file itself. At launch, it extract
 | Responsive menus | Batches diagnostics and shows loading bars during slower menu preparation |
 | Update prompt | Can offer a newer launcher release when one is available |
 | Portability | Ships as one `.bat` file |
-| Language | Auto-detects French/English for the launcher UI |
+| Language | Auto-detects French/English/Chinese for the launcher UI |
 
 ## Supported Tools
 
@@ -111,19 +111,21 @@ The core bundle currently installs:
 
 ## Language
 
-The launcher UI now auto-detects between **French** and **English**.
+The launcher UI now auto-detects between **French**, **English**, and **Chinese**.
 
 Manual override is also available:
 
 ```powershell
 syta-super-launcher.bat -UiLanguage fr
 syta-super-launcher.bat -UiLanguage en
+syta-super-launcher.bat -UiLanguage zh
 ```
 
 Environment-variable override is supported too:
 
 ```powershell
 set SYTA_LANGUAGE=fr
+set SYTA_LANGUAGE=zh
 ```
 
 The launcher UI follows this preference. Third-party installer or CLI output may still appear in its own native language.
@@ -230,6 +232,7 @@ Included files:
 - `syta-super-launcher.bat`
 - `README.md`
 - `README.fr.md`
+- `README.zh.md`
 - `LICENSE`
 
 It does not publish the extracted helper scripts separately because the point of the project is to keep distribution down to a **single launcher file**.

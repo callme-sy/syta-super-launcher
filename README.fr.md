@@ -53,7 +53,7 @@ Tout le runtime est embarqué dans le fichier batch lui-même. Au lancement, il 
 | Menus plus reactifs | Regroupe les diagnostics et affiche des barres de chargement pendant les ecrans plus lents |
 | Invite de mise a jour | Peut proposer une nouvelle release du lanceur lorsqu'elle existe |
 | Portabilité | Distribution en un seul `.bat` |
-| Langue | Détecte automatiquement le français/anglais pour l'interface du lanceur |
+| Langue | Détecte automatiquement le français/l'anglais/le chinois pour l'interface du lanceur |
 
 ## Outils Pris En Charge
 
@@ -111,19 +111,21 @@ Le bundle de base installe actuellement :
 
 ## Langue
 
-L'interface du lanceur détecte maintenant automatiquement le **français** ou l'**anglais**.
+L'interface du lanceur détecte maintenant automatiquement le **français**, l'**anglais**, ou le **chinois**.
 
 Un forçage manuel est aussi disponible :
 
 ```powershell
 syta-super-launcher.bat -UiLanguage fr
 syta-super-launcher.bat -UiLanguage en
+syta-super-launcher.bat -UiLanguage zh
 ```
 
 Vous pouvez aussi passer par une variable d'environnement :
 
 ```powershell
 set SYTA_LANGUAGE=fr
+set SYTA_LANGUAGE=zh
 ```
 
 L'interface du lanceur suit cette préférence. Les sorties des outils tiers ou des installateurs peuvent toutefois rester dans leur langue native.
@@ -230,6 +232,7 @@ Fichiers inclus :
 - `syta-super-launcher.bat`
 - `README.md`
 - `README.fr.md`
+- `README.zh.md`
 - `LICENSE`
 
 Les scripts auxiliaires extraits ne sont pas publiés séparément, car l’objectif du projet est précisément de conserver une distribution en **un seul fichier**.

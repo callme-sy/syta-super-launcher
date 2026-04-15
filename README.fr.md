@@ -45,9 +45,7 @@ Tout le runtime est embarqué dans le fichier batch lui-même. Au lancement, il 
 | --- | --- |
 | `Code` | Ouvre un projet et lance une CLI de code dans WSL |
 | `Install` | Installe ou répare l’environnement et les outils pris en charge |
-| `Cleaner helper` | Analyse les anciennes CLI IA et les doublons du PATH depuis le menu principal |
-| `Reset tool configs` | Examine les chemins config/auth suivis et ne supprime que ce que vous confirmez |
-| Sous-menu `Extra` | Regroupe les outils de maintenance et les utilitaires plus legers sans encombrer la liste Install principale |
+| `Extra` | Ouvre depuis le menu principal les outils de maintenance et les utilitaires plus legers |
 | `Light update` | Met à jour uniquement les CLI IA de code |
 | `Update all` | Lance une mise à jour plus large de la chaîne d’outils |
 | Diagnostics | Affiche l’état d’installation, la version et des indices d’auth/config |
@@ -68,6 +66,18 @@ Le lanceur peut démarrer dans WSL :
 - `Claude Code`
 - `Gemini CLI`
 
+### Menu Principal
+
+Le menu principal du lanceur contient :
+
+- `Code`
+- `Install`
+- `Extra`
+- `Explications`
+- `Update`
+
+`Extra` est la voie du menu principal pour la maintenance et les add-ons.
+
 ### Menu Install
 
 Le menu d’installation prend actuellement en charge :
@@ -76,7 +86,6 @@ Le menu d’installation prend actuellement en charge :
 - `WSL Ubuntu`
 - `PowerShell 7`
 - `Install core AI CLI tools`
-- `Extra`
 - `Codex CLI`
 - `OpenCode`
 - `Oh My OpenAgent`
@@ -99,7 +108,7 @@ Le bundle de base installe actuellement :
 
 `DROID CLI` est la CLI de Factory AI. SYTA l'installe via la commande officielle de bootstrap Linux de Factory AI dans WSL.
 
-`Extra` ouvre un second selecteur pour la maintenance et les petits add-ons de workflow :
+`Extra` ouvre depuis le menu principal un second selecteur pour la maintenance et les petits add-ons de workflow :
 
 - `Cleaner helper`
 - `Reset tool configs`
@@ -193,9 +202,9 @@ Le lanceur est pensé pour des machines réelles, pas pour un environnement parf
 Comportements importants :
 
 - `First install` guide une nouvelle machine a travers WSL Ubuntu, PowerShell 7 en option, puis les CLI IA de base une fois Ubuntu pret. Les voies `Oh My x` restent des extras optionnels.
-- `Cleaner helper` reste rapidement accessible via `Install -> Extra` tout en verifiant les anciennes installations npm des CLI IA dans les versions `nvm` plus vieilles avant nettoyage.
-- `Reset tool configs` reste sous `Install -> Extra` et donne un moyen conservateur d'annuler des chemins config/auth suivis, avec un second menu pour choisir un outil precis ou `Toutes les configs suivies`.
-- `Utilities` vit maintenant sous `Install -> Extra` pour garder les petits add-ons de workflow hors de la liste principale d'installation tout en leur donnant des diagnostics et un ecran de pre-vol.
+- `Cleaner helper` reste rapidement accessible via `Extra` tout en verifiant les anciennes installations npm des CLI IA dans les versions `nvm` plus vieilles avant nettoyage.
+- `Reset tool configs` reste sous `Extra` et donne un moyen conservateur d'annuler des chemins config/auth suivis, avec un second menu pour choisir un outil precis ou `Toutes les configs suivies`.
+- `Utilities` vit maintenant sous `Extra` pour garder les petits add-ons de workflow hors de la liste principale d'installation tout en leur donnant des diagnostics et un ecran de pre-vol.
 - Les menus utilisent un affichage plus lisible avec un panneau de detail et une progression pendant la preparation des donnees projet ou outil.
 - Le lanceur peut verifier si une nouvelle release GitHub est disponible et proposer une mise a jour du lanceur sur place.
 - Il privilégie `nvm` pour les CLI basées sur Node.

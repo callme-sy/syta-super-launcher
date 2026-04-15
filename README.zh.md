@@ -38,9 +38,7 @@
 | --- | --- |
 | `Code` | 打开项目并在 WSL 中启动编码 CLI |
 | `Install` | 安装或修复环境与受支持工具 |
-| `Cleaner helper` | 从主菜单扫描旧 AI CLI 安装与重复 PATH 项 |
-| `Reset tool configs` | 检查已跟踪配置/认证路径，只删除你确认的项 |
-| `Extra` 子菜单 | 把维护工具和较小的工作流工具收纳起来，避免主安装列表过长 |
+| `Extra` | 从主菜单打开维护工具和较小的工作流工具 |
 | `Light update` | 仅更新 AI 编码 CLI |
 | `Update all` | 运行更广泛的工具链维护更新 |
 | Diagnostics | 显示安装状态、版本与认证/配置提示 |
@@ -61,6 +59,18 @@
 - `Claude Code`
 - `Gemini CLI`
 
+### 主菜单
+
+启动器主菜单包含：
+
+- `Code`
+- `Install`
+- `Extra`
+- `Explanations`
+- `Update`
+
+`Extra` 是主菜单里的维护和附加工具入口。
+
 ### Install 菜单
 
 当前支持：
@@ -69,7 +79,6 @@
 - `WSL Ubuntu`
 - `PowerShell 7`
 - `Install core AI CLI tools`
-- `Extra`
 - `Codex CLI`
 - `OpenCode`
 - `Oh My OpenAgent`
@@ -81,7 +90,7 @@
 
 `First install` 是面向新手的路径：在需要时先启动 WSL Ubuntu，再询问是否安装或修复 PowerShell 7，最后在 Ubuntu 真正就绪后安装核心 AI CLI 工具。
 
-`Extra` 会打开第二层菜单，里面包含：
+`Extra` 会从主菜单打开第二层菜单，里面包含：
 
 - `Cleaner helper`
 - `Reset tool configs`

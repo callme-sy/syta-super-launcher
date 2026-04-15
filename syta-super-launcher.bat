@@ -33,7 +33,7 @@ exit /b %errorlevel%
 
 ::BEGIN:syta-agentic-launcher.ps1
 :: param(
-::     [ValidateSet('Code', 'Install', 'Explanations', 'CleanerHelper', 'Update', 'UpdateAll', 'UpdateLight')]
+::     [ValidateSet('Code', 'Install', 'Extra', 'Explanations', 'CleanerHelper', 'Update', 'UpdateAll', 'UpdateLight')]
 ::     [string]$Mode,
 ::     [ValidateSet('codex-yolo', 'omx-madmax-high', 'opencode', 'claude-code', 'gemini-cli')]
 ::     [string]$Agent,
@@ -68,8 +68,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-15-093012Z'
-:: $script:ReleaseTag = 'v1.8.0'
+:: $script:BuildId = 'SYTA-build-2026-04-15-093746Z'
+:: $script:ReleaseTag = 'v1.8.1'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -2732,7 +2732,6 @@ exit /b %errorlevel%
 ::         }
 ::         [pscustomobject]@{ Title = 'PowerShell 7 | optional'; Subtitle = $pwshInfo.MenuText; Accent = if ($pwshInfo.Installed) { 'Green' } else { 'Yellow' }; Key = 'powershell-7' }
 ::         [pscustomobject]@{ Title = 'Install core AI CLI tools | simple'; Subtitle = if ($distroReady) { 'Run Codex, OpenCode, Claude Code, and Gemini CLI in one pass.' } elseif ($distroInstalled) { 'WSL Linux setup incomplete | launch Ubuntu once first.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Green' } else { 'Yellow' }; Key = 'all-ai-cli-tools' }
-::         [pscustomobject]@{ Title = 'Extra | tools and utilities'; Subtitle = 'Open tools, cleanup helpers, and add-on utilities.'; Accent = 'Blue'; Key = 'extra' }
 ::         [pscustomobject]@{ Title = 'Codex CLI | guided'; Subtitle = $codexDiag.MenuText; Accent = if ($codexDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'codex' }
 ::         [pscustomobject]@{ Title = 'OpenCode | simple'; Subtitle = $opencodeDiag.MenuText; Accent = if ($opencodeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'opencode' }
 ::         [pscustomobject]@{ Title = 'Oh My OpenAgent | advanced optional'; Subtitle = $omaDiag.MenuText; Accent = if ($omaDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Yellow' }; Key = 'oh-my-openagent' }
@@ -3110,6 +3109,87 @@ exit /b %errorlevel%
 ::     Clear-ToolDiagnosticsCache
 :: }
 ::
+:: function Launch-ExtraMode {
+::     if ($DryRun) {
+::         return [pscustomobject]@{
+::             Title = 'Extra'
+::             Subtitle = 'Open tools, cleanup helpers, and add-on utilities.'
+::             Items = @(Get-ExtraInstallItems | Where-Object Key -ne 'back' | Select-Object Title, Subtitle, Accent, Key)
+::         }
+::     }
+::
+::     $selection = Read-Menu -Title 'Extra' -Subtitle 'Open tools, cleanup helpers, and add-on utilities.' -Items (Get-ExtraInstallItems)
+::     if (-not $selection -or $selection.Key -eq 'back') {
+::         return
+::     }
+::
+::     if ($selection.Key -eq 'utilities') {
+::         $selection = Read-Menu -Title 'Utilities' -Subtitle 'Install smaller workflow utilities and add-ons.' -Items (Get-UtilityInstallItems)
+::         if (-not $selection -or $selection.Key -eq 'back') {
+::             return
+::         }
+::     }
+::
+::     if ($selection.Key -eq 'cleaner-helper') {
+::         Invoke-CleanerHelperFlow
+::         return
+::     }
+::
+::     if ($selection.Key -eq 'reset-tool-configs') {
+::         Invoke-ResetToolConfigsFlow
+::         return
+::     }
+::
+::     if ($selection.Key -like 'utility-*') {
+::         $diag = Get-ToolDiagnostics -Key $selection.Key -Refresh
+::         $extraLines = switch ($selection.Key) {
+::             'utility-rtk' { @(
+::                 'RTK filters noisy command output before it reaches your model context.',
+::                 'It installs into ~/.local/bin and works best in Bash-based tool flows.'
+::             ) }
+::             'utility-ccusage' { @(
+::                 'ccusage installs the global CLI package. Upstream also offers runner-first npx usage.',
+::                 'Use the separate @ccusage/codex package upstream if you also want Codex-specific reports.'
+::             ) }
+::             'utility-codex-auth' { @(
+::                 'codex-auth works best when Codex CLI is already installed.',
+::                 'After switching accounts, restart Codex or the Codex app so the new account takes effect.'
+::             ) }
+::             'utility-superpowers' { @(
+::                 'SYTA installs the Codex-native Superpowers setup from the upstream repo.',
+::                 'This configures Codex now and then prints the optional OpenCode/Gemini follow-up steps.'
+::             ) }
+::             'utility-openspec' { @(
+::                 'OpenSpec installs a global CLI and then you run openspec init inside a project.',
+::                 'Upstream requires Node.js 20.19.0 or higher. SYTA uses the current nvm Node lane.'
+::             ) }
+::             default { @() }
+::         }
+::
+::         Show-InfoBox -Title 'Install Preflight' -Accent Cyan -Hint 'A new terminal tab opens immediately after this screen' -Lines (@(
+::             "Target  : $($selection.Title)",
+::             "Current : $($diag.InstallText)",
+::             "Version : $($diag.VersionText)",
+::             "Auth    : $($diag.AuthText)",
+::             "Path    : $($diag.PathText)"
+::         ) + $extraLines)
+::
+::         $result = Open-WslWindow `
+::             -Title "SYTA Install - $($selection.Title)" `
+::             -WindowsDirectory $script:ScriptDir `
+::             -WindowsScriptPath (Join-Path $script:ScriptDir 'syta-wsl-session.sh') `
+::             -ScriptArguments @('install', $selection.Key, $script:Language)
+::
+::         if ($DryRun) {
+::             $result | ConvertTo-Json -Depth 4
+::             return
+::         }
+::
+::         Start-Sleep -Milliseconds 500
+::         Clear-ToolDiagnosticsCache
+::     }
+:: }
+::
 :: function Launch-InstallMode {
 ::     $selection = if ($InstallTarget) {
 ::         $allInstallItems = @((Get-InstallItems) + (Get-ExtraInstallItems) + (Get-UtilityInstallItems))
@@ -3380,6 +3460,14 @@ exit /b %errorlevel%
 ::     exit 0
 :: }
 ::
+:: if ($Mode -eq 'Extra') {
+::     $result = Launch-ExtraMode
+::     if ($DryRun) {
+::         $result | ConvertTo-Json -Depth 6
+::     }
+::     exit 0
+:: }
+::
 :: if ($Mode -eq 'Explanations') {
 ::     $result = Launch-ExplanationsMode
 ::     if ($DryRun) {
@@ -3418,8 +3506,8 @@ exit /b %errorlevel%
 ::     $modeChoice = Read-Menu -Title 'Mode Selector' -Subtitle 'Choose what SYTA should do.' -Items @(
 ::         [pscustomobject]@{ Title = 'Code'; Subtitle = 'Launch an agent with project selection, diagnostics, and recent-project support.'; Accent = 'Cyan'; Key = 'Code' }
 ::         [pscustomobject]@{ Title = 'Install'; Subtitle = 'Install WSL Ubuntu or supported coding CLIs with preflight diagnostics.'; Accent = 'Green'; Key = 'Install' }
+::         [pscustomobject]@{ Title = 'Extra | tools and utilities'; Subtitle = 'Open tools, cleanup helpers, and add-on utilities.'; Accent = 'Blue'; Key = 'Extra' }
 ::         [pscustomobject]@{ Title = 'Explanations'; Subtitle = 'Learn what the tools are, what SYTA recommends, and how to choose a setup.'; Accent = 'Blue'; Key = 'Explanations' }
-::         [pscustomobject]@{ Title = 'Cleaner helper'; Subtitle = 'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.'; Accent = 'Cyan'; Key = 'CleanerHelper' }
 ::         [pscustomobject]@{ Title = 'Update'; Subtitle = 'Choose which update lane to run.'; Accent = 'Yellow'; Key = 'Update' }
 ::         [pscustomobject]@{ Title = 'Exit'; Subtitle = 'Close the launcher.'; Accent = 'DarkGray'; Key = 'Exit' }
 ::     )
@@ -3431,8 +3519,8 @@ exit /b %errorlevel%
 ::     switch ($modeChoice.Key) {
 ::         'Code' { Launch-CodeMode }
 ::         'Install' { Launch-InstallMode }
+::         'Extra' { Launch-ExtraMode }
 ::         'Explanations' { Launch-ExplanationsMode }
-::         'CleanerHelper' { Invoke-CleanerHelperFlow }
 ::         'Update' { Launch-UpdateMenu }
 ::     }
 :: }

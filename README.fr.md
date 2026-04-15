@@ -47,6 +47,7 @@ Tout le runtime est embarqué dans le fichier batch lui-même. Au lancement, il 
 | `Install` | Installe ou répare l’environnement et les outils pris en charge |
 | `Cleaner helper` | Analyse les anciennes CLI IA et les doublons du PATH depuis le menu principal |
 | `Reset tool configs` | Examine les chemins config/auth suivis et ne supprime que ce que vous confirmez |
+| Sous-menu `Utilities` | Installe des utilitaires de workflow plus legers comme RTK, ccusage, codex-auth, superpowers et OpenSpec |
 | `Light update` | Met à jour uniquement les CLI IA de code |
 | `Update all` | Lance une mise à jour plus large de la chaîne d’outils |
 | Diagnostics | Affiche l’état d’installation, la version et des indices d’auth/config |
@@ -77,6 +78,7 @@ Le menu d’installation prend actuellement en charge :
 - `Install core AI CLI tools`
 - `Cleaner helper`
 - `Reset tool configs`
+- `Utilities`
 - `Codex CLI`
 - `OpenCode`
 - `Oh My OpenAgent`
@@ -102,6 +104,16 @@ Le bundle de base installe actuellement :
 `Cleaner helper` est disponible directement depuis le menu principal et aussi dans le menu d'installation. Il analyse les installations des CLI IA laissees dans d'anciennes versions Node gerees par `nvm`, ainsi que les doublons du PATH, puis demande avant de supprimer les npm globaux obsoletes qu'il peut nettoyer sans risque.
 
 `Reset tool configs` ouvre maintenant un second selecteur. Depuis ce menu, vous pouvez reinitialiser seulement `Codex / OMX`, `OpenCode`, `Oh My OpenAgent`, `Oh My OpenCode Slim`, `Claude Code`, `Gemini CLI`, ou `Toutes les configs suivies`.
+
+`Utilities` ouvre un second selecteur pour les petits add-ons de workflow :
+
+- `RTK`
+- `ccusage`
+- `codex-auth`
+- `superpowers`
+- `OpenSpec`
+
+Ces utilitaires restent installes dans le modele WSL-first du lanceur. `RTK`, `ccusage`, `codex-auth` et `OpenSpec` utilisent les commandes d'installation upstream dans WSL. `superpowers` clone le depot upstream et lie ses skills dans Codex, puis affiche les etapes optionnelles pour OpenCode et Gemini.
 
 `OpenCode`, `Oh My OpenAgent` et `Oh My OpenCode Slim` sont maintenant trois voies distinctes :
 
@@ -179,6 +191,7 @@ Comportements importants :
 - `First install` guide une nouvelle machine a travers WSL Ubuntu, PowerShell 7 en option, puis les CLI IA de base une fois Ubuntu pret. Les voies `Oh My x` restent des extras optionnels.
 - `Cleaner helper` reste un raccourci de maintenance depuis le menu principal tout en verifiant les anciennes installations npm des CLI IA dans les versions `nvm` plus vieilles avant nettoyage.
 - `Reset tool configs` donne un moyen conservateur d'annuler des chemins config/auth suivis, avec un second menu pour choisir un outil precis ou `Toutes les configs suivies`.
+- `Utilities` garde les petits add-ons de workflow hors de la liste principale d'installation tout en leur donnant des diagnostics et un ecran de pre-vol.
 - Les menus utilisent un affichage plus lisible avec un panneau de detail et une progression pendant la preparation des donnees projet ou outil.
 - Le lanceur peut verifier si une nouvelle release GitHub est disponible et proposer une mise a jour du lanceur sur place.
 - Il privilégie `nvm` pour les CLI basées sur Node.

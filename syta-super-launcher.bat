@@ -37,7 +37,7 @@ exit /b %errorlevel%
 ::     [string]$Mode,
 ::     [ValidateSet('codex-yolo', 'omx-madmax-high', 'opencode', 'claude-code', 'gemini-cli')]
 ::     [string]$Agent,
-::     [ValidateSet('first-install', 'wsl-ubuntu', 'powershell-7', 'all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'codex', 'opencode', 'omx', 'claude-code', 'gemini-cli', 'droid-cli', 'oh-my-openagent', 'oh-my-opencode-slim')]
+::     [ValidateSet('first-install', 'wsl-ubuntu', 'powershell-7', 'all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'utilities', 'codex', 'opencode', 'omx', 'claude-code', 'gemini-cli', 'droid-cli', 'oh-my-openagent', 'oh-my-opencode-slim', 'utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec')]
 ::     [string]$InstallTarget,
 ::     [ValidateSet('codex-omx', 'opencode', 'oh-my-openagent', 'oh-my-opencode-slim', 'claude-code', 'gemini-cli', 'all')]
 ::     [string]$ResetTarget,
@@ -68,8 +68,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-15-014800Z'
-:: $script:ReleaseTag = 'v1.6.3'
+:: $script:BuildId = 'SYTA-build-2026-04-15-084006Z'
+:: $script:ReleaseTag = 'v1.7.0'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -224,6 +224,20 @@ exit /b %errorlevel%
 ::             'Gemini CLI | optional' = 'Gemini CLI | 可选'
 ::             'DROID CLI | optional' = 'DROID CLI | 可选'
 ::             'Oh My OpenCode Slim | optional' = 'Oh My OpenCode Slim | 可选'
+::             'Utilities' = '实用工具'
+::             'Utilities | add-ons' = '实用工具 | 扩展'
+::             'Install smaller workflow utilities and add-ons.' = '安装较小的工作流实用工具和扩展。'
+::             'Install rtk, ccusage, codex-auth, superpowers, and OpenSpec.' = '安装 rtk、ccusage、codex-auth、superpowers 和 OpenSpec。'
+::             'RTK | output proxy' = 'RTK | 输出代理'
+::             'Proxy noisy terminal output before it reaches the model.' = '在终端输出进入模型前先过滤噪声。'
+::             'ccusage | usage reports' = 'ccusage | 用量报告'
+::             'Local Claude Code usage reports, with a separate Codex companion package upstream.' = '本地 Claude Code 用量报告，上游还提供单独的 Codex 配套包。'
+::             'codex-auth | account switcher' = 'codex-auth | 账号切换器'
+::             'Switch Codex accounts without manually editing auth files.' = '无需手动编辑认证文件即可切换 Codex 账号。'
+::             'superpowers | Codex skills pack' = 'superpowers | Codex 技能包'
+::             'Installs the Superpowers repo and links its skills into Codex.' = '安装 Superpowers 仓库并把技能链接到 Codex。'
+::             'OpenSpec | spec workflow' = 'OpenSpec | 规格工作流'
+::             'Spec-first workflow layer for planning and execution.' = '面向规划和执行的规格优先工作流层。'
 ::             'Guided setup for WSL Ubuntu, optional PowerShell 7, and the core AI CLI tools.' = 'WSL Ubuntu、可选 PowerShell 7 和核心 AI CLI 工具的引导安装。'
 ::             'PowerShell 7 is already installed. Reinstall or repair it now?' = 'PowerShell 7 已安装。现在要重装或修复吗？'
 ::             'Would you like SYTA to install PowerShell 7 too?' = '你希望 SYTA 一并安装 PowerShell 7 吗？'
@@ -465,6 +479,20 @@ exit /b %errorlevel%
 ::             'Gemini CLI | optional' = 'Gemini CLI | optionnel'
 ::             'DROID CLI | optional' = 'DROID CLI | optionnel'
 ::             'Oh My OpenCode Slim | optional' = 'Oh My OpenCode Slim | optionnel'
+::             'Utilities' = 'Utilitaires'
+::             'Utilities | add-ons' = 'Utilitaires | extensions'
+::             'Install smaller workflow utilities and add-ons.' = 'Installer des utilitaires de workflow et des extensions plus legers.'
+::             'Install rtk, ccusage, codex-auth, superpowers, and OpenSpec.' = 'Installer rtk, ccusage, codex-auth, superpowers et OpenSpec.'
+::             'RTK | output proxy' = 'RTK | proxy de sortie'
+::             'Proxy noisy terminal output before it reaches the model.' = 'Filtre la sortie terminal bruyante avant qu''elle n''atteigne le modele.'
+::             'ccusage | usage reports' = 'ccusage | rapports d''usage'
+::             'Local Claude Code usage reports, with a separate Codex companion package upstream.' = 'Rapports d''usage locaux pour Claude Code, avec un package compagnon Codex separe en amont.'
+::             'codex-auth | account switcher' = 'codex-auth | changement de compte'
+::             'Switch Codex accounts without manually editing auth files.' = 'Change de compte Codex sans modifier les fichiers d''authentification a la main.'
+::             'superpowers | Codex skills pack' = 'superpowers | pack de skills Codex'
+::             'Installs the Superpowers repo and links its skills into Codex.' = 'Installe le depot Superpowers et lie ses skills a Codex.'
+::             'OpenSpec | spec workflow' = 'OpenSpec | workflow spec'
+::             'Spec-first workflow layer for planning and execution.' = 'Couche de workflow basee sur les specs pour la planification et l''execution.'
 ::             'Guided setup for WSL Ubuntu, optional PowerShell 7, and the core AI CLI tools.' = 'Parcours guide pour WSL Ubuntu, PowerShell 7 en option, et les CLI IA de base.'
 ::             'PowerShell 7 is already installed. Reinstall or repair it now?' = 'PowerShell 7 est deja installe. Le reinstaller ou le reparer maintenant ?'
 ::             'Would you like SYTA to install PowerShell 7 too?' = 'Voulez-vous aussi que SYTA installe PowerShell 7 ?'
@@ -782,6 +810,41 @@ exit /b %errorlevel%
 ::         DetectScript = 'if [ -f "$HOME/.config/opencode/oh-my-opencode-slim.json" ]; then echo "$HOME/.config/opencode/oh-my-opencode-slim.json"; fi'
 ::         AuthScript = 'if [ -f "$HOME/.config/opencode/oh-my-opencode-slim.json" ]; then echo config-present; else echo not-detected; fi'
 ::         InstallHint = 'Install from Install -> Oh My OpenCode Slim.'
+::     }
+::     'utility-rtk' = [pscustomobject]@{
+::         Command = 'rtk'
+::         VersionScript = 'rtk --version 2>/dev/null | head -n 1'
+::         DetectScript = $null
+::         AuthScript = 'echo not-installed'
+::         InstallHint = 'Install from Install -> Utilities -> RTK.'
+::     }
+::     'utility-ccusage' = [pscustomobject]@{
+::         Command = 'ccusage'
+::         VersionScript = 'ccusage --version 2>/dev/null | head -n 1'
+::         DetectScript = $null
+::         AuthScript = 'echo not-installed'
+::         InstallHint = 'Install from Install -> Utilities -> ccusage.'
+::     }
+::     'utility-codex-auth' = [pscustomobject]@{
+::         Command = 'codex-auth'
+::         VersionScript = 'codex-auth --version 2>/dev/null | head -n 1'
+::         DetectScript = $null
+::         AuthScript = 'echo not-installed'
+::         InstallHint = 'Install from Install -> Utilities -> codex-auth.'
+::     }
+::     'utility-superpowers' = [pscustomobject]@{
+::         Command = ''
+::         VersionScript = ''
+::         DetectScript = 'if [ -L "$HOME/.agents/skills/superpowers" ]; then echo "$HOME/.agents/skills/superpowers"; elif [ -d "$HOME/.codex/superpowers" ]; then echo "$HOME/.codex/superpowers"; fi'
+::         AuthScript = 'echo not-installed'
+::         InstallHint = 'Install from Install -> Utilities -> superpowers.'
+::     }
+::     'utility-openspec' = [pscustomobject]@{
+::         Command = 'openspec'
+::         VersionScript = 'openspec --version 2>/dev/null | head -n 1'
+::         DetectScript = $null
+::         AuthScript = 'echo not-installed'
+::         InstallHint = 'Install from Install -> Utilities -> OpenSpec.'
 ::     }
 :: }
 ::
@@ -2465,6 +2528,7 @@ exit /b %errorlevel%
 ::         [pscustomobject]@{ Title = 'Install core AI CLI tools | simple'; Subtitle = if ($distroReady) { 'Run Codex, OpenCode, Claude Code, and Gemini CLI in one pass.' } elseif ($distroInstalled) { 'WSL Linux setup incomplete | launch Ubuntu once first.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Green' } else { 'Yellow' }; Key = 'all-ai-cli-tools' }
 ::         [pscustomobject]@{ Title = 'Cleaner helper | maintenance'; Subtitle = if ($distroReady) { 'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.' } elseif ($distroInstalled) { 'WSL Linux setup incomplete | launch Ubuntu once first.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Cyan' } else { 'Yellow' }; Key = 'cleaner-helper' }
 ::         [pscustomobject]@{ Title = 'Reset tool configs | maintenance'; Subtitle = if ($distroReady) { 'Review tracked config/auth paths and remove only the ones you confirm.' } elseif ($distroInstalled) { 'WSL Linux setup incomplete | launch Ubuntu once first.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = 'Yellow'; Key = 'reset-tool-configs' }
+::         [pscustomobject]@{ Title = 'Utilities | add-ons'; Subtitle = if ($distroReady) { 'Install rtk, ccusage, codex-auth, superpowers, and OpenSpec.' } elseif ($distroInstalled) { 'WSL Linux setup incomplete | launch Ubuntu once first.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Blue' } else { 'Yellow' }; Key = 'utilities' }
 ::         [pscustomobject]@{ Title = 'Codex CLI | guided'; Subtitle = $codexDiag.MenuText; Accent = if ($codexDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'codex' }
 ::         [pscustomobject]@{ Title = 'OpenCode | simple'; Subtitle = $opencodeDiag.MenuText; Accent = if ($opencodeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'opencode' }
 ::         [pscustomobject]@{ Title = 'Oh My OpenAgent | advanced optional'; Subtitle = $omaDiag.MenuText; Accent = if ($omaDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Yellow' }; Key = 'oh-my-openagent' }
@@ -2474,6 +2538,35 @@ exit /b %errorlevel%
 ::         [pscustomobject]@{ Title = 'DROID CLI | optional'; Subtitle = $droidDiag.MenuText; Accent = if ($droidDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'droid-cli' }
 ::         [pscustomobject]@{ Title = 'Oh My OpenCode Slim | optional'; Subtitle = $omoDiag.MenuText; Accent = if ($omoDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Cyan' }; Key = 'oh-my-opencode-slim' }
 ::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the main menu.'; Accent = 'DarkGray'; Key = 'back' }
+::     )
+:: }
+::
+:: function Get-UtilityInstallItems {
+::     $distroInstalled = Test-WslUserDistroInstalled
+::     $distroReady = Test-WslPreferredDistroReadyForCli
+::     if ($distroReady) {
+::         Warm-ToolDiagnosticsCache -Keys @('utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec')
+::         $rtkDiag = Get-ToolDiagnostics -Key 'utility-rtk'
+::         $ccusageDiag = Get-ToolDiagnostics -Key 'utility-ccusage'
+::         $codexAuthDiag = Get-ToolDiagnostics -Key 'utility-codex-auth'
+::         $superpowersDiag = Get-ToolDiagnostics -Key 'utility-superpowers'
+::         $openspecDiag = Get-ToolDiagnostics -Key 'utility-openspec'
+::     } else {
+::         $setupIncomplete = $distroInstalled
+::         $rtkDiag = New-WslMissingToolDiagnostics -Key 'utility-rtk' -SetupIncomplete:$setupIncomplete
+::         $ccusageDiag = New-WslMissingToolDiagnostics -Key 'utility-ccusage' -SetupIncomplete:$setupIncomplete
+::         $codexAuthDiag = New-WslMissingToolDiagnostics -Key 'utility-codex-auth' -SetupIncomplete:$setupIncomplete
+::         $superpowersDiag = New-WslMissingToolDiagnostics -Key 'utility-superpowers' -SetupIncomplete:$setupIncomplete
+::         $openspecDiag = New-WslMissingToolDiagnostics -Key 'utility-openspec' -SetupIncomplete:$setupIncomplete
+::     }
+::
+::     return @(
+::         [pscustomobject]@{ Title = 'RTK | output proxy'; Subtitle = $rtkDiag.MenuText; Accent = if ($rtkDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'utility-rtk' }
+::         [pscustomobject]@{ Title = 'ccusage | usage reports'; Subtitle = $ccusageDiag.MenuText; Accent = if ($ccusageDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'utility-ccusage' }
+::         [pscustomobject]@{ Title = 'codex-auth | account switcher'; Subtitle = $codexAuthDiag.MenuText; Accent = if ($codexAuthDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'utility-codex-auth' }
+::         [pscustomobject]@{ Title = 'superpowers | Codex skills pack'; Subtitle = $superpowersDiag.MenuText; Accent = if ($superpowersDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Yellow' }; Key = 'utility-superpowers' }
+::         [pscustomobject]@{ Title = 'OpenSpec | spec workflow'; Subtitle = $openspecDiag.MenuText; Accent = if ($openspecDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'utility-openspec' }
+::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the previous menu.'; Accent = 'DarkGray'; Key = 'back' }
 ::     )
 :: }
 ::
@@ -2802,7 +2895,8 @@ exit /b %errorlevel%
 ::
 :: function Launch-InstallMode {
 ::     $selection = if ($InstallTarget) {
-::         (Get-InstallItems | Where-Object Key -eq $InstallTarget | Select-Object -First 1)
+::         $allInstallItems = @((Get-InstallItems) + (Get-UtilityInstallItems))
+::         ($allInstallItems | Where-Object Key -eq $InstallTarget | Select-Object -First 1)
 ::     } else {
 ::         try {
 ::             Show-LoadProgress -Title 'Installer' -Status 'Checking Windows prerequisites' -Current 1 -Total 2 -Accent Yellow
@@ -2835,6 +2929,21 @@ exit /b %errorlevel%
 ::         return
 ::     }
 ::
+::     if ($selection.Key -eq 'utilities') {
+::         if ($DryRun) {
+::             [pscustomobject]@{
+::                 Title = 'Utilities'
+::                 Items = @(Get-UtilityInstallItems | Where-Object Key -ne 'back' | Select-Object Title, Subtitle, Accent, Key)
+::             } | ConvertTo-Json -Depth 5
+::             return
+::         }
+::
+::         $selection = Read-Menu -Title 'Utilities' -Subtitle 'Install smaller workflow utilities and add-ons.' -Items (Get-UtilityInstallItems)
+::         if (-not $selection -or $selection.Key -eq 'back') {
+::             return
+::         }
+::     }
+::
 ::     if ($selection.Key -eq 'first-install') {
 ::         $result = Invoke-FirstInstallFlow
 ::         if ($DryRun) {
@@ -2862,7 +2971,7 @@ exit /b %errorlevel%
 ::         return
 ::     }
 ::
-::     $wslRequiredKeys = @('all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'codex', 'opencode', 'omx', 'claude-code', 'gemini-cli', 'droid-cli', 'oh-my-openagent', 'oh-my-opencode-slim')
+::     $wslRequiredKeys = @('all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'codex', 'opencode', 'omx', 'claude-code', 'gemini-cli', 'droid-cli', 'oh-my-openagent', 'oh-my-opencode-slim', 'utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec')
 ::     if ($wslRequiredKeys -contains $selection.Key -and -not (Test-WslPreferredDistroReadyForCli)) {
 ::         $distroInstalled = Test-WslUserDistroInstalled
 ::         $lines = if ($distroInstalled) {
@@ -2944,6 +3053,39 @@ exit /b %errorlevel%
 ::             "Auth    : $($diag.AuthText)",
 ::             "Path    : $($diag.PathText)",
 ::             ("OpenCode : {0}" -f $opencodeDiag.InstallText)
+::         ) + $extraLines)
+::     } elseif ($selection.Key -like 'utility-*') {
+::         $diag = Get-ToolDiagnostics -Key $selection.Key -Refresh
+::         $extraLines = switch ($selection.Key) {
+::             'utility-rtk' { @(
+::                 'RTK filters noisy command output before it reaches your model context.',
+::                 'It installs into ~/.local/bin and works best in Bash-based tool flows.'
+::             ) }
+::             'utility-ccusage' { @(
+::                 'ccusage installs the global CLI package. Upstream also offers runner-first npx usage.',
+::                 'Use the separate @ccusage/codex package upstream if you also want Codex-specific reports.'
+::             ) }
+::             'utility-codex-auth' { @(
+::                 'codex-auth works best when Codex CLI is already installed.',
+::                 'After switching accounts, restart Codex or the Codex app so the new account takes effect.'
+::             ) }
+::             'utility-superpowers' { @(
+::                 'SYTA installs the Codex-native Superpowers setup from the upstream repo.',
+::                 'This configures Codex now and then prints the optional OpenCode/Gemini follow-up steps.'
+::             ) }
+::             'utility-openspec' { @(
+::                 'OpenSpec installs a global CLI and then you run openspec init inside a project.',
+::                 'Upstream requires Node.js 20.19.0 or higher. SYTA uses the current nvm Node lane.'
+::             ) }
+::             default { @() }
+::         }
+::
+::         Show-InfoBox -Title 'Install Preflight' -Accent Cyan -Hint 'A new terminal tab opens immediately after this screen' -Lines (@(
+::             "Target  : $($selection.Title)",
+::             "Current : $($diag.InstallText)",
+::             "Version : $($diag.VersionText)",
+::             "Auth    : $($diag.AuthText)",
+::             "Path    : $($diag.PathText)"
 ::         ) + $extraLines)
 ::     } else {
 ::         $diag = Get-ToolDiagnostics -Key $selection.Key -Refresh
@@ -3152,6 +3294,27 @@ exit /b %errorlevel%
 ::       [ -n "${FACTORY_API_KEY:-}" ] && auth='env-key'
 ::       [ "$auth" = 'not-detected' ] && [ -d "$HOME/.factory" ] && auth='config-present'
 ::       ;;
+::     utility-rtk)
+::       command_name='rtk'
+::       auth='not-installed'
+::       ;;
+::     utility-ccusage)
+::       command_name='ccusage'
+::       auth='not-installed'
+::       ;;
+::     utility-codex-auth)
+::       command_name='codex-auth'
+::       auth='not-installed'
+::       ;;
+::     utility-superpowers)
+::       auth='not-installed'
+::       [ -L "$HOME/.agents/skills/superpowers" ] && config="$HOME/.agents/skills/superpowers"
+::       [ -z "$config" ] && [ -d "$HOME/.codex/superpowers" ] && config="$HOME/.codex/superpowers"
+::       ;;
+::     utility-openspec)
+::       command_name='openspec'
+::       auth='not-installed'
+::       ;;
 ::     oh-my-openagent)
 ::       [ -f "$HOME/.config/opencode/oh-my-openagent.jsonc" ] && config="$HOME/.config/opencode/oh-my-openagent.jsonc" && auth='config-present'
 ::       [ -z "$config" ] && [ -f "$HOME/.config/opencode/oh-my-openagent.json" ] && config="$HOME/.config/opencode/oh-my-openagent.json" && auth='config-present'
@@ -3195,7 +3358,7 @@ exit /b %errorlevel%
 ::     fi
 ::   fi
 ::
-::   if { [ "$key" = 'oh-my-opencode-slim' ] || [ "$key" = 'oh-my-openagent' ]; } && [ -n "$config" ]; then
+::   if { [ "$key" = 'oh-my-opencode-slim' ] || [ "$key" = 'oh-my-openagent' ] || [ "$key" = 'utility-superpowers' ]; } && [ -n "$config" ]; then
 ::     installed=1
 ::     path="$config"
 ::     install_source='config'
@@ -3733,6 +3896,9 @@ exit /b %errorlevel%
 :: opencode|opencode-ai
 :: claude|@anthropic-ai/claude-code
 :: gemini|@google/gemini-cli
+:: ccusage|ccusage
+:: codex-auth|@loongphy/codex-auth
+:: openspec|@fission-ai/openspec
 :: comment-checker|@code-yeongyu/comment-checker
 :: EOF
 :: }
@@ -3784,6 +3950,17 @@ exit /b %errorlevel%
 ::   ensure_sudo || return 1
 ::   run_step "APT update" sudo apt-get update || return 1
 ::   run_step "Install curl" sudo apt-get install -y curl || return 1
+:: }
+::
+:: ensure_git() {
+::   if command -v git >/dev/null 2>&1; then
+::     return 0
+::   fi
+::   printf 'git is required but missing.
+:: '
+::   ensure_sudo || return 1
+::   run_step "APT update" sudo apt-get update || return 1
+::   run_step "Install git" sudo apt-get install -y git || return 1
 :: }
 ::
 :: ensure_node_runtime_libs() {
@@ -3973,6 +4150,87 @@ exit /b %errorlevel%
 ::   load_user_env
 ::   run_step "Install Oh My OpenCode Slim" with_nvm npx oh-my-opencode install --no-tui --claude=no --openai=no --gemini=no --copilot=no --opencode-zen=no --zai-coding-plan=no --opencode-go=no --skip-auth || return 1
 ::   run_step "Oh My OpenCode doctor" with_nvm npx oh-my-opencode doctor || return 1
+:: }
+::
+:: install_rtk() {
+::   ensure_curl || return 1
+::   run_step "Install RTK" bash -lc 'curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh' || return 1
+::   load_user_env
+::   if command -v rtk >/dev/null 2>&1; then
+::     rtk --version 2>/dev/null || true
+::     return 0
+::   fi
+::   printf 'RTK install finished but rtk is still not on PATH.
+:: '
+::   return 1
+:: }
+::
+:: install_ccusage() {
+::   ensure_node_npm_latest || return 1
+::   run_step "Install ccusage" with_nvm npm install -g ccusage@latest || return 1
+::   load_user_env
+::   if command -v ccusage >/dev/null 2>&1; then
+::     ccusage --version 2>/dev/null || true
+::     return 0
+::   fi
+::   printf 'ccusage install finished but ccusage is still not on PATH.
+:: '
+::   return 1
+:: }
+::
+:: install_codex_auth() {
+::   ensure_node_npm_latest || return 1
+::   run_step "Install codex-auth" with_nvm npm install -g @loongphy/codex-auth@latest || return 1
+::   load_user_env
+::   if command -v codex-auth >/dev/null 2>&1; then
+::     codex-auth --version 2>/dev/null || true
+::     return 0
+::   fi
+::   printf 'codex-auth install finished but codex-auth is still not on PATH.
+:: '
+::   return 1
+:: }
+::
+:: install_superpowers() {
+::   local repo_dir="$HOME/.codex/superpowers"
+::   local skills_dir="$HOME/.agents/skills"
+::   local skills_link="$skills_dir/superpowers"
+::   local plugin_value='superpowers@git+https://github.com/obra/superpowers.git'
+::
+::   ensure_git || return 1
+::   mkdir -p "$HOME/.codex" "$skills_dir"
+::
+::   if [ -d "$repo_dir/.git" ]; then
+::     run_step "Update Superpowers repository" git -C "$repo_dir" pull --ff-only || return 1
+::   elif [ -e "$repo_dir" ]; then
+::     printf 'Superpowers target path already exists and is not a git checkout: %s
+:: ' "$repo_dir"
+::     return 1
+::   else
+::     run_step "Clone Superpowers repository" git clone https://github.com/obra/superpowers.git "$repo_dir" || return 1
+::   fi
+::
+::   run_step "Link Superpowers skills into Codex" ln -sfn "$repo_dir/skills" "$skills_link" || return 1
+::   printf 'Superpowers is now configured for Codex. Restart Codex to load the linked skills.
+:: '
+::   printf 'Optional OpenCode plugin value: %s
+:: ' "$plugin_value"
+::   printf 'Optional Gemini command      : gemini extensions install https://github.com/obra/superpowers
+:: '
+::   return 0
+:: }
+::
+:: install_openspec() {
+::   ensure_node_npm_latest || return 1
+::   run_step "Install OpenSpec" with_nvm npm install -g @fission-ai/openspec@latest || return 1
+::   load_user_env
+::   if command -v openspec >/dev/null 2>&1; then
+::     openspec --version 2>/dev/null || true
+::     return 0
+::   fi
+::   printf 'OpenSpec install finished but openspec is still not on PATH.
+:: '
+::   return 1
 :: }
 ::
 :: install_all_ai_cli_tools() {
@@ -4198,6 +4456,11 @@ exit /b %errorlevel%
 ::   droid-cli) install_droid_cli || status=$? ;;
 ::   oh-my-openagent) install_oh_my_openagent || status=$? ;;
 ::   oh-my-opencode-slim) install_oh_my_opencode_slim || status=$? ;;
+::   utility-rtk) install_rtk || status=$? ;;
+::   utility-ccusage) install_ccusage || status=$? ;;
+::   utility-codex-auth) install_codex_auth || status=$? ;;
+::   utility-superpowers) install_superpowers || status=$? ;;
+::   utility-openspec) install_openspec || status=$? ;;
 ::   *) printf 'Unknown install target: %s
 :: ' "$tool_key"; exit 64 ;;
 :: esac

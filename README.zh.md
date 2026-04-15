@@ -40,6 +40,7 @@
 | `Install` | 安装或修复环境与受支持工具 |
 | `Cleaner helper` | 从主菜单扫描旧 AI CLI 安装与重复 PATH 项 |
 | `Reset tool configs` | 检查已跟踪配置/认证路径，只删除你确认的项 |
+| `Utilities` 子菜单 | 安装 RTK、ccusage、codex-auth、superpowers、OpenSpec 等较小的工作流工具 |
 | `Light update` | 仅更新 AI 编码 CLI |
 | `Update all` | 运行更广泛的工具链维护更新 |
 | Diagnostics | 显示安装状态、版本与认证/配置提示 |
@@ -70,6 +71,7 @@
 - `Install core AI CLI tools`
 - `Cleaner helper`
 - `Reset tool configs`
+- `Utilities`
 - `Codex CLI`
 - `OpenCode`
 - `Oh My OpenAgent`
@@ -80,6 +82,16 @@
 - `Oh My OpenCode Slim`
 
 `First install` 是面向新手的路径：在需要时先启动 WSL Ubuntu，再询问是否安装或修复 PowerShell 7，最后在 Ubuntu 真正就绪后安装核心 AI CLI 工具。
+
+`Utilities` 会打开第二层菜单，用来安装这些较小的工作流工具：
+
+- `RTK`
+- `ccusage`
+- `codex-auth`
+- `superpowers`
+- `OpenSpec`
+
+这些工具仍然遵循启动器的 WSL-first 模型。`RTK`、`ccusage`、`codex-auth` 和 `OpenSpec` 会在 WSL 中运行各自的官方安装命令。`superpowers` 会克隆上游仓库并把技能链接到 Codex，然后提示可选的 OpenCode / Gemini 后续步骤。
 
 ## 语言
 

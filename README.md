@@ -47,6 +47,7 @@ The entire runtime is embedded into the batch file itself. At launch, it extract
 | `Install` | Installs or repairs the environment and supported tools |
 | `Cleaner helper` | Scans stale AI CLI installs and duplicate PATH hits from the main menu |
 | `Reset tool configs` | Reviews tracked config/auth paths and removes only the entries you confirm |
+| `Utilities` submenu | Installs smaller workflow utilities such as RTK, ccusage, codex-auth, superpowers, and OpenSpec |
 | `Light update` | Updates AI coding CLIs only |
 | `Update all` | Runs a broader toolchain update pass |
 | Diagnostics | Shows install, version, and auth/config hints |
@@ -77,6 +78,7 @@ The installer currently supports:
 - `Install core AI CLI tools`
 - `Cleaner helper`
 - `Reset tool configs`
+- `Utilities`
 - `Codex CLI`
 - `OpenCode`
 - `Oh My OpenAgent`
@@ -102,6 +104,16 @@ The core bundle currently installs:
 `Cleaner helper` is available directly from the main menu and also in the install menu. It scans for tracked AI CLI installs left behind in older `nvm` Node versions, plus duplicate PATH hits, then asks before removing stale npm globals it can safely clean.
 
 `Reset tool configs` now opens a second selector. From there you can reset only `Codex / OMX`, `OpenCode`, `Oh My OpenAgent`, `Oh My OpenCode Slim`, `Claude Code`, `Gemini CLI`, or `All tracked configs`.
+
+`Utilities` opens a second selector for smaller workflow add-ons:
+
+- `RTK`
+- `ccusage`
+- `codex-auth`
+- `superpowers`
+- `OpenSpec`
+
+Those utility lanes still use the launcher's WSL-first model. `RTK`, `ccusage`, `codex-auth`, and `OpenSpec` run the upstream install commands in WSL. `superpowers` clones the upstream repo and links its skills into Codex, then prints the optional OpenCode and Gemini follow-up steps.
 
 `OpenCode`, `Oh My OpenAgent`, and `Oh My OpenCode Slim` are now separate lanes:
 
@@ -179,6 +191,7 @@ Important behaviors:
 - `First install` guides a new machine through WSL Ubuntu, optional PowerShell 7, then the core AI CLI tools when Ubuntu is ready. The `Oh My x` lanes remain optional extras.
 - `Cleaner helper` is reachable from the main menu for faster maintenance and still checks stale npm-based AI CLI installs across older `nvm` versions before cleanup.
 - `Reset tool configs` gives users a conservative way to undo tracked tool config/auth paths, with a second menu for tool-specific reset choices or `All tracked configs`.
+- `Utilities` keeps smaller workflow add-ons out of the main install list while still giving them diagnostics and preflight screens.
 - Menus use a cleaner focused-detail layout and loading progress when project or tool data takes time to prepare.
 - The launcher can check for a newer GitHub release and offer an in-place launcher update.
 - It prefers `nvm` for Node-based CLI installs.

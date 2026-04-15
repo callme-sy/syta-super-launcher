@@ -37,7 +37,7 @@ exit /b %errorlevel%
 ::     [string]$Mode,
 ::     [ValidateSet('codex-yolo', 'omx-madmax-high', 'opencode', 'claude-code', 'gemini-cli')]
 ::     [string]$Agent,
-::     [ValidateSet('first-install', 'wsl-ubuntu', 'powershell-7', 'all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'utilities', 'codex', 'opencode', 'omx', 'claude-code', 'gemini-cli', 'droid-cli', 'oh-my-openagent', 'oh-my-opencode-slim', 'utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec')]
+::     [ValidateSet('first-install', 'wsl-ubuntu', 'powershell-7', 'extra', 'all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'utilities', 'codex', 'opencode', 'omx', 'claude-code', 'gemini-cli', 'droid-cli', 'oh-my-openagent', 'oh-my-opencode-slim', 'utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec')]
 ::     [string]$InstallTarget,
 ::     [ValidateSet('codex-omx', 'opencode', 'oh-my-openagent', 'oh-my-opencode-slim', 'claude-code', 'gemini-cli', 'all')]
 ::     [string]$ResetTarget,
@@ -68,8 +68,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-15-084006Z'
-:: $script:ReleaseTag = 'v1.7.0'
+:: $script:BuildId = 'SYTA-build-2026-04-15-091729Z'
+:: $script:ReleaseTag = 'v1.7.1'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -226,6 +226,9 @@ exit /b %errorlevel%
 ::             'Oh My OpenCode Slim | optional' = 'Oh My OpenCode Slim | 可选'
 ::             'Utilities' = '实用工具'
 ::             'Utilities | add-ons' = '实用工具 | 扩展'
+::             'Extra' = '额外'
+::             'Extra | tools and utilities' = '额外 | 工具和实用项'
+::             'Open tools, cleanup helpers, and add-on utilities.' = '打开工具、清理助手和附加实用项。'
 ::             'Install smaller workflow utilities and add-ons.' = '安装较小的工作流实用工具和扩展。'
 ::             'Install rtk, ccusage, codex-auth, superpowers, and OpenSpec.' = '安装 rtk、ccusage、codex-auth、superpowers 和 OpenSpec。'
 ::             'RTK | output proxy' = 'RTK | 输出代理'
@@ -481,6 +484,9 @@ exit /b %errorlevel%
 ::             'Oh My OpenCode Slim | optional' = 'Oh My OpenCode Slim | optionnel'
 ::             'Utilities' = 'Utilitaires'
 ::             'Utilities | add-ons' = 'Utilitaires | extensions'
+::             'Extra' = 'Extra'
+::             'Extra | tools and utilities' = 'Extra | outils et utilitaires'
+::             'Open tools, cleanup helpers, and add-on utilities.' = 'Ouvrir les outils, aides de nettoyage et utilitaires additionnels.'
 ::             'Install smaller workflow utilities and add-ons.' = 'Installer des utilitaires de workflow et des extensions plus legers.'
 ::             'Install rtk, ccusage, codex-auth, superpowers, and OpenSpec.' = 'Installer rtk, ccusage, codex-auth, superpowers et OpenSpec.'
 ::             'RTK | output proxy' = 'RTK | proxy de sortie'
@@ -2526,9 +2532,7 @@ exit /b %errorlevel%
 ::         }
 ::         [pscustomobject]@{ Title = 'PowerShell 7 | optional'; Subtitle = $pwshInfo.MenuText; Accent = if ($pwshInfo.Installed) { 'Green' } else { 'Yellow' }; Key = 'powershell-7' }
 ::         [pscustomobject]@{ Title = 'Install core AI CLI tools | simple'; Subtitle = if ($distroReady) { 'Run Codex, OpenCode, Claude Code, and Gemini CLI in one pass.' } elseif ($distroInstalled) { 'WSL Linux setup incomplete | launch Ubuntu once first.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Green' } else { 'Yellow' }; Key = 'all-ai-cli-tools' }
-::         [pscustomobject]@{ Title = 'Cleaner helper | maintenance'; Subtitle = if ($distroReady) { 'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.' } elseif ($distroInstalled) { 'WSL Linux setup incomplete | launch Ubuntu once first.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Cyan' } else { 'Yellow' }; Key = 'cleaner-helper' }
-::         [pscustomobject]@{ Title = 'Reset tool configs | maintenance'; Subtitle = if ($distroReady) { 'Review tracked config/auth paths and remove only the ones you confirm.' } elseif ($distroInstalled) { 'WSL Linux setup incomplete | launch Ubuntu once first.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = 'Yellow'; Key = 'reset-tool-configs' }
-::         [pscustomobject]@{ Title = 'Utilities | add-ons'; Subtitle = if ($distroReady) { 'Install rtk, ccusage, codex-auth, superpowers, and OpenSpec.' } elseif ($distroInstalled) { 'WSL Linux setup incomplete | launch Ubuntu once first.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Blue' } else { 'Yellow' }; Key = 'utilities' }
+::         [pscustomobject]@{ Title = 'Extra | tools and utilities'; Subtitle = 'Open tools, cleanup helpers, and add-on utilities.'; Accent = 'Blue'; Key = 'extra' }
 ::         [pscustomobject]@{ Title = 'Codex CLI | guided'; Subtitle = $codexDiag.MenuText; Accent = if ($codexDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'codex' }
 ::         [pscustomobject]@{ Title = 'OpenCode | simple'; Subtitle = $opencodeDiag.MenuText; Accent = if ($opencodeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'opencode' }
 ::         [pscustomobject]@{ Title = 'Oh My OpenAgent | advanced optional'; Subtitle = $omaDiag.MenuText; Accent = if ($omaDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Yellow' }; Key = 'oh-my-openagent' }
@@ -2538,6 +2542,19 @@ exit /b %errorlevel%
 ::         [pscustomobject]@{ Title = 'DROID CLI | optional'; Subtitle = $droidDiag.MenuText; Accent = if ($droidDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'droid-cli' }
 ::         [pscustomobject]@{ Title = 'Oh My OpenCode Slim | optional'; Subtitle = $omoDiag.MenuText; Accent = if ($omoDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Cyan' }; Key = 'oh-my-opencode-slim' }
 ::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the main menu.'; Accent = 'DarkGray'; Key = 'back' }
+::     )
+:: }
+::
+:: function Get-ExtraInstallItems {
+::     $distroInstalled = Test-WslUserDistroInstalled
+::     $distroReady = Test-WslPreferredDistroReadyForCli
+::     $blockedText = if ($distroInstalled) { 'WSL Linux setup incomplete | launch Ubuntu once first.' } else { 'WSL Linux distro missing | install Ubuntu first.' }
+::
+::     return @(
+::         [pscustomobject]@{ Title = 'Cleaner helper | maintenance'; Subtitle = if ($distroReady) { 'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.' } else { $blockedText }; Accent = if ($distroReady) { 'Cyan' } else { 'Yellow' }; Key = 'cleaner-helper' }
+::         [pscustomobject]@{ Title = 'Reset tool configs | maintenance'; Subtitle = if ($distroReady) { 'Review tracked config/auth paths and remove only the ones you confirm.' } else { $blockedText }; Accent = 'Yellow'; Key = 'reset-tool-configs' }
+::         [pscustomobject]@{ Title = 'Utilities | add-ons'; Subtitle = if ($distroReady) { 'Install rtk, ccusage, codex-auth, superpowers, and OpenSpec.' } else { $blockedText }; Accent = if ($distroReady) { 'Blue' } else { 'Yellow' }; Key = 'utilities' }
+::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the previous menu.'; Accent = 'DarkGray'; Key = 'back' }
 ::     )
 :: }
 ::
@@ -2895,7 +2912,7 @@ exit /b %errorlevel%
 ::
 :: function Launch-InstallMode {
 ::     $selection = if ($InstallTarget) {
-::         $allInstallItems = @((Get-InstallItems) + (Get-UtilityInstallItems))
+::         $allInstallItems = @((Get-InstallItems) + (Get-ExtraInstallItems) + (Get-UtilityInstallItems))
 ::         ($allInstallItems | Where-Object Key -eq $InstallTarget | Select-Object -First 1)
 ::     } else {
 ::         try {
@@ -2927,6 +2944,21 @@ exit /b %errorlevel%
 ::     }
 ::     if (-not $selection -or $selection.Key -eq 'back') {
 ::         return
+::     }
+::
+::     if ($selection.Key -eq 'extra') {
+::         if ($DryRun) {
+::             [pscustomobject]@{
+::                 Title = 'Extra'
+::                 Items = @(Get-ExtraInstallItems | Where-Object Key -ne 'back' | Select-Object Title, Subtitle, Accent, Key)
+::             } | ConvertTo-Json -Depth 5
+::             return
+::         }
+::
+::         $selection = Read-Menu -Title 'Extra' -Subtitle 'Open tools, cleanup helpers, and add-on utilities.' -Items (Get-ExtraInstallItems)
+::         if (-not $selection -or $selection.Key -eq 'back') {
+::             return
+::         }
 ::     }
 ::
 ::     if ($selection.Key -eq 'utilities') {

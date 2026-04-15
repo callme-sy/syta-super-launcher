@@ -68,8 +68,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-15-091729Z'
-:: $script:ReleaseTag = 'v1.7.1'
+:: $script:BuildId = 'SYTA-build-2026-04-15-093012Z'
+:: $script:ReleaseTag = 'v1.8.0'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -2042,49 +2042,249 @@ exit /b %errorlevel%
 ::     Write-UiBorderLine -Color DarkGray
 ::     [void][Console]::ReadKey($true)
 :: }
-::
+:: 
+:: function Get-ExplanationsMenuModel {
+::     switch ($script:Language) {
+::         'fr' {
+::             return [pscustomobject]@{
+::                 Title = 'Explications'
+::                 Subtitle = 'Comprendre les parcours, les differences entre les outils, et ce que SYTA recommande avant d''installer.'
+::                 Items = @(
+::                     [pscustomobject]@{ Title = 'Guide debutant | simple'; Subtitle = 'Vue tres simple des outils et du chemin le plus facile pour commencer.'; Accent = 'Cyan'; Key = 'beginner' }
+::                     [pscustomobject]@{ Title = 'Choisir son parcours | comparaison'; Subtitle = 'Comparer les grandes familles d''outils avant d''empiler des installations.'; Accent = 'Yellow'; Key = 'chooser' }
+::                     [pscustomobject]@{ Title = 'Parcours OpenAI | Codex et OMX'; Subtitle = 'Quand rester sur Codex seul, et quand OMX ajoute une vraie valeur.'; Accent = 'Green'; Key = 'openai' }
+::                     [pscustomobject]@{ Title = 'Parcours OpenCode | noyau et add-ons'; Subtitle = 'Comprendre OpenCode, Oh My OpenAgent, Slim, et les couches autour.'; Accent = 'Blue'; Key = 'opencode' }
+::                     [pscustomobject]@{ Title = 'Utilitaires et add-ons | a quoi ils servent'; Subtitle = 'RTK, ccusage, codex-auth, superpowers, OpenSpec et les extras similaires.'; Accent = 'Magenta'; Key = 'utilities' }
+::                     [pscustomobject]@{ Title = 'Que dois-je installer ? | recommandation'; Subtitle = 'Conseil direct si vous voulez juste le meilleur point de depart.'; Accent = 'Green'; Key = 'recommend' }
+::                     [pscustomobject]@{ Title = 'Retour'; Subtitle = 'Revenir au menu principal.'; Accent = 'DarkGray'; Key = 'back' }
+::                 )
+::             }
+::         }
+::         'zh' {
+::             return [pscustomobject]@{
+::                 Title = '说明'
+::                 Subtitle = '先弄清楚各条路径、工具差异，以及 SYTA 的建议，再决定安装什么。'
+::                 Items = @(
+::                     [pscustomobject]@{ Title = '新手指南 | 简单版'; Subtitle = '用最直接的方式解释这些工具，以及最容易开始的路径。'; Accent = 'Cyan'; Key = 'beginner' }
+::                     [pscustomobject]@{ Title = '如何选路径 | 对比'; Subtitle = '先比较主要工具路线，再决定是否叠加更多层。'; Accent = 'Yellow'; Key = 'chooser' }
+::                     [pscustomobject]@{ Title = 'OpenAI 路线 | Codex 和 OMX'; Subtitle = '什么时候只用 Codex，什么时候 OMX 才真的有价值。'; Accent = 'Green'; Key = 'openai' }
+::                     [pscustomobject]@{ Title = 'OpenCode 路线 | 核心与扩展'; Subtitle = '理解 OpenCode、Oh My OpenAgent、Slim 以及周边层。'; Accent = 'Blue'; Key = 'opencode' }
+::                     [pscustomobject]@{ Title = '实用工具和扩展 | 各自做什么'; Subtitle = 'RTK、ccusage、codex-auth、superpowers、OpenSpec 这类附加工具。'; Accent = 'Magenta'; Key = 'utilities' }
+::                     [pscustomobject]@{ Title = '我该装什么？ | 建议'; Subtitle = '如果你只想要直接建议，这里给你最短答案。'; Accent = 'Green'; Key = 'recommend' }
+::                     [pscustomobject]@{ Title = '返回'; Subtitle = '回到主菜单。'; Accent = 'DarkGray'; Key = 'back' }
+::                 )
+::             }
+::         }
+::         default {
+::             return [pscustomobject]@{
+::                 Title = 'Explanations'
+::                 Subtitle = 'Understand the tool lanes, the tradeoffs, and what SYTA recommends before you install.'
+::                 Items = @(
+::                     [pscustomobject]@{ Title = 'Beginner guide | simple'; Subtitle = 'Very simple explanation of the tools and the easiest place to start.'; Accent = 'Cyan'; Key = 'beginner' }
+::                     [pscustomobject]@{ Title = 'Tool chooser | compare paths'; Subtitle = 'Compare the main tool lanes before you stack more installs on top.'; Accent = 'Yellow'; Key = 'chooser' }
+::                     [pscustomobject]@{ Title = 'OpenAI path | Codex and OMX'; Subtitle = 'When Codex alone is enough, and when OMX actually adds value.'; Accent = 'Green'; Key = 'openai' }
+::                     [pscustomobject]@{ Title = 'OpenCode path | core + add-ons'; Subtitle = 'Understand OpenCode, Oh My OpenAgent, Slim, and the layers around them.'; Accent = 'Blue'; Key = 'opencode' }
+::                     [pscustomobject]@{ Title = 'Utilities and add-ons | what they do'; Subtitle = 'RTK, ccusage, codex-auth, superpowers, OpenSpec, and similar extras.'; Accent = 'Magenta'; Key = 'utilities' }
+::                     [pscustomobject]@{ Title = 'What should I install? | recommendation'; Subtitle = 'Direct recommendation if you mostly want the shortest good answer.'; Accent = 'Green'; Key = 'recommend' }
+::                     [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the main menu.'; Accent = 'DarkGray'; Key = 'back' }
+::                 )
+::             }
+::         }
+::     }
+:: }
+:: 
+:: function Get-ExplanationContent {
+::     param([Parameter(Mandatory = $true)][string]$Key)
+:: 
+::     switch ($script:Language) {
+::         'fr' {
+::             switch ($Key) {
+::                 'beginner' { return [pscustomobject]@{ Title = 'Guide debutant'; Lines = @(
+::                     'Codex est un bon assistant generaliste si vous voulez un outil serieux pour lire, modifier et expliquer du code.',
+::                     'OMX est une couche plus lourde par-dessus Codex. C''est utile surtout si vous voulez plus de structure et d''automatisation.',
+::                     'OpenCode est souvent le point de depart le plus leger et le plus simple.',
+::                     'Claude Code et Gemini CLI valent surtout le coup si vous utilisez deja ces services.',
+::                     'Si vous etes nouveau, le chemin le plus simple reste Install -> First install, puis OpenCode ou Codex.',
+::                     'Les outils Oh My, superpowers, OpenSpec, RTK et les autres extras viennent apres le parcours de base, pas avant.'
+::                 ) } }
+::                 'chooser' { return [pscustomobject]@{ Title = 'Choisir son parcours'; Lines = @(
+::                     'Ne commencez pas par les noms des outils. Commencez par votre facon de travailler.',
+::                     'OpenCode convient si vous voulez avancer vite avec peu de ceremonie.',
+::                     'Codex convient si vous voulez un bon point d''equilibre entre edition, raisonnement et simplicite.',
+::                     'OMX convient si vous voulez plus de workflows guides, de planification et d''orchestration.',
+::                     'Claude Code ou Gemini CLI ne sont de bons choix que si vous etes deja investi dans ces ecosystemes.',
+::                     'Le meilleur setup est souvent une voie principale plus quelques extras utiles, pas cinq agents en meme temps.'
+::                 ) } }
+::                 'openai' { return [pscustomobject]@{ Title = 'Parcours OpenAI'; Lines = @(
+::                     'Codex est la voie OpenAI de base. Prenez-le si vous voulez le produit direct avec moins de couches.',
+::                     'Ajoutez OMX seulement quand vous ressentez un vrai besoin de structure, de planification ou d''automatisation plus lourde.',
+::                     'Pour beaucoup d''utilisateurs, Codex d''abord puis OMX plus tard est plus sain que l''inverse.',
+::                     'Commencer directement par OMX peut sembler puissant, mais aussi plus lourd a comprendre et a maintenir.',
+::                     'codex-auth et RTK sont des extras autour de cette voie. Ils aident, mais ne sont pas requis pour demarrer.',
+::                     'Si votre objectif est juste de coder vite, gardez d''abord Codex simple.'
+::                 ) } }
+::                 'opencode' { return [pscustomobject]@{ Title = 'Parcours OpenCode'; Lines = @(
+::                     'OpenCode est la voie la plus legere. Moins de ceremonie, moins de couches, et souvent le demarrage le plus rapide.',
+::                     'Oh My OpenAgent est une grosse couche autour d''OpenCode avec plus d''aides et plus de setup.',
+::                     'Oh My OpenCode Slim garde une idee similaire mais avec un preset plus petit.',
+::                     'Installez d''abord OpenCode seul. Ajoutez OpenAgent ou Slim seulement apres avoir compris ce qui vous manque.',
+::                     'superpowers est encore une autre couche de workflow. C''est utile pour des habitudes plus avancees, pas pour le premier jour.',
+::                     'Si vous voulez la voie la plus simple vers un premier succes, OpenCode seul suffit souvent.'
+::                 ) } }
+::                 'utilities' { return [pscustomobject]@{ Title = 'Utilitaires et add-ons'; Lines = @(
+::                     'RTK sert a filtrer le bruit terminal avant qu''il n''atteigne le contexte du modele.',
+::                     'ccusage sert a lire la consommation locale et le cout de vos sessions.',
+::                     'codex-auth sert a basculer entre des comptes Codex plus facilement.',
+::                     'OpenSpec ajoute une couche de specification quand vous voulez cadrer le travail avant d''ecrire.',
+::                     'superpowers ajoute une discipline et des skills autour de l''agent, mais c''est une couche avancee, pas une base.',
+::                     'Ajoutez ces outils pour resoudre un probleme reel: bruit, cout, comptes, specs ou structure. Sinon, ne les ajoutez pas encore.'
+::                 ) } }
+::                 'recommend' { return [pscustomobject]@{ Title = 'Que dois-je installer ?'; Lines = @(
+::                     'Nouvelle machine Windows: utilisez Install -> First install.',
+::                     'Si vous voulez la voie la plus simple: commencez par OpenCode.',
+::                     'Si vous voulez surtout OpenAI: commencez par Codex, puis ajoutez OMX plus tard si vous manquez de structure.',
+::                     'Si vous payez deja surtout Claude ou Gemini, installez seulement cette voie au lieu de tout empiler.',
+::                     'Ajoutez les utilitaires et add-ons seulement une fois la voie principale stable et comprise.',
+::                     'La meilleure recommandation par defaut reste: moins d''outils, un but plus clair, et moins de chevauchement.'
+::                 ) } }
+::                 default { return $null }
+::             }
+::         }
+::         'zh' {
+::             switch ($Key) {
+::                 'beginner' { return [pscustomobject]@{ Title = '新手指南'; Lines = @(
+::                     '如果你想要一个稳妥、通用、能认真读改代码的工具，Codex 是很好的基础选择。',
+::                     'OMX 是叠在 Codex 上面的更重一层，适合想要更多结构、规划和自动化的人。',
+::                     'OpenCode 通常是最轻、最容易开始的一条路。',
+::                     'Claude Code 和 Gemini CLI 更适合已经在用这些服务的人。',
+::                     '如果你是新手，最简单的路径仍然是 Install -> First install，然后从 OpenCode 或 Codex 开始。',
+::                     'Oh My 系列、superpowers、OpenSpec、RTK 这些额外层，应该在基础路径跑顺之后再加。'
+::                 ) } }
+::                 'chooser' { return [pscustomobject]@{ Title = '如何选路径'; Lines = @(
+::                     '不要先从工具名字开始想，先从你想怎样工作开始想。',
+::                     '如果你想少一点仪式感、尽快动手，OpenCode 更合适。',
+::                     '如果你想在编辑能力、推理能力和简单性之间取得平衡，Codex 更合适。',
+::                     '如果你想要更强的工作流、规划和编排，OMX 才值得加上去。',
+::                     'Claude Code 或 Gemini CLI 只有在你本来就深度使用这些生态时才更合理。',
+::                     '大多数好用的配置其实是一条主路线，再加少量真正有用的辅助工具。'
+::                 ) } }
+::                 'openai' { return [pscustomobject]@{ Title = 'OpenAI 路线'; Lines = @(
+::                     'Codex 是最直接的 OpenAI 路线。如果你想少层级、少复杂度，就先用它。',
+::                     '只有当你真的需要更多结构、规划或更重的自动化时，再加 OMX。',
+::                     '对大多数人来说，先用 Codex 做真实工作，再决定要不要加 OMX，更健康。',
+::                     '一开始就直接上 OMX 看起来更强，但理解和维护成本也更高。',
+::                     'codex-auth 和 RTK 是这条路线周围的辅助工具，不是起步必需品。',
+::                     '如果你的目标只是尽快开始写代码，先把 Codex 保持简单。'
+::                 ) } }
+::                 'opencode' { return [pscustomobject]@{ Title = 'OpenCode 路线'; Lines = @(
+::                     'OpenCode 是更轻的一条路线，层更少，通常也最快能得到第一次成功体验。',
+::                     'Oh My OpenAgent 是围绕 OpenCode 的更大一层，有更多帮助，但也有更多设置。',
+::                     'Oh My OpenCode Slim 保留了类似思路，但预设更轻。',
+::                     '先安装纯 OpenCode。只有在你明确知道自己缺什么时，再加 OpenAgent 或 Slim。',
+::                     'superpowers 也是另一层工作流能力，适合更进阶的习惯，不适合第一天就上。',
+::                     '如果你只想最快得到一个好用的起点，单独的 OpenCode 往往就够了。'
+::                 ) } }
+::                 'utilities' { return [pscustomobject]@{ Title = '实用工具和扩展'; Lines = @(
+::                     'RTK 用来在终端输出进入模型上下文之前先去噪。',
+::                     'ccusage 用来看本地会话的消耗、token 和成本。',
+::                     'codex-auth 用来更轻松地切换 Codex 账号。',
+::                     'OpenSpec 会在你写代码前加上一层规格流程，适合想先把事情说清楚的人。',
+::                     'superpowers 会给代理增加一整套工作流纪律和技能，但它是高级层，不是基础层。',
+::                     '只有当你真的遇到噪声、成本、账号切换、规格管理或结构问题时，再加这些工具。'
+::                 ) } }
+::                 'recommend' { return [pscustomobject]@{ Title = '我该装什么？'; Lines = @(
+::                     '如果是全新的 Windows 机器，先用 Install -> First install。',
+::                     '如果你想最简单地开始，就先选 OpenCode。',
+::                     '如果你更想走 OpenAI 路线，就先选 Codex；只有后面真的缺结构时再加 OMX。',
+::                     '如果你本来就主要用 Claude 或 Gemini，就只装那条路线，不要什么都堆上去。',
+::                     '等主路线真正跑顺之后，再加实用工具和附加层。',
+::                     '默认最好的建议仍然是：工具更少、目的更清楚、重叠更少。'
+::                 ) } }
+::                 default { return $null }
+::             }
+::         }
+::         default {
+::             switch ($Key) {
+::                 'beginner' { return [pscustomobject]@{ Title = 'Beginner guide'; Lines = @(
+::                     'Codex is a strong all-around coding assistant if you want one serious default tool.',
+::                     'OMX is a heavier layer on top of Codex for people who want more structure, planning, and automation.',
+::                     'OpenCode is usually the lightest and easiest place to begin.',
+::                     'Claude Code and Gemini CLI are mostly worth adding if you already use those services.',
+::                     'If you are new, the easiest path is still Install -> First install, then start with OpenCode or Codex.',
+::                     'The Oh My tools, superpowers, OpenSpec, RTK, and the other extras come after the base lane works, not before.'
+::                 ) } }
+::                 'chooser' { return [pscustomobject]@{ Title = 'Tool chooser'; Lines = @(
+::                     'Do not start from brand names. Start from the kind of workflow you want.',
+::                     'OpenCode fits best when you want the lightest path and the least ceremony.',
+::                     'Codex fits best when you want a strong default balance of editing, reasoning, and simplicity.',
+::                     'OMX fits best when you want more guided workflows, planning surfaces, and orchestration.',
+::                     'Claude Code or Gemini CLI are best when you are already invested in those ecosystems.',
+::                     'The best setup is usually one main lane plus a few useful extras, not every tool at once.'
+::                 ) } }
+::                 'openai' { return [pscustomobject]@{ Title = 'OpenAI path'; Lines = @(
+::                     'Codex is the base OpenAI lane. Pick it if you want the direct product with fewer moving parts.',
+::                     'Add OMX only when you feel a real need for more structure, planning, or heavier automation.',
+::                     'For many users, Codex first and OMX later is healthier than starting with the heavier layer.',
+::                     'Starting directly on OMX can look powerful, but it is also more to learn and maintain.',
+::                     'codex-auth and RTK are useful extras around this lane, but they are not required to start.',
+::                     'If the goal is simply to get productive fast, keep Codex simple first.'
+::                 ) } }
+::                 'opencode' { return [pscustomobject]@{ Title = 'OpenCode path'; Lines = @(
+::                     'OpenCode is the lighter lane: fewer layers, less ceremony, and often the fastest first success.',
+::                     'Oh My OpenAgent is a bigger harness around OpenCode with more helper features and more setup.',
+::                     'Oh My OpenCode Slim keeps a similar idea with a smaller preset.',
+::                     'Install plain OpenCode first. Add OpenAgent or Slim only after you know what is missing.',
+::                     'superpowers is yet another workflow layer; it is useful for more advanced habits, not for day one.',
+::                     'If you want the fastest simple start, OpenCode by itself is often enough.'
+::                 ) } }
+::                 'utilities' { return [pscustomobject]@{ Title = 'Utilities and add-ons'; Lines = @(
+::                     'RTK filters noisy terminal output before it reaches your model context.',
+::                     'ccusage helps you inspect local session usage, tokens, and cost.',
+::                     'codex-auth makes switching Codex accounts easier.',
+::                     'OpenSpec adds a spec layer when you want to define the work before you implement it.',
+::                     'superpowers adds workflow discipline and skill packs around the agent, but it is an advanced layer, not a base install.',
+::                     'Add these only when they solve a real problem: noise, cost tracking, account switching, spec discipline, or workflow structure.'
+::                 ) } }
+::                 'recommend' { return [pscustomobject]@{ Title = 'What should I install?'; Lines = @(
+::                     'New Windows machine: use Install -> First install.',
+::                     'If you want the easiest start: OpenCode first.',
+::                     'If you want the OpenAI path: Codex first, then OMX later only if you actually need more structure.',
+::                     'If you already pay for or rely on Claude or Gemini, install that lane instead of stacking everything.',
+::                     'Add utilities and add-ons only after the base lane works and makes sense to you.',
+::                     'The best default recommendation is still fewer tools, clearer purpose, and less overlap.'
+::                 ) } }
+::                 default { return $null }
+::             }
+::         }
+::     }
+:: }
+:: 
 :: function Launch-ExplanationsMode {
+::     $menu = Get-ExplanationsMenuModel
+:: 
+::     if ($DryRun) {
+::         return [pscustomobject]@{
+::             Title = $menu.Title
+::             Subtitle = $menu.Subtitle
+::             Items = @($menu.Items | Select-Object Title, Subtitle, Accent, Key)
+::             Samples = @(
+::                 (Get-ExplanationContent -Key 'beginner')
+::                 (Get-ExplanationContent -Key 'chooser')
+::                 (Get-ExplanationContent -Key 'recommend')
+::             )
+::         }
+::     }
+:: 
 ::     while ($true) {
-::         $selection = Read-Menu -Title 'Explanations' -Subtitle 'Learn what the tools are, what they are good for, and what SYTA recommends.' -Items @(
-::             [pscustomobject]@{ Title = 'Beginner guide | simple'; Subtitle = 'Very simple explanation of each tool and the easiest place to start.'; Accent = 'Cyan'; Key = 'beginner' }
-::             [pscustomobject]@{ Title = 'Advanced guide | more detail'; Subtitle = 'More detail about the differences between the tools and when to pick each one.'; Accent = 'Yellow'; Key = 'advanced' }
-::             [pscustomobject]@{ Title = 'What should I install? | short answer'; Subtitle = 'Direct recommendation if you just want the short answer.'; Accent = 'Green'; Key = 'recommend' }
-::             [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the main menu.'; Accent = 'DarkGray'; Key = 'back' }
-::         )
-::
+::         $selection = Read-Menu -Title $menu.Title -Subtitle $menu.Subtitle -Items $menu.Items
+:: 
 ::         if (-not $selection -or $selection.Key -eq 'back') {
 ::             return
 ::         }
-::
-::         switch ($selection.Key) {
-::             'beginner' {
-::                 Show-ExplanationPanel -Title 'Beginner guide' -Lines @(
-::                     'Codex is a strong all-around coding assistant from OpenAI.',
-::                     'OMX is Codex with extra automation and more structure. It is usually for people who want a heavier setup.',
-::                     'OpenCode is often the easiest and lightest place to begin.',
-::                     'Claude Code and Gemini CLI are mostly worth it if you already use those services.',
-::                     'If you are new, the easiest path is Install -> First install, then start with OpenCode or Codex.',
-::                     'The Oh My tools are add-ons. They are optional extras, not the best first step for most beginners.'
-::                 )
-::             }
-::             'advanced' {
-::                 Show-ExplanationPanel -Title 'Advanced guide' -Lines @(
-::                     'Codex is the direct OpenAI tool. Choose it if you want something solid without too many extra layers.',
-::                     'OMX adds extra automation, planning helpers, and more guided workflows on top of Codex.',
-::                     'OpenCode is lighter and faster to get moving with, but it gives you less built-in structure.',
-::                     'Install only the tools you really plan to use. More tools means more logins, more updates, and more overlap.',
-::                     'Oh My OpenAgent and Oh My OpenCode Slim are optional add-ons around OpenCode, not required for the basic setup.'
-::                 )
-::             }
-::             'recommend' {
-::                 Show-ExplanationPanel -Title 'What should I install?' -Lines @(
-::                     'New Windows machine: use Install -> First install.',
-::                     'If you want the simplest start, choose OpenCode first.',
-::                     'If you want the OpenAI path, choose Codex first. Add OMX later only if you want more automation.',
-::                     'Add the Oh My tools only after the base setup works and only if you understand why you want them.',
-::                     'Skip any tool you do not have a subscription for, do not understand yet, or do not expect to use.'
-::                 )
-::             }
+:: 
+::         $content = Get-ExplanationContent -Key $selection.Key
+::         if ($content) {
+::             Show-ExplanationPanel -Title $content.Title -Lines $content.Lines
 ::         }
 ::     }
 :: }
@@ -3181,7 +3381,10 @@ exit /b %errorlevel%
 :: }
 ::
 :: if ($Mode -eq 'Explanations') {
-::     Launch-ExplanationsMode
+::     $result = Launch-ExplanationsMode
+::     if ($DryRun) {
+::         $result | ConvertTo-Json -Depth 6
+::     }
 ::     exit 0
 :: }
 ::

@@ -68,8 +68,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-15-011500Z'
-:: $script:ReleaseTag = 'v1.6.1'
+:: $script:BuildId = 'SYTA-build-2026-04-15-013500Z'
+:: $script:ReleaseTag = 'v1.6.2'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -626,6 +626,7 @@ exit /b %errorlevel%
 ::         if ($Text -match '^Impact  : (.+)$') { return "影响   : $(Localize-Text $Matches[1])" }
 ::         if ($Text -match '^Step (\d+)/(\d+)$') { return "步骤 $($Matches[1])/$($Matches[2])" }
 ::         if ($Text -match '^Items: (\d+) \| Selected: (\d+)/(\d+)$') { return "条目：$($Matches[1]) | 选中：$($Matches[2])/$($Matches[3])" }
+::         if ($Text -match '^Items: (\d+) \| Selected: (\d+)/(\d+) \| Showing: (\d+)-(\d+)$') { return "条目：$($Matches[1]) | 选中：$($Matches[2])/$($Matches[3]) | 显示：$($Matches[4])-$($Matches[5])" }
 ::         if ($Text -match '^Installed \((.+)\)$') { return "已安装（$($Matches[1])）" }
 ::         return $Text
 ::     }
@@ -658,6 +659,7 @@ exit /b %errorlevel%
 ::     if ($Text -match '^Impact  : (.+)$') { return "Impact  : $(Localize-Text $Matches[1])" }
 ::     if ($Text -match '^Step (\d+)/(\d+)$') { return "Etape $($Matches[1])/$($Matches[2])" }
 ::     if ($Text -match '^Items: (\d+) \| Selected: (\d+)/(\d+)$') { return "Elements : $($Matches[1]) | Selection : $($Matches[2])/$($Matches[3])" }
+::     if ($Text -match '^Items: (\d+) \| Selected: (\d+)/(\d+) \| Showing: (\d+)-(\d+)$') { return "Elements : $($Matches[1]) | Selection : $($Matches[2])/$($Matches[3]) | Affichage : $($Matches[4])-$($Matches[5])" }
 ::     if ($Text -match '^Installed \((.+)\)$') { return "Installe ($($Matches[1]))" }
 ::     return $Text
 :: }
@@ -993,6 +995,7 @@ exit /b %errorlevel%
 ::     param(
 ::         [string]$Title,
 ::         [string]$Status,
+::         [string]$Detail = '',
 ::         [int]$Current = 1,
 ::         [int]$Total = 1,
 ::         [ConsoleColor]$Accent = [ConsoleColor]::Cyan
@@ -1012,11 +1015,14 @@ exit /b %errorlevel%
 ::
 ::     Clear-Host
 ::     Write-Banner -Tagline $Title -Hint 'Please wait'
-::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
+::     Write-UiBorderLine -Color DarkGray
 ::     Write-BoxLine -Content $Status -Color $Accent
+::     if ($Detail) {
+::         Write-BoxLine -Content $Detail -Color DarkGray
+::     }
 ::     Write-BoxLine -Content ("Step {0}/{1}" -f $safeCurrent, $safeTotal) -Color DarkGray
 ::     Write-BoxLine -Content $bar -Color $Accent
-::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
+::     Write-UiBorderLine -Color DarkGray
 ::     Write-Host ''
 :: }
 ::
@@ -1035,6 +1041,64 @@ exit /b %errorlevel%
 ::     }
 ::
 ::     return ($Text.Substring(0, [Math]::Max(0, $Max - 3)) + '...')
+:: }
+::
+:: function Get-UiContentWidth {
+::     param(
+::         [int]$Minimum = 44,
+::         [int]$Maximum = 88,
+::         [int]$Fallback = 72
+::     )
+::
+::     try {
+::         $windowWidth = [Console]::WindowWidth
+::     } catch {
+::         $windowWidth = 0
+::     }
+::
+::     if ($windowWidth -le 0) {
+::         return $Fallback
+::     }
+::
+::     return [Math]::Max($Minimum, [Math]::Min($Maximum, ($windowWidth - 8)))
+:: }
+::
+:: function Write-UiBorderLine {
+::     param([ConsoleColor]$Color = [ConsoleColor]::DarkGray)
+::
+::     $width = Get-UiContentWidth
+::     Write-Host ('  +' + ('-' * ($width + 2)) + '+') -ForegroundColor $Color
+:: }
+::
+:: function Get-MenuViewport {
+::     param(
+::         [int]$ItemCount,
+::         [int]$SelectedIndex
+::     )
+::
+::     if ($ItemCount -le 0) {
+::         return [pscustomobject]@{ Start = 0; End = -1; Visible = 0 }
+::     }
+::
+::     try {
+::         $windowHeight = [Console]::WindowHeight
+::     } catch {
+::         $windowHeight = 0
+::     }
+::
+::     $visible = if ($windowHeight -gt 0) {
+::         [Math]::Max(5, [Math]::Min($ItemCount, ($windowHeight - 18)))
+::     } else {
+::         [Math]::Min($ItemCount, 9)
+::     }
+::
+::     $start = [Math]::Max(0, [Math]::Min(($SelectedIndex - [Math]::Floor($visible / 2)), ($ItemCount - $visible)))
+::     $end = [Math]::Min(($ItemCount - 1), ($start + $visible - 1))
+::     return [pscustomobject]@{ Start = $start; End = $end; Visible = $visible }
+:: }
+::
+:: function Clear-ToolDiagnosticsCache {
+::     $script:ToolDiagCache = @{}
 :: }
 ::
 :: function Get-StateObject {
@@ -1504,7 +1568,6 @@ exit /b %errorlevel%
 :: }
 ::
 :: function Get-AgentMenuItems {
-::     $script:ToolDiagCache = @{}
 ::     Show-LoadProgress -Title 'Agent Selector' -Status 'Loading live tool diagnostics' -Current 1 -Total 1 -Accent Cyan
 ::     Warm-ToolDiagnosticsCache -Keys @($script:AgentOptions | Select-Object -ExpandProperty Key)
 ::     return @($script:AgentOptions | ForEach-Object {
@@ -1524,8 +1587,12 @@ exit /b %errorlevel%
 ::     param(
 ::         [string]$Content,
 ::         [ConsoleColor]$Color = [ConsoleColor]::Gray,
-::         [int]$Width = 72
+::         [int]$Width = 0
 ::     )
+::
+::     if ($Width -le 0) {
+::         $Width = Get-UiContentWidth
+::     }
 ::
 ::     $render = Shorten-Text -Text (Localize-Text $Content) -Max $Width
 ::     Write-Host ('  | ' + $render.PadRight($Width) + ' |') -ForegroundColor $Color
@@ -1535,8 +1602,12 @@ exit /b %errorlevel%
 ::     param(
 ::         [string]$Content,
 ::         [ConsoleColor]$Color = [ConsoleColor]::Gray,
-::         [int]$Width = 72
+::         [int]$Width = 0
 ::     )
+::
+::     if ($Width -le 0) {
+::         $Width = Get-UiContentWidth
+::     }
 ::
 ::     $text = Localize-Text $Content
 ::     if ($null -eq $text) {
@@ -1572,7 +1643,7 @@ exit /b %errorlevel%
 ::
 ::     $recentCount = Get-RecentProjectCount
 ::     Write-Host ''
-::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkCyan
+::     Write-UiBorderLine -Color DarkCyan
 ::     Write-BoxLine -Content 'SYTA AGENTIC LAUNCHER' -Color Cyan
 ::     Write-BoxLine -Content 'Made by Sylvain T.' -Color Magenta
 ::     Write-BoxLine -Content $Tagline -Color Gray
@@ -1580,7 +1651,7 @@ exit /b %errorlevel%
 ::     Write-BoxLine -Content "SYTA $script:ReleaseTag" -Color DarkGray
 ::     Write-BoxLine -Content "Recent projects tracked: $recentCount" -Color DarkGray
 ::     Write-BoxLine -Content "Hint: $Hint" -Color Gray
-::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkCyan
+::     Write-UiBorderLine -Color DarkCyan
 ::     Write-Host ''
 :: }
 ::
@@ -1631,10 +1702,10 @@ exit /b %errorlevel%
 ::         Write-Host ("   " + $frame.Bar + "  " + (Localize-Text $frame.Status)) -ForegroundColor $frame.Accent
 ::         Write-Host '   Made by Sylvain T.' -ForegroundColor Magenta
 ::         Write-Host ('   ' + (Localize-Text 'telemetry: launcher online, diagnostics cache cold, routes ready')) -ForegroundColor DarkGray
-::         Start-Sleep -Milliseconds 90
+::         Start-Sleep -Milliseconds 45
 ::     }
 ::
-::     Start-Sleep -Milliseconds 220
+::     Start-Sleep -Milliseconds 100
 :: }
 ::
 :: function Show-InfoBox {
@@ -1647,11 +1718,11 @@ exit /b %errorlevel%
 ::
 ::     Clear-Host
 ::     Write-Banner -Tagline $Title -Hint $Hint
-::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
+::     Write-UiBorderLine -Color DarkGray
 ::     foreach ($line in $Lines) {
 ::         Write-BoxLine -Content $line -Color $Accent
 ::     }
-::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
+::     Write-UiBorderLine -Color DarkGray
 ::     Write-Host ''
 :: }
 ::
@@ -1663,14 +1734,14 @@ exit /b %errorlevel%
 ::         [ConsoleColor]$Accent = [ConsoleColor]::Cyan
 ::     )
 ::
-::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
+::     Write-UiBorderLine -Color DarkGray
 ::     $localizedLabel = Localize-Text $Label
 ::     $localizedTitle = Localize-Text $Title
 ::     Write-BoxLine -Content ("{0}: {1}" -f $localizedLabel, $localizedTitle) -Color $Accent
 ::     if ($Detail) {
 ::         Write-BoxLine -Content (Localize-Text $Detail) -Color Gray
 ::     }
-::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
+::     Write-UiBorderLine -Color DarkGray
 :: }
 ::
 :: function Show-StatusPanel {
@@ -1778,12 +1849,19 @@ exit /b %errorlevel%
 ::     while ($true) {
 ::         Clear-Host
 ::         Write-Banner -Tagline $Title
-::         Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
+::         Write-UiBorderLine -Color DarkGray
 ::         Write-BoxLine -Content $Subtitle -Color Gray
-::         Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
+::         Write-UiBorderLine -Color DarkGray
 ::         Write-Host ''
 ::
-::         for ($i = 0; $i -lt $Items.Count; $i++) {
+::         $viewport = Get-MenuViewport -ItemCount $Items.Count -SelectedIndex $index
+::         $labelMax = [Math]::Max(24, (Get-UiContentWidth) - 6)
+::
+::         if ($viewport.Start -gt 0) {
+::             Write-Host '  ...' -ForegroundColor DarkGray
+::         }
+::
+::         for ($i = $viewport.Start; $i -le $viewport.End; $i++) {
 ::             $item = $Items[$i]
 ::             $selected = $i -eq $index
 ::             $titleColor = if ($selected) {
@@ -1791,19 +1869,17 @@ exit /b %errorlevel%
 ::             } else {
 ::                 'Gray'
 ::             }
-::             $detailColor = if ($selected) { 'White' } else { 'DarkGray' }
 ::             $prefix = if ($selected) { '> ' } else { '  ' }
 ::             $label = if ($item.PSObject.Properties.Match('Title').Count) { $item.Title } else { [string]$item }
-::             $detail = if ($item.PSObject.Properties.Match('Subtitle').Count) { $item.Subtitle } else { '' }
 ::
 ::             $label = Localize-Text $label
-::             $detail = Localize-Text $detail
-::             Write-Host ('  ' + $prefix + (Shorten-Text -Text $label -Max 76)) -ForegroundColor $titleColor
-::             if ($detail) {
-::                 Write-Host ('     ' + (Shorten-Text -Text $detail -Max 74)) -ForegroundColor $detailColor
-::             }
-::             Write-Host ''
+::             Write-Host ('  ' + $prefix + (Shorten-Text -Text $label -Max $labelMax)) -ForegroundColor $titleColor
 ::         }
+::
+::         if ($viewport.End -lt ($Items.Count - 1)) {
+::             Write-Host '  ...' -ForegroundColor DarkGray
+::         }
+::         Write-Host ''
 ::
 ::         $selectedItem = $Items[$index]
 ::         $selectedLabel = if ($selectedItem.PSObject.Properties.Match('Title').Count) { $selectedItem.Title } else { [string]$selectedItem }
@@ -1811,11 +1887,11 @@ exit /b %errorlevel%
 ::         $selectedAccent = if ($selectedItem.PSObject.Properties.Match('Accent').Count) { $selectedItem.Accent } else { 'Cyan' }
 ::         Show-DetailPanel -Label 'Selected item' -Title $selectedLabel -Detail $selectedDetail -Accent $selectedAccent
 ::
-::         Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
+::         Write-UiBorderLine -Color DarkGray
 ::         Write-BoxLine -Content 'Press Enter to choose the focused item.' -Color Gray
 ::         Write-BoxLine -Content 'Keys: Up/Down move | Enter select | Esc back' -Color DarkGray
-::         Write-BoxLine -Content ("Items: {0} | Selected: {1}/{2}" -f $Items.Count, ($index + 1), $Items.Count) -Color DarkGray
-::         Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
+::         Write-BoxLine -Content ("Items: {0} | Selected: {1}/{2} | Showing: {3}-{4}" -f $Items.Count, ($index + 1), $Items.Count, ($viewport.Start + 1), ($viewport.End + 1)) -Color DarkGray
+::         Write-UiBorderLine -Color DarkGray
 ::
 ::         $key = [Console]::ReadKey($true)
 ::         switch ($key.Key) {
@@ -1878,13 +1954,13 @@ exit /b %errorlevel%
 ::
 ::     Clear-Host
 ::     Write-Banner -Tagline $Title -Hint 'Back'
-::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
+::     Write-UiBorderLine -Color DarkGray
 ::     foreach ($line in $Lines) {
 ::         Write-WrappedBoxText -Content $line -Color Cyan
 ::     }
-::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
+::     Write-UiBorderLine -Color DarkGray
 ::     Write-BoxLine -Content 'Press any key to return.' -Color Gray
-::     Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
+::     Write-UiBorderLine -Color DarkGray
 ::     [void][Console]::ReadKey($true)
 :: }
 ::
@@ -2152,10 +2228,10 @@ exit /b %errorlevel%
 ::     while ($true) {
 ::         Clear-Host
 ::         Write-Banner -Tagline 'Create New Project' -Hint 'Leave blank to cancel'
-::         Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
+::         Write-UiBorderLine -Color DarkGray
 ::         Write-BoxLine -Content "Folder root: $script:ProjectsRoot" -Color DarkGray
 ::         Write-BoxLine -Content 'Choose a short Windows-safe folder name.' -Color Gray
-::         Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
+::         Write-UiBorderLine -Color DarkGray
 ::         Write-Host ''
 ::         $name = Read-Host (Localize-Text '   Project name')
 ::         if ([string]::IsNullOrWhiteSpace($name)) {
@@ -2253,10 +2329,10 @@ exit /b %errorlevel%
 ::             while ($true) {
 ::                 Clear-Host
 ::                 Write-Banner -Tagline 'Search Projects' -Hint 'Leave blank to cancel'
-::                 Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
+::                 Write-UiBorderLine -Color DarkGray
 ::                 Write-BoxLine -Content 'Search scans existing folders under C:\.CODEX.' -Color Gray
 ::                 Write-BoxLine -Content 'Search is case-insensitive and matches partial words.' -Color DarkGray
-::                 Write-Host '  +----------------------------------------------------------------------+' -ForegroundColor DarkGray
+::                 Write-UiBorderLine -Color DarkGray
 ::                 Write-Host ''
 ::                 $query = Read-Host (Localize-Text '   Search term')
 ::                 if ([string]::IsNullOrWhiteSpace($query)) {
@@ -2337,7 +2413,6 @@ exit /b %errorlevel%
 :: }
 ::
 :: function Get-InstallItems {
-::     $script:ToolDiagCache = @{}
 ::     $distroInstalled = Test-WslUserDistroInstalled
 ::     $distroReady = Test-WslPreferredDistroReadyForCli
 ::     $pwshInfo = Get-PwshInfo
@@ -2459,6 +2534,7 @@ exit /b %errorlevel%
 ::         return $result
 ::     }
 ::     Start-Sleep -Milliseconds 500
+::     Clear-ToolDiagnosticsCache
 ::     return $null
 :: }
 ::
@@ -2477,6 +2553,7 @@ exit /b %errorlevel%
 ::         return $result
 ::     }
 ::     Start-Sleep -Milliseconds 500
+::     Clear-ToolDiagnosticsCache
 ::     return $null
 :: }
 ::
@@ -2497,6 +2574,7 @@ exit /b %errorlevel%
 ::     }
 ::
 ::     Start-Sleep -Milliseconds 500
+::     Clear-ToolDiagnosticsCache
 ::     return $null
 :: }
 ::
@@ -2518,6 +2596,7 @@ exit /b %errorlevel%
 ::     }
 ::
 ::     Start-Sleep -Milliseconds 500
+::     Clear-ToolDiagnosticsCache
 ::     return $null
 :: }
 ::
@@ -2548,6 +2627,7 @@ exit /b %errorlevel%
 ::     }
 ::
 ::     Start-Sleep -Milliseconds 500
+::     Clear-ToolDiagnosticsCache
 ::     return $null
 :: }
 ::
@@ -2667,7 +2747,6 @@ exit /b %errorlevel%
 :: }
 ::
 :: function Launch-UpdateMode {
-::     $script:ToolDiagCache = @{}
 ::     $lines = @(
 ::         'Scope   : APT, Homebrew, npm, pnpm, pipx, uv, rustup, dotnet',
 ::         "Folder  : $script:ScriptDir"
@@ -2686,10 +2765,10 @@ exit /b %errorlevel%
 ::     }
 ::
 ::     Start-Sleep -Milliseconds 500
+::     Clear-ToolDiagnosticsCache
 :: }
 ::
 :: function Launch-UpdateLightMode {
-::     $script:ToolDiagCache = @{}
 ::     $lines = @(
 ::         'Scope   : Codex, OMX, OpenCode, Claude Code, Gemini CLI',
 ::         "Folder  : $script:ScriptDir"
@@ -2708,6 +2787,7 @@ exit /b %errorlevel%
 ::     }
 ::
 ::     Start-Sleep -Milliseconds 500
+::     Clear-ToolDiagnosticsCache
 :: }
 ::
 :: function Launch-InstallMode {
@@ -2878,6 +2958,7 @@ exit /b %errorlevel%
 ::     }
 ::
 ::     Start-Sleep -Milliseconds 500
+::     Clear-ToolDiagnosticsCache
 :: }
 ::
 :: if ($SmokeTest) {

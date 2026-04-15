@@ -2042,7 +2042,7 @@ exit /b %errorlevel%
 ::     Write-UiBorderLine -Color DarkGray
 ::     [void][Console]::ReadKey($true)
 :: }
-:: 
+::
 :: function Get-ExplanationsMenuModel {
 ::     switch ($script:Language) {
 ::         'fr' {
@@ -2092,10 +2092,10 @@ exit /b %errorlevel%
 ::         }
 ::     }
 :: }
-:: 
+::
 :: function Get-ExplanationContent {
 ::     param([Parameter(Mandatory = $true)][string]$Key)
-:: 
+::
 ::     switch ($script:Language) {
 ::         'fr' {
 ::             switch ($Key) {
@@ -2258,10 +2258,10 @@ exit /b %errorlevel%
 ::         }
 ::     }
 :: }
-:: 
+::
 :: function Launch-ExplanationsMode {
 ::     $menu = Get-ExplanationsMenuModel
-:: 
+::
 ::     if ($DryRun) {
 ::         return [pscustomobject]@{
 ::             Title = $menu.Title
@@ -2274,14 +2274,14 @@ exit /b %errorlevel%
 ::             )
 ::         }
 ::     }
-:: 
+::
 ::     while ($true) {
 ::         $selection = Read-Menu -Title $menu.Title -Subtitle $menu.Subtitle -Items $menu.Items
-:: 
+::
 ::         if (-not $selection -or $selection.Key -eq 'back') {
 ::             return
 ::         }
-:: 
+::
 ::         $content = Get-ExplanationContent -Key $selection.Key
 ::         if ($content) {
 ::             Show-ExplanationPanel -Title $content.Title -Lines $content.Lines

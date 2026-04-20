@@ -46,7 +46,7 @@ The entire runtime is embedded into the batch file itself. At launch, it extract
 | `Code` | Opens a project and launches a coding CLI in WSL |
 | `Install` | Installs or repairs the environment and supported tools |
 | `Extra` | Opens maintenance tools and smaller workflow utilities from the main menu |
-| `Light update` | Updates AI coding CLIs only |
+| `Light update` | Updates installed AI coding CLIs only, including DROID CLI |
 | `Update utilities add-ons` | Updates installed utility add-ons only |
 | `Update all` | Runs a broader toolchain update pass |
 | Diagnostics | Shows install, version, and auth/config hints |
@@ -130,7 +130,7 @@ The core bundle currently installs:
 
 Those utility lanes still use the launcher's WSL-first model. `RTK`, `ccusage`, `codex-auth`, and `OpenSpec` run the upstream install commands in WSL. `superpowers` clones the upstream repo and links its skills into Codex, then prints the optional OpenCode and Gemini follow-up steps. `BMAD` is project-scoped: SYTA asks you to choose a project under `C:\.CODEX`, then launches the official BMAD installer inside that project.
 
-`Update -> Update utilities add-ons` refreshes only detected installed utilities. It updates the supported user-scoped utility installs and quick-updates BMAD projects already found under `C:\.CODEX`.
+`Update -> Update utilities add-ons` refreshes only detected installed utilities. It updates the supported user-scoped utility installs, verifies RTK after updating it, and quick-updates BMAD projects already found under `C:\.CODEX`.
 
 `OpenCode`, `Oh My OpenAgent`, and `Oh My OpenCode Slim` are now separate lanes:
 

@@ -39,7 +39,7 @@
 | `Code` | 打开项目并在 WSL 中启动编码 CLI |
 | `Install` | 安装或修复环境与受支持工具 |
 | `Extra` | 从主菜单打开维护工具和较小的工作流工具 |
-| `Light update` | 仅更新 AI 编码 CLI |
+| `Light update` | 仅更新已安装的 AI 编码 CLI，包括 DROID CLI |
 | `Update utilities add-ons` | 仅更新已安装的实用工具扩展 |
 | `Update all` | 运行更广泛的工具链维护更新 |
 | Diagnostics | 显示安装状态、版本与认证/配置提示 |
@@ -108,7 +108,7 @@
 
 这些工具仍然遵循启动器的 WSL-first 模型。`RTK`、`ccusage`、`codex-auth` 和 `OpenSpec` 会在 WSL 中运行各自的官方安装命令。`superpowers` 会克隆上游仓库并把技能链接到 Codex，然后提示可选的 OpenCode / Gemini 后续步骤。`BMAD` 是项目级安装：SYTA 会先让你在 `C:\.CODEX` 下选择项目，然后在该项目里启动官方 BMAD 安装器。
 
-`Update -> Update utilities add-ons` 只会刷新检测到已安装的实用工具扩展。它会更新受支持的用户级工具，并对 `C:\.CODEX` 下已找到的 BMAD 项目执行 quick-update。
+`Update -> Update utilities add-ons` 只会刷新检测到已安装的实用工具扩展。它会更新受支持的用户级工具，更新后校验 RTK，并对 `C:\.CODEX` 下已找到的 BMAD 项目执行 quick-update。
 
 ## 语言
 

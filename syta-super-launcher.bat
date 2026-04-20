@@ -68,8 +68,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-20-091244Z'
-:: $script:ReleaseTag = 'v1.9.0'
+:: $script:BuildId = 'SYTA-build-2026-04-20-094325Z'
+:: $script:ReleaseTag = 'v1.9.1'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -164,7 +164,7 @@ exit /b %errorlevel%
 ::             'Light update' = '轻量更新'
 ::             'Update all' = '全量更新'
 ::             'Update utilities add-ons' = '更新实用工具扩展'
-::             'Update AI coding CLIs only: Codex, OMX, OpenCode, Claude Code, Gemini CLI.' = '仅更新 AI 编码 CLI：Codex、OMX、OpenCode、Claude Code、Gemini CLI。'
+::             'Update AI coding CLIs only: Codex, OMX, OpenCode, Claude Code, Gemini CLI, DROID CLI.' = '仅更新 AI 编码 CLI：Codex、OMX、OpenCode、Claude Code、Gemini CLI、DROID CLI。'
 ::             'Run the broader toolchain update pass, including system package managers.' = '运行更全面的工具链更新，包括系统包管理器。'
 ::             'Update installed utility add-ons only: RTK, ccusage, codex-auth, superpowers, OpenSpec, BMAD.' = '仅更新已安装的实用工具扩展：RTK、ccusage、codex-auth、superpowers、OpenSpec、BMAD。'
 ::             'Run the installed utility add-ons updater without touching the broader toolchain.' = '只运行已安装实用工具扩展的更新器，不触碰更广泛的工具链。'
@@ -431,7 +431,7 @@ exit /b %errorlevel%
 ::             'Light update' = 'Mise a jour legere'
 ::             'Update all' = 'Mise a jour complete'
 ::             'Update utilities add-ons' = 'Mettre a jour les utilitaires'
-::             'Update AI coding CLIs only: Codex, OMX, OpenCode, Claude Code, Gemini CLI.' = 'Mettre a jour seulement les CLI IA : Codex, OMX, OpenCode, Claude Code, Gemini CLI.'
+::             'Update AI coding CLIs only: Codex, OMX, OpenCode, Claude Code, Gemini CLI, DROID CLI.' = 'Mettre a jour seulement les CLI IA : Codex, OMX, OpenCode, Claude Code, Gemini CLI, DROID CLI.'
 ::             'Run the broader toolchain update pass, including system package managers.' = 'Lancer la maintenance plus large de la chaine d''outils, y compris les gestionnaires systeme.'
 ::             'Update installed utility add-ons only: RTK, ccusage, codex-auth, superpowers, OpenSpec, BMAD.' = 'Mettre a jour seulement les utilitaires installes : RTK, ccusage, codex-auth, superpowers, OpenSpec, BMAD.'
 ::             'Run the installed utility add-ons updater without touching the broader toolchain.' = 'Lancer la mise a jour des utilitaires installes sans toucher au reste de la chaine d''outils.'
@@ -2321,7 +2321,7 @@ exit /b %errorlevel%
 ::
 :: function Launch-UpdateMenu {
 ::     $items = @(
-::         [pscustomobject]@{ Title = 'Light update'; Subtitle = 'Update AI coding CLIs only: Codex, OMX, OpenCode, Claude Code, Gemini CLI.'; Accent = 'Green'; Key = 'UpdateLight' }
+::         [pscustomobject]@{ Title = 'Light update'; Subtitle = 'Update AI coding CLIs only: Codex, OMX, OpenCode, Claude Code, Gemini CLI, DROID CLI.'; Accent = 'Green'; Key = 'UpdateLight' }
 ::         [pscustomobject]@{ Title = 'Update utilities add-ons'; Subtitle = 'Update installed utility add-ons only: RTK, ccusage, codex-auth, superpowers, OpenSpec, BMAD.'; Accent = 'Cyan'; Key = 'UpdateUtilities' }
 ::         [pscustomobject]@{ Title = 'Update all'; Subtitle = 'Run the broader toolchain update pass, including system package managers.'; Accent = 'Yellow'; Key = 'UpdateAll' }
 ::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the main menu.'; Accent = 'DarkGray'; Key = 'back' }
@@ -2827,6 +2827,7 @@ exit /b %errorlevel%
 ::         [pscustomobject]@{ Label = 'OpenCode'; Key = 'opencode' }
 ::         [pscustomobject]@{ Label = 'Claude'; Key = 'claude-code' }
 ::         [pscustomobject]@{ Label = 'Gemini'; Key = 'gemini-cli' }
+::         [pscustomobject]@{ Label = 'DROID'; Key = 'droid-cli' }
 ::     )
 ::
 ::     return @($items | ForEach-Object {
@@ -3140,7 +3141,7 @@ exit /b %errorlevel%
 ::
 :: function Launch-UpdateLightMode {
 ::     $lines = @(
-::         'Scope   : Codex, OMX, OpenCode, Claude Code, Gemini CLI',
+::         'Scope   : Codex, OMX, OpenCode, Claude Code, Gemini CLI, DROID CLI',
 ::         "Folder  : $script:ScriptDir"
 ::     ) + (Get-CodingCliSummaryLines)
 ::     Show-InfoBox -Title 'Light Update Preflight' -Accent Green -Hint 'A new terminal tab opens immediately after this screen' -Lines $lines
@@ -4528,6 +4529,33 @@ exit /b %errorlevel%
 ::   return 1
 :: }
 ::
+:: have_rtk_token_killer() {
+::   export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$HOME/bin:$PATH"
+::   command -v rtk >/dev/null 2>&1 || return 1
+::   rtk gain >/dev/null 2>&1
+:: }
+::
+:: install_rtk_via_official_script() {
+::   run_step "Install RTK" bash -lc 'export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$HOME/bin:$PATH"; curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/master/install.sh | sh'
+:: }
+::
+:: verify_rtk_install() {
+::   load_user_env
+::   export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$HOME/bin:$PATH"
+::   if have_rtk_token_killer; then
+::     rtk --version 2>/dev/null || true
+::     return 0
+::   fi
+::   if command -v rtk >/dev/null 2>&1; then
+::     printf 'rtk is present but `rtk gain` failed, so this does not look like a healthy RTK Token Killer install.
+:: '
+::   else
+::     printf 'RTK install finished but rtk is still not on PATH.
+:: '
+::   fi
+::   return 1
+:: }
+::
 :: install_opencode() {
 ::   ensure_curl || return 1
 ::   if run_step "Install OpenCode" bash -lc 'curl -fsSL https://opencode.ai/install | bash'; then
@@ -4607,14 +4635,14 @@ exit /b %errorlevel%
 ::
 :: install_rtk() {
 ::   ensure_curl || return 1
-::   run_step "Install RTK" bash -lc 'curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh' || return 1
-::   load_user_env
-::   if command -v rtk >/dev/null 2>&1; then
-::     rtk --version 2>/dev/null || true
+::   if install_rtk_via_official_script && verify_rtk_install; then
 ::     return 0
 ::   fi
-::   printf 'RTK install finished but rtk is still not on PATH.
-:: '
+::   if command -v cargo >/dev/null 2>&1; then
+::     run_step "Install RTK via cargo fallback" bash -lc 'export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$HOME/bin:$PATH"; cargo install --git https://github.com/rtk-ai/rtk --force' || return 1
+::     verify_rtk_install || return 1
+::     return 0
+::   fi
 ::   return 1
 :: }
 ::
@@ -5023,7 +5051,7 @@ exit /b %errorlevel%
 :: fi
 ::
 :: echo
-:: for tool in codex omx opencode claude gemini npm npx; do
+:: for tool in codex omx opencode claude gemini droid npm npx; do
 ::   if have_cmd "$tool"; then
 ::     printf '%-14s %s
 :: ' "$tool" "$(command -v "$tool")"
@@ -5077,6 +5105,14 @@ exit /b %errorlevel%
 ::   else
 ::     echo
 ::     echo "== Update Gemini CLI =="
+::     echo SKIPPED
+::   fi
+::
+::   if have_cmd droid; then
+::     run_step "Update DROID CLI" bash -lc 'curl -fsSL https://app.factory.ai/cli | sh' || true
+::   else
+::     echo
+::     echo "== Update DROID CLI =="
 ::     echo SKIPPED
 ::   fi
 ::
@@ -5199,6 +5235,37 @@ exit /b %errorlevel%
 ::   fi
 :: }
 ::
+:: have_rtk_token_killer() {
+::   export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$HOME/bin:$PATH"
+::   command -v rtk >/dev/null 2>&1 || return 1
+::   rtk gain >/dev/null 2>&1
+:: }
+::
+:: verify_rtk_install() {
+::   load_user_env
+::   export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$HOME/bin:$PATH"
+::   if have_rtk_token_killer; then
+::     rtk --version 2>/dev/null || true
+::     return 0
+::   fi
+::   return 1
+:: }
+::
+:: update_rtk() {
+::   if run_step "Update RTK" bash -lc 'export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$HOME/bin:$PATH"; curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/master/install.sh | sh' && verify_rtk_install; then
+::     return 0
+::   fi
+::
+::   if command -v cargo >/dev/null 2>&1; then
+::     run_step "Update RTK via cargo fallback" bash -lc 'export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$HOME/bin:$PATH"; cargo install --git https://github.com/rtk-ai/rtk --force' || return 1
+::     verify_rtk_install || return 1
+::     return 0
+::   fi
+::
+::   echo "RTK update could not be verified and cargo is unavailable for fallback."
+::   return 1
+:: }
+::
 :: find_bmad_projects() {
 ::   if [ ! -d "$projects_root" ]; then
 ::     return 0
@@ -5241,7 +5308,7 @@ exit /b %errorlevel%
 :: fi
 ::
 :: if have_cmd rtk; then
-::   run_step "Update RTK" bash -lc 'curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh' || true
+::   update_rtk || true
 ::   load_user_env
 :: else
 ::   echo

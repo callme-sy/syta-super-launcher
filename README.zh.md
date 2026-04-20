@@ -27,7 +27,7 @@
 - 安装缺失工具
 - 直接从主菜单运行清理助手
 - 重置已跟踪的工具配置
-- 运行轻量或完整更新流程
+- 运行轻量、仅实用工具或完整更新流程
 - 在启动前显示诊断信息
 
 整个运行时都内嵌在 batch 文件本身中。启动时，它会把辅助脚本解包到临时目录，从那里运行 UI，同时把真实安装保留在用户环境中。
@@ -40,6 +40,7 @@
 | `Install` | 安装或修复环境与受支持工具 |
 | `Extra` | 从主菜单打开维护工具和较小的工作流工具 |
 | `Light update` | 仅更新 AI 编码 CLI |
+| `Update utilities add-ons` | 仅更新已安装的实用工具扩展 |
 | `Update all` | 运行更广泛的工具链维护更新 |
 | Diagnostics | 显示安装状态、版本与认证/配置提示 |
 | Responsive menus | 在较慢菜单准备期间显示加载进度 |
@@ -103,8 +104,11 @@
 - `codex-auth`
 - `superpowers`
 - `OpenSpec`
+- `BMAD`
 
-这些工具仍然遵循启动器的 WSL-first 模型。`RTK`、`ccusage`、`codex-auth` 和 `OpenSpec` 会在 WSL 中运行各自的官方安装命令。`superpowers` 会克隆上游仓库并把技能链接到 Codex，然后提示可选的 OpenCode / Gemini 后续步骤。
+这些工具仍然遵循启动器的 WSL-first 模型。`RTK`、`ccusage`、`codex-auth` 和 `OpenSpec` 会在 WSL 中运行各自的官方安装命令。`superpowers` 会克隆上游仓库并把技能链接到 Codex，然后提示可选的 OpenCode / Gemini 后续步骤。`BMAD` 是项目级安装：SYTA 会先让你在 `C:\.CODEX` 下选择项目，然后在该项目里启动官方 BMAD 安装器。
+
+`Update -> Update utilities add-ons` 只会刷新检测到已安装的实用工具扩展。它会更新受支持的用户级工具，并对 `C:\.CODEX` 下已找到的 BMAD 项目执行 quick-update。
 
 ## 语言
 

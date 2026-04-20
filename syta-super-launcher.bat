@@ -33,11 +33,11 @@ exit /b %errorlevel%
 
 ::BEGIN:syta-agentic-launcher.ps1
 :: param(
-::     [ValidateSet('Code', 'Install', 'Extra', 'Explanations', 'CleanerHelper', 'Update', 'UpdateAll', 'UpdateLight')]
+::     [ValidateSet('Code', 'Install', 'Extra', 'Explanations', 'CleanerHelper', 'Update', 'UpdateAll', 'UpdateLight', 'UpdateUtilities')]
 ::     [string]$Mode,
 ::     [ValidateSet('codex-yolo', 'omx-madmax-high', 'opencode', 'claude-code', 'gemini-cli')]
 ::     [string]$Agent,
-::     [ValidateSet('first-install', 'wsl-ubuntu', 'powershell-7', 'extra', 'all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'utilities', 'codex', 'opencode', 'omx', 'claude-code', 'gemini-cli', 'droid-cli', 'oh-my-openagent', 'oh-my-opencode-slim', 'utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec')]
+::     [ValidateSet('first-install', 'wsl-ubuntu', 'powershell-7', 'extra', 'all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'utilities', 'codex', 'opencode', 'omx', 'claude-code', 'gemini-cli', 'droid-cli', 'oh-my-openagent', 'oh-my-opencode-slim', 'utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec', 'utility-bmad')]
 ::     [string]$InstallTarget,
 ::     [ValidateSet('codex-omx', 'opencode', 'oh-my-openagent', 'oh-my-opencode-slim', 'claude-code', 'gemini-cli', 'all')]
 ::     [string]$ResetTarget,
@@ -68,8 +68,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-15-093746Z'
-:: $script:ReleaseTag = 'v1.8.1'
+:: $script:BuildId = 'SYTA-build-2026-04-20-091244Z'
+:: $script:ReleaseTag = 'v1.9.0'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -160,11 +160,14 @@ exit /b %errorlevel%
 ::             'Explanations' = '说明'
 ::             'Update' = '更新'
 ::             'Choose which update lane to run.' = '选择要运行的更新方式。'
-::             'Run a lighter AI-tools-only update or the broader full maintenance pass.' = '仅更新 AI 工具，或运行更全面的维护更新。'
+::             'Run a lighter AI-tools-only update, the utility-addons updater, or the broader full maintenance pass.' = '可运行轻量 AI 工具更新、实用工具扩展更新，或更全面的完整维护。'
 ::             'Light update' = '轻量更新'
 ::             'Update all' = '全量更新'
+::             'Update utilities add-ons' = '更新实用工具扩展'
 ::             'Update AI coding CLIs only: Codex, OMX, OpenCode, Claude Code, Gemini CLI.' = '仅更新 AI 编码 CLI：Codex、OMX、OpenCode、Claude Code、Gemini CLI。'
 ::             'Run the broader toolchain update pass, including system package managers.' = '运行更全面的工具链更新，包括系统包管理器。'
+::             'Update installed utility add-ons only: RTK, ccusage, codex-auth, superpowers, OpenSpec, BMAD.' = '仅更新已安装的实用工具扩展：RTK、ccusage、codex-auth、superpowers、OpenSpec、BMAD。'
+::             'Run the installed utility add-ons updater without touching the broader toolchain.' = '只运行已安装实用工具扩展的更新器，不触碰更广泛的工具链。'
 ::             'First install (recommended)' = '首次安装（推荐）'
 ::             'Best beginner path for WSL Ubuntu, optional PowerShell 7, and the core AI CLI tools.' = '面向新手的最佳路径：WSL Ubuntu、可选 PowerShell 7，以及核心 AI CLI 工具。'
 ::             'Recommended path for a new machine or first SYTA setup' = '适用于新机器或首次 SYTA 安装的推荐路径'
@@ -230,7 +233,7 @@ exit /b %errorlevel%
 ::             'Extra | tools and utilities' = '额外 | 工具和实用项'
 ::             'Open tools, cleanup helpers, and add-on utilities.' = '打开工具、清理助手和附加实用项。'
 ::             'Install smaller workflow utilities and add-ons.' = '安装较小的工作流实用工具和扩展。'
-::             'Install rtk, ccusage, codex-auth, superpowers, and OpenSpec.' = '安装 rtk、ccusage、codex-auth、superpowers 和 OpenSpec。'
+::             'Install rtk, ccusage, codex-auth, superpowers, OpenSpec, and BMAD.' = '安装 rtk、ccusage、codex-auth、superpowers、OpenSpec 和 BMAD。'
 ::             'RTK | output proxy' = 'RTK | 输出代理'
 ::             'Proxy noisy terminal output before it reaches the model.' = '在终端输出进入模型前先过滤噪声。'
 ::             'ccusage | usage reports' = 'ccusage | 用量报告'
@@ -238,6 +241,12 @@ exit /b %errorlevel%
 ::             'codex-auth | account switcher' = 'codex-auth | 账号切换器'
 ::             'Switch Codex accounts without manually editing auth files.' = '无需手动编辑认证文件即可切换 Codex 账号。'
 ::             'superpowers | Codex skills pack' = 'superpowers | Codex 技能包'
+::             'BMAD | project framework' = 'BMAD | 项目框架'
+::             'Project-scoped install' = '项目级安装'
+::             'BMAD installs into a selected project instead of your global shell profile.' = 'BMAD 会安装到你选定的项目中，而不是全局 shell 配置里。'
+::             'SYTA will ask you to choose a project folder before launching the BMAD installer.' = '启动 BMAD 安装器前，SYTA 会先让你选择项目文件夹。'
+::             'Use Update -> Update utilities add-ons later to quick-update BMAD installs already found under C:\.CODEX.' = '之后可使用 更新 -> 更新实用工具扩展，快速更新已在 C:\\.CODEX 下找到的 BMAD 安装。'
+::             'SYTA Utility Updater' = 'SYTA 实用工具更新器'
 ::             'Installs the Superpowers repo and links its skills into Codex.' = '安装 Superpowers 仓库并把技能链接到 Codex。'
 ::             'OpenSpec | spec workflow' = 'OpenSpec | 规格工作流'
 ::             'Spec-first workflow layer for planning and execution.' = '面向规划和执行的规格优先工作流层。'
@@ -418,11 +427,14 @@ exit /b %errorlevel%
 ::             'Explanations' = 'Explications'
 ::             'Update' = 'Mise a jour'
 ::             'Choose which update lane to run.' = 'Choisissez le type de mise a jour a lancer.'
-::             'Run a lighter AI-tools-only update or the broader full maintenance pass.' = 'Lancer soit une mise a jour legere des outils IA, soit la maintenance complete.'
+::             'Run a lighter AI-tools-only update, the utility-addons updater, or the broader full maintenance pass.' = 'Lancer soit une mise a jour legere des outils IA, soit la mise a jour des utilitaires, soit la maintenance complete.'
 ::             'Light update' = 'Mise a jour legere'
 ::             'Update all' = 'Mise a jour complete'
+::             'Update utilities add-ons' = 'Mettre a jour les utilitaires'
 ::             'Update AI coding CLIs only: Codex, OMX, OpenCode, Claude Code, Gemini CLI.' = 'Mettre a jour seulement les CLI IA : Codex, OMX, OpenCode, Claude Code, Gemini CLI.'
 ::             'Run the broader toolchain update pass, including system package managers.' = 'Lancer la maintenance plus large de la chaine d''outils, y compris les gestionnaires systeme.'
+::             'Update installed utility add-ons only: RTK, ccusage, codex-auth, superpowers, OpenSpec, BMAD.' = 'Mettre a jour seulement les utilitaires installes : RTK, ccusage, codex-auth, superpowers, OpenSpec, BMAD.'
+::             'Run the installed utility add-ons updater without touching the broader toolchain.' = 'Lancer la mise a jour des utilitaires installes sans toucher au reste de la chaine d''outils.'
 ::             'First install (recommended)' = 'Premiere installation (recommandee)'
 ::             'Best beginner path for WSL Ubuntu, optional PowerShell 7, and the core AI CLI tools.' = 'Meilleur parcours debutant pour WSL Ubuntu, PowerShell 7 en option et les CLI IA de base.'
 ::             'Recommended path for a new machine or first SYTA setup' = 'Parcours recommande pour une nouvelle machine ou une premiere installation SYTA'
@@ -488,7 +500,7 @@ exit /b %errorlevel%
 ::             'Extra | tools and utilities' = 'Extra | outils et utilitaires'
 ::             'Open tools, cleanup helpers, and add-on utilities.' = 'Ouvrir les outils, aides de nettoyage et utilitaires additionnels.'
 ::             'Install smaller workflow utilities and add-ons.' = 'Installer des utilitaires de workflow et des extensions plus legers.'
-::             'Install rtk, ccusage, codex-auth, superpowers, and OpenSpec.' = 'Installer rtk, ccusage, codex-auth, superpowers et OpenSpec.'
+::             'Install rtk, ccusage, codex-auth, superpowers, OpenSpec, and BMAD.' = 'Installer rtk, ccusage, codex-auth, superpowers, OpenSpec et BMAD.'
 ::             'RTK | output proxy' = 'RTK | proxy de sortie'
 ::             'Proxy noisy terminal output before it reaches the model.' = 'Filtre la sortie terminal bruyante avant qu''elle n''atteigne le modele.'
 ::             'ccusage | usage reports' = 'ccusage | rapports d''usage'
@@ -496,6 +508,12 @@ exit /b %errorlevel%
 ::             'codex-auth | account switcher' = 'codex-auth | changement de compte'
 ::             'Switch Codex accounts without manually editing auth files.' = 'Change de compte Codex sans modifier les fichiers d''authentification a la main.'
 ::             'superpowers | Codex skills pack' = 'superpowers | pack de skills Codex'
+::             'BMAD | project framework' = 'BMAD | framework projet'
+::             'Project-scoped install' = 'Installation par projet'
+::             'BMAD installs into a selected project instead of your global shell profile.' = 'BMAD s''installe dans un projet choisi plutot que dans votre profil shell global.'
+::             'SYTA will ask you to choose a project folder before launching the BMAD installer.' = 'SYTA vous demandera de choisir un dossier projet avant de lancer l''installateur BMAD.'
+::             'Use Update -> Update utilities add-ons later to quick-update BMAD installs already found under C:\.CODEX.' = 'Utilisez ensuite Mise a jour -> Mettre a jour les utilitaires pour actualiser rapidement les installations BMAD deja trouvees sous C:\\.CODEX.'
+::             'SYTA Utility Updater' = 'SYTA Mise a jour des utilitaires'
 ::             'Installs the Superpowers repo and links its skills into Codex.' = 'Installe le depot Superpowers et lie ses skills a Codex.'
 ::             'OpenSpec | spec workflow' = 'OpenSpec | workflow spec'
 ::             'Spec-first workflow layer for planning and execution.' = 'Couche de workflow basee sur les specs pour la planification et l''execution.'
@@ -851,6 +869,13 @@ exit /b %errorlevel%
 ::         DetectScript = $null
 ::         AuthScript = 'echo not-installed'
 ::         InstallHint = 'Install from Install -> Utilities -> OpenSpec.'
+::     }
+::     'utility-bmad' = [pscustomobject]@{
+::         Command = ''
+::         VersionScript = ''
+::         DetectScript = 'first="$(find /mnt/c/.CODEX -mindepth 2 -maxdepth 2 -type d -name _bmad 2>/dev/null | sort | head -n 1)"; if [ -n "$first" ]; then echo "$first"; fi'
+::         AuthScript = 'echo project-scoped'
+::         InstallHint = 'Install from Install -> Utilities -> BMAD.'
 ::     }
 :: }
 ::
@@ -1474,6 +1499,7 @@ exit /b %errorlevel%
 ::     switch ($Raw) {
 ::         'env-key' { return (Localize-Text 'Auth via env key') }
 ::         'config-present' { return (Localize-Text 'Auth/config detected') }
+::         'project-scoped' { return (Localize-Text 'Project-scoped install') }
 ::         'not-installed' { return (Localize-Text 'Auth n/a') }
 ::         'wsl-missing' { return (Localize-Text 'WSL Linux distro missing') }
 ::         'wsl-setup-incomplete' { return (Localize-Text 'WSL Linux setup incomplete') }
@@ -1561,6 +1587,7 @@ exit /b %errorlevel%
 ::         'user' { Localize-Text 'user-local' }
 ::         'system' { Localize-Text 'system-wide' }
 ::         'config' { Localize-Text 'config-only' }
+::         'project' { Localize-Text 'project-scoped' }
 ::         'custom' { Localize-Text 'custom path' }
 ::         default { Localize-Text 'unknown source' }
 ::     }
@@ -2054,7 +2081,7 @@ exit /b %errorlevel%
 ::                     [pscustomobject]@{ Title = 'Choisir son parcours | comparaison'; Subtitle = 'Comparer les grandes familles d''outils avant d''empiler des installations.'; Accent = 'Yellow'; Key = 'chooser' }
 ::                     [pscustomobject]@{ Title = 'Parcours OpenAI | Codex et OMX'; Subtitle = 'Quand rester sur Codex seul, et quand OMX ajoute une vraie valeur.'; Accent = 'Green'; Key = 'openai' }
 ::                     [pscustomobject]@{ Title = 'Parcours OpenCode | noyau et add-ons'; Subtitle = 'Comprendre OpenCode, Oh My OpenAgent, Slim, et les couches autour.'; Accent = 'Blue'; Key = 'opencode' }
-::                     [pscustomobject]@{ Title = 'Utilitaires et add-ons | a quoi ils servent'; Subtitle = 'RTK, ccusage, codex-auth, superpowers, OpenSpec et les extras similaires.'; Accent = 'Magenta'; Key = 'utilities' }
+::                     [pscustomobject]@{ Title = 'Utilitaires et add-ons | a quoi ils servent'; Subtitle = 'RTK, ccusage, codex-auth, superpowers, OpenSpec, BMAD et les extras similaires.'; Accent = 'Magenta'; Key = 'utilities' }
 ::                     [pscustomobject]@{ Title = 'Que dois-je installer ? | recommandation'; Subtitle = 'Conseil direct si vous voulez juste le meilleur point de depart.'; Accent = 'Green'; Key = 'recommend' }
 ::                     [pscustomobject]@{ Title = 'Retour'; Subtitle = 'Revenir au menu principal.'; Accent = 'DarkGray'; Key = 'back' }
 ::                 )
@@ -2069,7 +2096,7 @@ exit /b %errorlevel%
 ::                     [pscustomobject]@{ Title = '如何选路径 | 对比'; Subtitle = '先比较主要工具路线，再决定是否叠加更多层。'; Accent = 'Yellow'; Key = 'chooser' }
 ::                     [pscustomobject]@{ Title = 'OpenAI 路线 | Codex 和 OMX'; Subtitle = '什么时候只用 Codex，什么时候 OMX 才真的有价值。'; Accent = 'Green'; Key = 'openai' }
 ::                     [pscustomobject]@{ Title = 'OpenCode 路线 | 核心与扩展'; Subtitle = '理解 OpenCode、Oh My OpenAgent、Slim 以及周边层。'; Accent = 'Blue'; Key = 'opencode' }
-::                     [pscustomobject]@{ Title = '实用工具和扩展 | 各自做什么'; Subtitle = 'RTK、ccusage、codex-auth、superpowers、OpenSpec 这类附加工具。'; Accent = 'Magenta'; Key = 'utilities' }
+::                     [pscustomobject]@{ Title = '实用工具和扩展 | 各自做什么'; Subtitle = 'RTK、ccusage、codex-auth、superpowers、OpenSpec、BMAD 这类附加工具。'; Accent = 'Magenta'; Key = 'utilities' }
 ::                     [pscustomobject]@{ Title = '我该装什么？ | 建议'; Subtitle = '如果你只想要直接建议，这里给你最短答案。'; Accent = 'Green'; Key = 'recommend' }
 ::                     [pscustomobject]@{ Title = '返回'; Subtitle = '回到主菜单。'; Accent = 'DarkGray'; Key = 'back' }
 ::                 )
@@ -2084,7 +2111,7 @@ exit /b %errorlevel%
 ::                     [pscustomobject]@{ Title = 'Tool chooser | compare paths'; Subtitle = 'Compare the main tool lanes before you stack more installs on top.'; Accent = 'Yellow'; Key = 'chooser' }
 ::                     [pscustomobject]@{ Title = 'OpenAI path | Codex and OMX'; Subtitle = 'When Codex alone is enough, and when OMX actually adds value.'; Accent = 'Green'; Key = 'openai' }
 ::                     [pscustomobject]@{ Title = 'OpenCode path | core + add-ons'; Subtitle = 'Understand OpenCode, Oh My OpenAgent, Slim, and the layers around them.'; Accent = 'Blue'; Key = 'opencode' }
-::                     [pscustomobject]@{ Title = 'Utilities and add-ons | what they do'; Subtitle = 'RTK, ccusage, codex-auth, superpowers, OpenSpec, and similar extras.'; Accent = 'Magenta'; Key = 'utilities' }
+::                     [pscustomobject]@{ Title = 'Utilities and add-ons | what they do'; Subtitle = 'RTK, ccusage, codex-auth, superpowers, OpenSpec, BMAD, and similar extras.'; Accent = 'Magenta'; Key = 'utilities' }
 ::                     [pscustomobject]@{ Title = 'What should I install? | recommendation'; Subtitle = 'Direct recommendation if you mostly want the shortest good answer.'; Accent = 'Green'; Key = 'recommend' }
 ::                     [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the main menu.'; Accent = 'DarkGray'; Key = 'back' }
 ::                 )
@@ -2105,7 +2132,7 @@ exit /b %errorlevel%
 ::                     'OpenCode est souvent le point de depart le plus leger et le plus simple.',
 ::                     'Claude Code et Gemini CLI valent surtout le coup si vous utilisez deja ces services.',
 ::                     'Si vous etes nouveau, le chemin le plus simple reste Install -> First install, puis OpenCode ou Codex.',
-::                     'Les outils Oh My, superpowers, OpenSpec, RTK et les autres extras viennent apres le parcours de base, pas avant.'
+::                     'Les outils Oh My, superpowers, OpenSpec, BMAD, RTK et les autres extras viennent apres le parcours de base, pas avant.'
 ::                 ) } }
 ::                 'chooser' { return [pscustomobject]@{ Title = 'Choisir son parcours'; Lines = @(
 ::                     'Ne commencez pas par les noms des outils. Commencez par votre facon de travailler.',
@@ -2136,6 +2163,7 @@ exit /b %errorlevel%
 ::                     'ccusage sert a lire la consommation locale et le cout de vos sessions.',
 ::                     'codex-auth sert a basculer entre des comptes Codex plus facilement.',
 ::                     'OpenSpec ajoute une couche de specification quand vous voulez cadrer le travail avant d''ecrire.',
+::                     'BMAD ajoute un cadre projet complet oriente planification et workflows, a installer dans un projet choisi plutot qu''en global.',
 ::                     'superpowers ajoute une discipline et des skills autour de l''agent, mais c''est une couche avancee, pas une base.',
 ::                     'Ajoutez ces outils pour resoudre un probleme reel: bruit, cout, comptes, specs ou structure. Sinon, ne les ajoutez pas encore.'
 ::                 ) } }
@@ -2158,7 +2186,7 @@ exit /b %errorlevel%
 ::                     'OpenCode 通常是最轻、最容易开始的一条路。',
 ::                     'Claude Code 和 Gemini CLI 更适合已经在用这些服务的人。',
 ::                     '如果你是新手，最简单的路径仍然是 Install -> First install，然后从 OpenCode 或 Codex 开始。',
-::                     'Oh My 系列、superpowers、OpenSpec、RTK 这些额外层，应该在基础路径跑顺之后再加。'
+::                     'Oh My 系列、superpowers、OpenSpec、BMAD、RTK 这些额外层，应该在基础路径跑顺之后再加。'
 ::                 ) } }
 ::                 'chooser' { return [pscustomobject]@{ Title = '如何选路径'; Lines = @(
 ::                     '不要先从工具名字开始想，先从你想怎样工作开始想。',
@@ -2189,6 +2217,7 @@ exit /b %errorlevel%
 ::                     'ccusage 用来看本地会话的消耗、token 和成本。',
 ::                     'codex-auth 用来更轻松地切换 Codex 账号。',
 ::                     'OpenSpec 会在你写代码前加上一层规格流程，适合想先把事情说清楚的人。',
+::                     'BMAD 会在选定项目里加入更完整的规划与工作流框架，适合想要更强方法论的人。',
 ::                     'superpowers 会给代理增加一整套工作流纪律和技能，但它是高级层，不是基础层。',
 ::                     '只有当你真的遇到噪声、成本、账号切换、规格管理或结构问题时，再加这些工具。'
 ::                 ) } }
@@ -2211,7 +2240,7 @@ exit /b %errorlevel%
 ::                     'OpenCode is usually the lightest and easiest place to begin.',
 ::                     'Claude Code and Gemini CLI are mostly worth adding if you already use those services.',
 ::                     'If you are new, the easiest path is still Install -> First install, then start with OpenCode or Codex.',
-::                     'The Oh My tools, superpowers, OpenSpec, RTK, and the other extras come after the base lane works, not before.'
+::                     'The Oh My tools, superpowers, OpenSpec, BMAD, RTK, and the other extras come after the base lane works, not before.'
 ::                 ) } }
 ::                 'chooser' { return [pscustomobject]@{ Title = 'Tool chooser'; Lines = @(
 ::                     'Do not start from brand names. Start from the kind of workflow you want.',
@@ -2242,6 +2271,7 @@ exit /b %errorlevel%
 ::                     'ccusage helps you inspect local session usage, tokens, and cost.',
 ::                     'codex-auth makes switching Codex accounts easier.',
 ::                     'OpenSpec adds a spec layer when you want to define the work before you implement it.',
+::                     'BMAD adds a fuller project workflow framework inside a selected project when you want more planning structure.',
 ::                     'superpowers adds workflow discipline and skill packs around the agent, but it is an advanced layer, not a base install.',
 ::                     'Add these only when they solve a real problem: noise, cost tracking, account switching, spec discipline, or workflow structure.'
 ::                 ) } }
@@ -2292,6 +2322,7 @@ exit /b %errorlevel%
 :: function Launch-UpdateMenu {
 ::     $items = @(
 ::         [pscustomobject]@{ Title = 'Light update'; Subtitle = 'Update AI coding CLIs only: Codex, OMX, OpenCode, Claude Code, Gemini CLI.'; Accent = 'Green'; Key = 'UpdateLight' }
+::         [pscustomobject]@{ Title = 'Update utilities add-ons'; Subtitle = 'Update installed utility add-ons only: RTK, ccusage, codex-auth, superpowers, OpenSpec, BMAD.'; Accent = 'Cyan'; Key = 'UpdateUtilities' }
 ::         [pscustomobject]@{ Title = 'Update all'; Subtitle = 'Run the broader toolchain update pass, including system package managers.'; Accent = 'Yellow'; Key = 'UpdateAll' }
 ::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the main menu.'; Accent = 'DarkGray'; Key = 'back' }
 ::     )
@@ -2299,12 +2330,12 @@ exit /b %errorlevel%
 ::     if ($DryRun) {
 ::         return [pscustomobject]@{
 ::             Title = 'Update'
-::             Subtitle = 'Run a lighter AI-tools-only update or the broader full maintenance pass.'
+::             Subtitle = 'Run a lighter AI-tools-only update, the utility-addons updater, or the broader full maintenance pass.'
 ::             Items = $items
 ::         }
 ::     }
 ::
-::     $selection = Read-Menu -Title 'Update' -Subtitle 'Run a lighter AI-tools-only update or the broader full maintenance pass.' -Items $items
+::     $selection = Read-Menu -Title 'Update' -Subtitle 'Run a lighter AI-tools-only update, the utility-addons updater, or the broader full maintenance pass.' -Items $items
 ::
 ::     if (-not $selection -or $selection.Key -eq 'back') {
 ::         return
@@ -2312,6 +2343,7 @@ exit /b %errorlevel%
 ::
 ::     switch ($selection.Key) {
 ::         'UpdateLight' { Launch-UpdateLightMode }
+::         'UpdateUtilities' { Launch-UpdateUtilitiesMode }
 ::         'UpdateAll' { Launch-UpdateMode }
 ::     }
 :: }
@@ -2752,7 +2784,7 @@ exit /b %errorlevel%
 ::     return @(
 ::         [pscustomobject]@{ Title = 'Cleaner helper | maintenance'; Subtitle = if ($distroReady) { 'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.' } else { $blockedText }; Accent = if ($distroReady) { 'Cyan' } else { 'Yellow' }; Key = 'cleaner-helper' }
 ::         [pscustomobject]@{ Title = 'Reset tool configs | maintenance'; Subtitle = if ($distroReady) { 'Review tracked config/auth paths and remove only the ones you confirm.' } else { $blockedText }; Accent = 'Yellow'; Key = 'reset-tool-configs' }
-::         [pscustomobject]@{ Title = 'Utilities | add-ons'; Subtitle = if ($distroReady) { 'Install rtk, ccusage, codex-auth, superpowers, and OpenSpec.' } else { $blockedText }; Accent = if ($distroReady) { 'Blue' } else { 'Yellow' }; Key = 'utilities' }
+::         [pscustomobject]@{ Title = 'Utilities | add-ons'; Subtitle = if ($distroReady) { 'Install rtk, ccusage, codex-auth, superpowers, OpenSpec, and BMAD.' } else { $blockedText }; Accent = if ($distroReady) { 'Blue' } else { 'Yellow' }; Key = 'utilities' }
 ::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the previous menu.'; Accent = 'DarkGray'; Key = 'back' }
 ::     )
 :: }
@@ -2761,12 +2793,13 @@ exit /b %errorlevel%
 ::     $distroInstalled = Test-WslUserDistroInstalled
 ::     $distroReady = Test-WslPreferredDistroReadyForCli
 ::     if ($distroReady) {
-::         Warm-ToolDiagnosticsCache -Keys @('utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec')
+::         Warm-ToolDiagnosticsCache -Keys @('utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec', 'utility-bmad')
 ::         $rtkDiag = Get-ToolDiagnostics -Key 'utility-rtk'
 ::         $ccusageDiag = Get-ToolDiagnostics -Key 'utility-ccusage'
 ::         $codexAuthDiag = Get-ToolDiagnostics -Key 'utility-codex-auth'
 ::         $superpowersDiag = Get-ToolDiagnostics -Key 'utility-superpowers'
 ::         $openspecDiag = Get-ToolDiagnostics -Key 'utility-openspec'
+::         $bmadDiag = Get-ToolDiagnostics -Key 'utility-bmad'
 ::     } else {
 ::         $setupIncomplete = $distroInstalled
 ::         $rtkDiag = New-WslMissingToolDiagnostics -Key 'utility-rtk' -SetupIncomplete:$setupIncomplete
@@ -2774,6 +2807,7 @@ exit /b %errorlevel%
 ::         $codexAuthDiag = New-WslMissingToolDiagnostics -Key 'utility-codex-auth' -SetupIncomplete:$setupIncomplete
 ::         $superpowersDiag = New-WslMissingToolDiagnostics -Key 'utility-superpowers' -SetupIncomplete:$setupIncomplete
 ::         $openspecDiag = New-WslMissingToolDiagnostics -Key 'utility-openspec' -SetupIncomplete:$setupIncomplete
+::         $bmadDiag = New-WslMissingToolDiagnostics -Key 'utility-bmad' -SetupIncomplete:$setupIncomplete
 ::     }
 ::
 ::     return @(
@@ -2782,6 +2816,7 @@ exit /b %errorlevel%
 ::         [pscustomobject]@{ Title = 'codex-auth | account switcher'; Subtitle = $codexAuthDiag.MenuText; Accent = if ($codexAuthDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'utility-codex-auth' }
 ::         [pscustomobject]@{ Title = 'superpowers | Codex skills pack'; Subtitle = $superpowersDiag.MenuText; Accent = if ($superpowersDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Yellow' }; Key = 'utility-superpowers' }
 ::         [pscustomobject]@{ Title = 'OpenSpec | spec workflow'; Subtitle = $openspecDiag.MenuText; Accent = if ($openspecDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'utility-openspec' }
+::         [pscustomobject]@{ Title = 'BMAD | project framework'; Subtitle = $bmadDiag.MenuText; Accent = if ($bmadDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'utility-bmad' }
 ::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the previous menu.'; Accent = 'DarkGray'; Key = 'back' }
 ::     )
 :: }
@@ -2797,6 +2832,22 @@ exit /b %errorlevel%
 ::     return @($items | ForEach-Object {
 ::         $diag = Get-ToolDiagnostics -Key $_.Key
 ::         ('{0,-8}: {1}; {2}; {3}' -f $_.Label, $diag.InstallText, $diag.VersionText, $diag.AuthText)
+::     })
+:: }
+::
+:: function Get-UtilityAddonSummaryLines {
+::     $items = @(
+::         [pscustomobject]@{ Label = 'RTK'; Key = 'utility-rtk' }
+::         [pscustomobject]@{ Label = 'ccusage'; Key = 'utility-ccusage' }
+::         [pscustomobject]@{ Label = 'codex-auth'; Key = 'utility-codex-auth' }
+::         [pscustomobject]@{ Label = 'superpowers'; Key = 'utility-superpowers' }
+::         [pscustomobject]@{ Label = 'OpenSpec'; Key = 'utility-openspec' }
+::         [pscustomobject]@{ Label = 'BMAD'; Key = 'utility-bmad' }
+::     )
+::
+::     return @($items | ForEach-Object {
+::         $diag = Get-ToolDiagnostics -Key $_.Key
+::         ('{0,-12}: {1}; {2}; {3}' -f $_.Label, $diag.InstallText, $diag.VersionText, $diag.AuthText)
 ::     })
 :: }
 ::
@@ -3109,6 +3160,28 @@ exit /b %errorlevel%
 ::     Clear-ToolDiagnosticsCache
 :: }
 ::
+:: function Launch-UpdateUtilitiesMode {
+::     $lines = @(
+::         'Scope   : RTK, ccusage, codex-auth, superpowers, OpenSpec, BMAD',
+::         "Projects: $script:ProjectsRoot"
+::     ) + (Get-UtilityAddonSummaryLines)
+::     Show-InfoBox -Title 'Utility Update Preflight' -Accent Cyan -Hint 'A new terminal tab opens immediately after this screen' -Lines $lines
+::
+::     $result = Open-WslWindow `
+::         -Title (Localize-Text 'SYTA Utility Updater') `
+::         -WindowsDirectory $script:ProjectsRoot `
+::         -WindowsScriptPath (Join-Path $script:ScriptDir 'syta-wsl-session.sh') `
+::         -ScriptArguments @('update-utilities', $script:Language)
+::
+::     if ($DryRun) {
+::         $result | ConvertTo-Json -Depth 4
+::         return
+::     }
+::
+::     Start-Sleep -Milliseconds 500
+::     Clear-ToolDiagnosticsCache
+:: }
+::
 :: function Launch-ExtraMode {
 ::     if ($DryRun) {
 ::         return [pscustomobject]@{
@@ -3163,7 +3236,23 @@ exit /b %errorlevel%
 ::                 'OpenSpec installs a global CLI and then you run openspec init inside a project.',
 ::                 'Upstream requires Node.js 20.19.0 or higher. SYTA uses the current nvm Node lane.'
 ::             ) }
+::             'utility-bmad' { @(
+::                 'BMAD installs into a selected project instead of your global shell profile.',
+::                 'SYTA will ask you to choose a project folder before launching the BMAD installer.',
+::                 'Use Update -> Update utilities add-ons later to quick-update BMAD installs already found under C:\.CODEX.'
+::             ) }
 ::             default { @() }
+::         }
+::
+::         $runDirectory = $script:ScriptDir
+::         $project = $null
+::         if ($selection.Key -eq 'utility-bmad') {
+::             $project = Select-Project
+::             if (-not $project) {
+::                 return
+::             }
+::             $runDirectory = Ensure-ProjectDirectory -Name $project.Name
+::             $extraLines = @("Project : $runDirectory") + $extraLines
 ::         }
 ::
 ::         Show-InfoBox -Title 'Install Preflight' -Accent Cyan -Hint 'A new terminal tab opens immediately after this screen' -Lines (@(
@@ -3176,7 +3265,7 @@ exit /b %errorlevel%
 ::
 ::         $result = Open-WslWindow `
 ::             -Title "SYTA Install - $($selection.Title)" `
-::             -WindowsDirectory $script:ScriptDir `
+::             -WindowsDirectory $runDirectory `
 ::             -WindowsScriptPath (Join-Path $script:ScriptDir 'syta-wsl-session.sh') `
 ::             -ScriptArguments @('install', $selection.Key, $script:Language)
 ::
@@ -3185,6 +3274,9 @@ exit /b %errorlevel%
 ::             return
 ::         }
 ::
+::         if ($project) {
+::             Add-RecentProject -Name $project.Name
+::         }
 ::         Start-Sleep -Milliseconds 500
 ::         Clear-ToolDiagnosticsCache
 ::     }
@@ -3283,7 +3375,7 @@ exit /b %errorlevel%
 ::         return
 ::     }
 ::
-::     $wslRequiredKeys = @('all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'codex', 'opencode', 'omx', 'claude-code', 'gemini-cli', 'droid-cli', 'oh-my-openagent', 'oh-my-opencode-slim', 'utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec')
+::     $wslRequiredKeys = @('all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'codex', 'opencode', 'omx', 'claude-code', 'gemini-cli', 'droid-cli', 'oh-my-openagent', 'oh-my-opencode-slim', 'utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec', 'utility-bmad')
 ::     if ($wslRequiredKeys -contains $selection.Key -and -not (Test-WslPreferredDistroReadyForCli)) {
 ::         $distroInstalled = Test-WslUserDistroInstalled
 ::         $lines = if ($distroInstalled) {
@@ -3389,7 +3481,23 @@ exit /b %errorlevel%
 ::                 'OpenSpec installs a global CLI and then you run openspec init inside a project.',
 ::                 'Upstream requires Node.js 20.19.0 or higher. SYTA uses the current nvm Node lane.'
 ::             ) }
+::             'utility-bmad' { @(
+::                 'BMAD installs into a selected project instead of your global shell profile.',
+::                 'SYTA will ask you to choose a project folder before launching the BMAD installer.',
+::                 'Use Update -> Update utilities add-ons later to quick-update BMAD installs already found under C:\.CODEX.'
+::             ) }
 ::             default { @() }
+::         }
+::
+::         $runDirectory = $script:ScriptDir
+::         $project = $null
+::         if ($selection.Key -eq 'utility-bmad') {
+::             $project = Select-Project
+::             if (-not $project) {
+::                 return
+::             }
+::             $runDirectory = Ensure-ProjectDirectory -Name $project.Name
+::             $extraLines = @("Project : $runDirectory") + $extraLines
 ::         }
 ::
 ::         Show-InfoBox -Title 'Install Preflight' -Accent Cyan -Hint 'A new terminal tab opens immediately after this screen' -Lines (@(
@@ -3412,7 +3520,7 @@ exit /b %errorlevel%
 ::
 ::     $result = Open-WslWindow `
 ::         -Title "SYTA Install - $($selection.Title)" `
-::         -WindowsDirectory $script:ScriptDir `
+::         -WindowsDirectory $(if ($runDirectory) { $runDirectory } else { $script:ScriptDir }) `
 ::         -WindowsScriptPath (Join-Path $script:ScriptDir 'syta-wsl-session.sh') `
 ::         -ScriptArguments @('install', $selection.Key, $script:Language)
 ::
@@ -3421,6 +3529,9 @@ exit /b %errorlevel%
 ::         return
 ::     }
 ::
+::     if ($project) {
+::         Add-RecentProject -Name $project.Name
+::     }
 ::     Start-Sleep -Milliseconds 500
 ::     Clear-ToolDiagnosticsCache
 :: }
@@ -3494,6 +3605,11 @@ exit /b %errorlevel%
 ::
 :: if ($Mode -eq 'UpdateLight') {
 ::     Launch-UpdateLightMode
+::     exit 0
+:: }
+::
+:: if ($Mode -eq 'UpdateUtilities') {
+::     Launch-UpdateUtilitiesMode
 ::     exit 0
 :: }
 ::
@@ -3637,6 +3753,17 @@ exit /b %errorlevel%
 ::     utility-openspec)
 ::       command_name='openspec'
 ::       auth='not-installed'
+::       ;;
+::     utility-bmad)
+::       auth='project-scoped'
+::       if [ -d /mnt/c/.CODEX ]; then
+::         path="$(find /mnt/c/.CODEX -mindepth 2 -maxdepth 2 -type d -name _bmad 2>/dev/null | sort | head -n 1 || true)"
+::         if [ -n "$path" ]; then
+::           installed=1
+::           install_source='project'
+::           version="installed in $(find /mnt/c/.CODEX -mindepth 2 -maxdepth 2 -type d -name _bmad 2>/dev/null | wc -l | tr -d ' ') project(s)"
+::         fi
+::       fi
 ::       ;;
 ::     oh-my-openagent)
 ::       [ -f "$HOME/.config/opencode/oh-my-openagent.jsonc" ] && config="$HOME/.config/opencode/oh-my-openagent.jsonc" && auth='config-present'
@@ -3932,6 +4059,9 @@ exit /b %errorlevel%
 ::     ;;
 ::   update-light)
 ::     runner_cmd="export SYTA_LANG=$(quote_arg "$lang"); export SYTA_LANGUAGE=$(quote_arg "$lang"); bash $(quote_arg "$script_dir/update-ai-cli-tools.sh")"
+::     ;;
+::   update-utilities)
+::     runner_cmd="export SYTA_LANG=$(quote_arg "$lang"); export SYTA_LANGUAGE=$(quote_arg "$lang"); bash $(quote_arg "$script_dir/update-extra-utilities.sh") $(quote_arg "$PWD")"
 ::     ;;
 ::   *)
 ::     msg unknown_mode "$mode"
@@ -4556,6 +4686,26 @@ exit /b %errorlevel%
 ::   return 1
 :: }
 ::
+:: install_bmad() {
+::   ensure_node_npm_latest || return 1
+::   printf 'BMAD installs into the current project directory: %s
+:: ' "$PWD"
+::   if [ -d "$PWD/_bmad" ]; then
+::     printf 'Existing BMAD project files were detected. The official installer can update or modify them from here.
+::
+:: '
+::   fi
+::   run_step "Launch BMAD installer" with_nvm npx bmad-method install || return 1
+::   if [ -d "$PWD/_bmad" ]; then
+::     printf 'BMAD project files detected: %s/_bmad
+:: ' "$PWD"
+::   else
+::     printf 'BMAD installer finished. If you cancelled before selecting modules or tools, rerun this utility when ready.
+:: '
+::   fi
+::   return 0
+:: }
+::
 :: install_all_ai_cli_tools() {
 ::   local overall=0
 ::   install_codex || overall=1
@@ -4784,6 +4934,7 @@ exit /b %errorlevel%
 ::   utility-codex-auth) install_codex_auth || status=$? ;;
 ::   utility-superpowers) install_superpowers || status=$? ;;
 ::   utility-openspec) install_openspec || status=$? ;;
+::   utility-bmad) install_bmad || status=$? ;;
 ::   *) printf 'Unknown install target: %s
 :: ' "$tool_key"; exit 64 ;;
 :: esac
@@ -4961,6 +5112,230 @@ exit /b %errorlevel%
 ::
 :: exit "$failures"
 ::END:update-ai-cli-tools.sh
+::BEGIN:update-extra-utilities.sh
+:: #!/usr/bin/env bash
+:: set -u
+::
+:: failures=0
+:: projects_root="${1:-$PWD}"
+::
+:: run_step() {
+::   local label="$1"
+::   shift
+::   echo
+::   echo "== ${label} =="
+::   if "$@"; then
+::     echo OK
+::   else
+::     local rc=$?
+::     echo "FAILED (${rc})"
+::     failures=$((failures + 1))
+::     return "$rc"
+::   fi
+:: }
+::
+:: load_user_env() {
+::   export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+::   [ -d "$HOME/.opencode/bin" ] && export PATH="$HOME/.opencode/bin:$PATH"
+::   [ -f "$HOME/.profile" ] && . "$HOME/.profile" >/dev/null 2>&1 || true
+::   [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc" >/dev/null 2>&1 || true
+::   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+::   if [ -s "$NVM_DIR/nvm.sh" ]; then
+::     . "$NVM_DIR/nvm.sh" >/dev/null 2>&1 || true
+::     nvm use default >/dev/null 2>&1 || true
+::   fi
+::   hash -r 2>/dev/null || true
+:: }
+::
+:: have_cmd() {
+::   command -v "$1" >/dev/null 2>&1
+:: }
+::
+:: have_nvm() {
+::   [ -s "${NVM_DIR:-$HOME/.nvm}/nvm.sh" ]
+:: }
+::
+:: ensure_node_runtime_libs() {
+::   if ldconfig -p 2>/dev/null | grep -q 'libatomic.so.1'; then
+::     return 0
+::   fi
+::
+::   if command -v sudo >/dev/null 2>&1 && command -v apt-get >/dev/null 2>&1; then
+::     run_step "Install libatomic1" sudo apt-get update && sudo apt-get install -y libatomic1 || true
+::   fi
+:: }
+::
+:: with_nvm() {
+::   bash -lc 'export PATH="$HOME/.local/bin:$HOME/bin:$PATH"; [ -d "$HOME/.opencode/bin" ] && export PATH="$HOME/.opencode/bin:$PATH"; export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"; [ -f "$HOME/.profile" ] && . "$HOME/.profile" >/dev/null 2>&1 || true; [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc" >/dev/null 2>&1 || true; . "$NVM_DIR/nvm.sh"; nvm use default >/dev/null 2>&1 || true; "$@"' bash "$@"
+:: }
+::
+:: refresh_node_toolchain() {
+::   if have_nvm; then
+::     echo "Node toolchain: nvm-managed"
+::     ensure_node_runtime_libs
+::     run_step "Refresh npm to latest" bash -lc 'export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"; . "$NVM_DIR/nvm.sh"; nvm use default >/dev/null 2>&1 || nvm install node >/dev/null; npm install -g npm@latest' || true
+::     load_user_env
+::     return 0
+::   fi
+::
+::   if have_cmd npm; then
+::     echo "Node toolchain: system npm"
+::     run_step "Refresh npm to latest" npm install -g npm@latest || true
+::     load_user_env
+::     return 0
+::   fi
+::
+::   echo "npm is missing. Node-based utility updates are skipped."
+::   return 1
+:: }
+::
+:: run_npm_global_update() {
+::   local label="$1"
+::   local package="$2"
+::   if have_nvm; then
+::     run_step "$label" with_nvm npm install -g "$package"
+::   else
+::     run_step "$label" npm install -g "$package"
+::   fi
+:: }
+::
+:: find_bmad_projects() {
+::   if [ ! -d "$projects_root" ]; then
+::     return 0
+::   fi
+::
+::   find "$projects_root" -mindepth 2 -maxdepth 2 -type d -name _bmad 2>/dev/null | sort | while IFS= read -r dir; do
+::     dirname "$dir"
+::   done
+:: }
+::
+:: run_bmad_quick_update() {
+::   local project="$1"
+::   if have_nvm; then
+::     with_nvm bash -lc "cd $(printf '%q' "$project") && npx bmad-method install --action quick-update"
+::   else
+::     (
+::       cd "$project" &&
+::       npx bmad-method install --action quick-update
+::     )
+::   fi
+:: }
+::
+:: load_user_env
+:: echo "Update installed utility add-ons"
+:: echo "Projects root: $projects_root"
+:: echo
+::
+:: mapfile -t bmad_projects < <(find_bmad_projects)
+::
+:: node_required=0
+:: if have_cmd ccusage || have_cmd codex-auth || have_cmd openspec || [ "${#bmad_projects[@]}" -gt 0 ]; then
+::   node_required=1
+:: fi
+::
+:: node_ready=0
+:: if [ "$node_required" -eq 1 ]; then
+::   if refresh_node_toolchain; then
+::     node_ready=1
+::   fi
+:: fi
+::
+:: if have_cmd rtk; then
+::   run_step "Update RTK" bash -lc 'curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh' || true
+::   load_user_env
+:: else
+::   echo
+::   echo "== Update RTK =="
+::   echo SKIPPED
+:: fi
+::
+:: if have_cmd ccusage; then
+::   if [ "$node_ready" -eq 1 ]; then
+::     run_npm_global_update "Update ccusage" "ccusage@latest" || true
+::   else
+::     echo
+::     echo "== Update ccusage =="
+::     echo SKIPPED
+::   fi
+:: else
+::   echo
+::   echo "== Update ccusage =="
+::   echo SKIPPED
+:: fi
+::
+:: if have_cmd codex-auth; then
+::   if [ "$node_ready" -eq 1 ]; then
+::     run_npm_global_update "Update codex-auth" "@loongphy/codex-auth@latest" || true
+::   else
+::     echo
+::     echo "== Update codex-auth =="
+::     echo SKIPPED
+::   fi
+:: else
+::   echo
+::   echo "== Update codex-auth =="
+::   echo SKIPPED
+:: fi
+::
+:: if [ -d "$HOME/.codex/superpowers/.git" ]; then
+::   run_step "Update Superpowers repository" git -C "$HOME/.codex/superpowers" pull --ff-only || true
+::   mkdir -p "$HOME/.agents/skills"
+::   run_step "Relink Superpowers skills" ln -sfn "$HOME/.codex/superpowers/skills" "$HOME/.agents/skills/superpowers" || true
+:: elif [ -L "$HOME/.agents/skills/superpowers" ] || [ -e "$HOME/.codex/superpowers" ]; then
+::   echo
+::   echo "== Update Superpowers repository =="
+::   echo "FAILED (missing git checkout at $HOME/.codex/superpowers)"
+::   failures=$((failures + 1))
+:: else
+::   echo
+::   echo "== Update Superpowers repository =="
+::   echo SKIPPED
+:: fi
+::
+:: if have_cmd openspec; then
+::   if [ "$node_ready" -eq 1 ]; then
+::     run_npm_global_update "Update OpenSpec" "@fission-ai/openspec@latest" || true
+::   else
+::     echo
+::     echo "== Update OpenSpec =="
+::     echo SKIPPED
+::   fi
+:: else
+::   echo
+::   echo "== Update OpenSpec =="
+::   echo SKIPPED
+:: fi
+::
+:: if [ "${#bmad_projects[@]}" -gt 0 ]; then
+::   echo
+::   echo "BMAD projects found:"
+::   for project in "${bmad_projects[@]}"; do
+::     echo " - $project"
+::   done
+::   if [ "$node_ready" -eq 1 ]; then
+::     for project in "${bmad_projects[@]}"; do
+::       run_step "Quick-update BMAD in $(basename "$project")" run_bmad_quick_update "$project" || true
+::     done
+::   else
+::     echo
+::     echo "== Update BMAD project installs =="
+::     echo SKIPPED
+::   fi
+:: else
+::   echo
+::   echo "== Update BMAD project installs =="
+::   echo SKIPPED
+:: fi
+::
+:: echo
+:: if [ "$failures" -eq 0 ]; then
+::   echo "Utility add-on update done."
+:: else
+::   echo "Utility add-on update finished with ${failures} failure(s)."
+:: fi
+::
+:: exit "$failures"
+::END:update-extra-utilities.sh
 ::BEGIN:update-wsl-coding-tools.sh
 :: #!/usr/bin/env bash
 :: set -u

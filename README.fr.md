@@ -34,7 +34,7 @@ Il offre un point d’entrée unique pour :
 - installer les outils manquants
 - lancer directement l'assistant de nettoyage depuis le menu principal
 - reinitialiser les configs suivies des outils quand le setup devient trop charge
-- exécuter des mises à jour légères ou complètes
+- exécuter des mises à jour legeres, utilitaires seuls, ou completes
 - afficher des diagnostics avant lancement
 
 Tout le runtime est embarqué dans le fichier batch lui-même. Au lancement, il extrait ses scripts dans un dossier temporaire, exécute l’interface depuis là, puis laisse les vrais outils s’installer dans l’environnement utilisateur approprié.
@@ -47,6 +47,7 @@ Tout le runtime est embarqué dans le fichier batch lui-même. Au lancement, il 
 | `Install` | Installe ou répare l’environnement et les outils pris en charge |
 | `Extra` | Ouvre depuis le menu principal les outils de maintenance et les utilitaires plus legers |
 | `Light update` | Met à jour uniquement les CLI IA de code |
+| `Update utilities add-ons` | Met a jour uniquement les utilitaires deja installes |
 | `Update all` | Lance une mise à jour plus large de la chaîne d’outils |
 | Diagnostics | Affiche l’état d’installation, la version et des indices d’auth/config |
 | Menus plus reactifs | Regroupe les diagnostics et affiche des barres de chargement pendant les ecrans plus lents |
@@ -125,8 +126,11 @@ Le bundle de base installe actuellement :
 - `codex-auth`
 - `superpowers`
 - `OpenSpec`
+- `BMAD`
 
-Ces utilitaires restent installes dans le modele WSL-first du lanceur. `RTK`, `ccusage`, `codex-auth` et `OpenSpec` utilisent les commandes d'installation upstream dans WSL. `superpowers` clone le depot upstream et lie ses skills dans Codex, puis affiche les etapes optionnelles pour OpenCode et Gemini.
+Ces utilitaires restent installes dans le modele WSL-first du lanceur. `RTK`, `ccusage`, `codex-auth` et `OpenSpec` utilisent les commandes d'installation upstream dans WSL. `superpowers` clone le depot upstream et lie ses skills dans Codex, puis affiche les etapes optionnelles pour OpenCode et Gemini. `BMAD` est installe par projet : SYTA vous demande de choisir un projet sous `C:\.CODEX`, puis lance l'installateur officiel BMAD dans ce projet.
+
+`Update -> Update utilities add-ons` met a jour seulement les utilitaires detectes comme installes. Cette voie actualise les utilitaires utilisateur pris en charge et lance un quick-update BMAD sur les projets deja trouves sous `C:\.CODEX`.
 
 `OpenCode`, `Oh My OpenAgent` et `Oh My OpenCode Slim` sont maintenant trois voies distinctes :
 
@@ -205,6 +209,7 @@ Comportements importants :
 - `Cleaner helper` reste rapidement accessible via `Extra` tout en verifiant les anciennes installations npm des CLI IA dans les versions `nvm` plus vieilles avant nettoyage.
 - `Reset tool configs` reste sous `Extra` et donne un moyen conservateur d'annuler des chemins config/auth suivis, avec un second menu pour choisir un outil precis ou `Toutes les configs suivies`.
 - `Utilities` vit maintenant sous `Extra` pour garder les petits add-ons de workflow hors de la liste principale d'installation tout en leur donnant des diagnostics et un ecran de pre-vol.
+- `Update utilities add-ons` ajoute une voie de maintenance dediee pour les extras installes sans forcer la mise a jour complete.
 - Les menus utilisent un affichage plus lisible avec un panneau de detail et une progression pendant la preparation des donnees projet ou outil.
 - Le lanceur peut verifier si une nouvelle release GitHub est disponible et proposer une mise a jour du lanceur sur place.
 - Il privilégie `nvm` pour les CLI basées sur Node.

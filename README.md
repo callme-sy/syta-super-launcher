@@ -34,7 +34,7 @@ It gives you one interactive entry point to:
 - install missing tools
 - run the cleaner helper directly from the main menu
 - reset tracked tool configs when a setup has become too cluttered
-- run light or full update flows
+- run light, utility-only, or full update flows
 - surface diagnostics before launch
 
 The entire runtime is embedded into the batch file itself. At launch, it extracts helper scripts into a temporary runtime directory, runs the UI from there, and keeps the actual installs in the user environment where they belong.
@@ -47,6 +47,7 @@ The entire runtime is embedded into the batch file itself. At launch, it extract
 | `Install` | Installs or repairs the environment and supported tools |
 | `Extra` | Opens maintenance tools and smaller workflow utilities from the main menu |
 | `Light update` | Updates AI coding CLIs only |
+| `Update utilities add-ons` | Updates installed utility add-ons only |
 | `Update all` | Runs a broader toolchain update pass |
 | Diagnostics | Shows install, version, and auth/config hints |
 | Responsive menus | Batches diagnostics and shows loading bars during slower menu preparation |
@@ -125,8 +126,11 @@ The core bundle currently installs:
 - `codex-auth`
 - `superpowers`
 - `OpenSpec`
+- `BMAD`
 
-Those utility lanes still use the launcher's WSL-first model. `RTK`, `ccusage`, `codex-auth`, and `OpenSpec` run the upstream install commands in WSL. `superpowers` clones the upstream repo and links its skills into Codex, then prints the optional OpenCode and Gemini follow-up steps.
+Those utility lanes still use the launcher's WSL-first model. `RTK`, `ccusage`, `codex-auth`, and `OpenSpec` run the upstream install commands in WSL. `superpowers` clones the upstream repo and links its skills into Codex, then prints the optional OpenCode and Gemini follow-up steps. `BMAD` is project-scoped: SYTA asks you to choose a project under `C:\.CODEX`, then launches the official BMAD installer inside that project.
+
+`Update -> Update utilities add-ons` refreshes only detected installed utilities. It updates the supported user-scoped utility installs and quick-updates BMAD projects already found under `C:\.CODEX`.
 
 `OpenCode`, `Oh My OpenAgent`, and `Oh My OpenCode Slim` are now separate lanes:
 
@@ -205,6 +209,7 @@ Important behaviors:
 - `Cleaner helper` remains reachable quickly through `Extra` and still checks stale npm-based AI CLI installs across older `nvm` versions before cleanup.
 - `Reset tool configs` stays under `Extra` and gives users a conservative way to undo tracked tool config/auth paths, with a second menu for tool-specific reset choices or `All tracked configs`.
 - `Utilities` now lives under `Extra` so smaller workflow add-ons stay out of the main install list while still getting diagnostics and preflight screens.
+- `Update utilities add-ons` gives the launcher a dedicated maintenance lane for installed extras without forcing the broader full update pass.
 - Menus use a cleaner focused-detail layout and loading progress when project or tool data takes time to prepare.
 - The launcher can check for a newer GitHub release and offer an in-place launcher update.
 - It prefers `nvm` for Node-based CLI installs.

@@ -46,7 +46,7 @@ Tout le runtime est embarqué dans le fichier batch lui-même. Au lancement, il 
 | `Code` | Ouvre un projet et lance une CLI de code dans WSL |
 | `Install` | Installe ou répare l’environnement et les outils pris en charge |
 | `Extra` | Ouvre depuis le menu principal les outils de maintenance et les utilitaires plus legers |
-| `Light update` | Met a jour uniquement les CLI IA de code deja installees, y compris DROID CLI |
+| `Light update` | Met a jour uniquement les CLI IA de code deja installees, y compris Kilo Code CLI et DROID CLI |
 | `Update utilities add-ons` | Met a jour uniquement les utilitaires deja installes |
 | `Update all` | Lance une mise à jour plus large de la chaîne d’outils |
 | Diagnostics | Affiche l’état d’installation, la version et des indices d’auth/config |
@@ -64,6 +64,7 @@ Le lanceur peut démarrer dans WSL :
 - `Codex`
 - `OMX`
 - `OpenCode`
+- `Kilo Code CLI`
 - `Claude Code`
 - `Gemini CLI`
 
@@ -89,6 +90,7 @@ Le menu d’installation prend actuellement en charge :
 - `Install core AI CLI tools`
 - `Codex CLI`
 - `OpenCode`
+- `Kilo Code CLI`
 - `Oh My OpenAgent`
 - `Oh My Codex / OMX`
 - `Claude Code`
@@ -105,9 +107,11 @@ Le bundle de base installe actuellement :
 - `Claude Code`
 - `Gemini CLI`
 
-`Oh My Codex / OMX`, `Oh My OpenAgent`, `DROID CLI` et `Oh My OpenCode Slim` restent des installations optionnelles separees dans le menu d'installation.
+`Kilo Code CLI`, `Oh My Codex / OMX`, `Oh My OpenAgent`, `DROID CLI` et `Oh My OpenCode Slim` restent des installations optionnelles separees dans le menu d'installation.
 
 `DROID CLI` est la CLI de Factory AI. SYTA l'installe via la commande officielle de bootstrap Linux de Factory AI dans WSL.
+
+`Kilo Code CLI` est installee via le package npm officiel `@kilocode/cli`, puis lancee dans WSL avec la commande `kilo`.
 
 `Extra` ouvre depuis le menu principal un second selecteur pour la maintenance et les petits add-ons de workflow :
 

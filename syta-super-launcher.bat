@@ -35,9 +35,9 @@ exit /b %errorlevel%
 :: param(
 ::     [ValidateSet('Code', 'Install', 'Extra', 'Explanations', 'CleanerHelper', 'Update', 'UpdateAll', 'UpdateLight', 'UpdateUtilities')]
 ::     [string]$Mode,
-::     [ValidateSet('codex-yolo', 'omx-madmax-high', 'opencode', 'claude-code', 'gemini-cli')]
+::     [ValidateSet('codex-yolo', 'omx-madmax-high', 'opencode', 'kilocode-cli', 'claude-code', 'gemini-cli')]
 ::     [string]$Agent,
-::     [ValidateSet('first-install', 'wsl-ubuntu', 'powershell-7', 'extra', 'all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'utilities', 'codex', 'opencode', 'omx', 'claude-code', 'gemini-cli', 'droid-cli', 'oh-my-openagent', 'oh-my-opencode-slim', 'utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec', 'utility-bmad')]
+::     [ValidateSet('first-install', 'wsl-ubuntu', 'powershell-7', 'extra', 'all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'utilities', 'codex', 'opencode', 'kilocode-cli', 'omx', 'claude-code', 'gemini-cli', 'droid-cli', 'oh-my-openagent', 'oh-my-opencode-slim', 'utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec', 'utility-bmad')]
 ::     [string]$InstallTarget,
 ::     [ValidateSet('codex-omx', 'opencode', 'oh-my-openagent', 'oh-my-opencode-slim', 'claude-code', 'gemini-cli', 'all')]
 ::     [string]$ResetTarget,
@@ -68,8 +68,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-20-235728Z'
-:: $script:ReleaseTag = 'v1.9.4'
+:: $script:BuildId = 'SYTA-build-2026-04-21-041524Z'
+:: $script:ReleaseTag = 'v1.9.5'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -164,7 +164,7 @@ exit /b %errorlevel%
 ::             'Light update' = '轻量更新'
 ::             'Update all' = '全量更新'
 ::             'Update utilities add-ons' = '更新实用工具扩展'
-::             'Update AI coding CLIs only: Codex, OMX, OpenCode, Claude Code, Gemini CLI, DROID CLI.' = '仅更新 AI 编码 CLI：Codex、OMX、OpenCode、Claude Code、Gemini CLI、DROID CLI。'
+::             'Update AI coding CLIs only: Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI.' = '仅更新 AI 编码 CLI：Codex、OMX、OpenCode、Kilo Code CLI、Claude Code、Gemini CLI、DROID CLI。'
 ::             'Run the broader toolchain update pass, including system package managers.' = '运行更全面的工具链更新，包括系统包管理器。'
 ::             'Update installed utility add-ons only: RTK, ccusage, codex-auth, superpowers, OpenSpec, BMAD.' = '仅更新已安装的实用工具扩展：RTK、ccusage、codex-auth、superpowers、OpenSpec、BMAD。'
 ::             'Run the installed utility add-ons updater without touching the broader toolchain.' = '只运行已安装实用工具扩展的更新器，不触碰更广泛的工具链。'
@@ -223,6 +223,7 @@ exit /b %errorlevel%
 ::             'OpenCode | simple' = 'OpenCode | 简单'
 ::             'Oh My OpenAgent | advanced optional' = 'Oh My OpenAgent | 进阶可选'
 ::             'Oh My Codex / OMX | advanced optional' = 'Oh My Codex / OMX | 进阶可选'
+::             'Kilo Code CLI | optional' = 'Kilo Code CLI | 可选'
 ::             'Claude Code | optional' = 'Claude Code | 可选'
 ::             'Gemini CLI | optional' = 'Gemini CLI | 可选'
 ::             'DROID CLI | optional' = 'DROID CLI | 可选'
@@ -432,7 +433,7 @@ exit /b %errorlevel%
 ::             'Light update' = 'Mise a jour legere'
 ::             'Update all' = 'Mise a jour complete'
 ::             'Update utilities add-ons' = 'Mettre a jour les utilitaires'
-::             'Update AI coding CLIs only: Codex, OMX, OpenCode, Claude Code, Gemini CLI, DROID CLI.' = 'Mettre a jour seulement les CLI IA : Codex, OMX, OpenCode, Claude Code, Gemini CLI, DROID CLI.'
+::             'Update AI coding CLIs only: Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI.' = 'Mettre a jour seulement les CLI IA : Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI.'
 ::             'Run the broader toolchain update pass, including system package managers.' = 'Lancer la maintenance plus large de la chaine d''outils, y compris les gestionnaires systeme.'
 ::             'Update installed utility add-ons only: RTK, ccusage, codex-auth, superpowers, OpenSpec, BMAD.' = 'Mettre a jour seulement les utilitaires installes : RTK, ccusage, codex-auth, superpowers, OpenSpec, BMAD.'
 ::             'Run the installed utility add-ons updater without touching the broader toolchain.' = 'Lancer la mise a jour des utilitaires installes sans toucher au reste de la chaine d''outils.'
@@ -491,6 +492,7 @@ exit /b %errorlevel%
 ::             'OpenCode | simple' = 'OpenCode | simple'
 ::             'Oh My OpenAgent | advanced optional' = 'Oh My OpenAgent | option avancee'
 ::             'Oh My Codex / OMX | advanced optional' = 'Oh My Codex / OMX | option avancee'
+::             'Kilo Code CLI | optional' = 'Kilo Code CLI | optionnel'
 ::             'Claude Code | optional' = 'Claude Code | optionnel'
 ::             'Gemini CLI | optional' = 'Gemini CLI | optionnel'
 ::             'DROID CLI | optional' = 'DROID CLI | optionnel'
@@ -766,6 +768,13 @@ exit /b %errorlevel%
 ::         WindowTitle = 'OpenCode'
 ::     }
 ::     [pscustomobject]@{
+::         Key = 'kilocode-cli'
+::         Title = 'Kilo Code CLI | optional'
+::         Subtitle = 'Useful if you want Kilo''s terminal workflow.'
+::         Accent = 'DarkYellow'
+::         WindowTitle = 'Kilo Code CLI'
+::     }
+::     [pscustomobject]@{
 ::         Key = 'claude-code'
 ::         Title = 'Claude Code | optional'
 ::         Subtitle = 'Useful if you already use Claude.'
@@ -808,6 +817,13 @@ exit /b %errorlevel%
 ::         DetectScript = $null
 ::         AuthScript = 'if [ -f "$HOME/.config/opencode/opencode.json" ]; then echo config-present; elif [ -n "${OPENAI_API_KEY:-}" ]; then echo env-key; else echo not-detected; fi'
 ::         InstallHint = 'Install from Install -> OpenCode.'
+::     }
+::     'kilocode-cli' = [pscustomobject]@{
+::         Command = 'kilo'
+::         VersionScript = 'kilo --version 2>/dev/null | head -n 1'
+::         DetectScript = $null
+::         AuthScript = 'if [ -f "$HOME/.config/kilo/config.json" ] || [ -f "$HOME/.kilocode/cli/config.json" ] || [ -d "$HOME/.config/kilo" ] || [ -d "$HOME/.kilocode" ] || [ -d "$HOME/.kilo" ]; then echo config-present; else echo not-detected; fi'
+::         InstallHint = 'Install from Install -> Kilo Code CLI.'
 ::     }
 ::     'oh-my-openagent' = [pscustomobject]@{
 ::         Command = ''
@@ -2332,7 +2348,7 @@ exit /b %errorlevel%
 ::
 :: function Launch-UpdateMenu {
 ::     $items = @(
-::         [pscustomobject]@{ Title = 'Light update'; Subtitle = 'Update AI coding CLIs only: Codex, OMX, OpenCode, Claude Code, Gemini CLI, DROID CLI.'; Accent = 'Green'; Key = 'UpdateLight' }
+::         [pscustomobject]@{ Title = 'Light update'; Subtitle = 'Update AI coding CLIs only: Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI.'; Accent = 'Green'; Key = 'UpdateLight' }
 ::         [pscustomobject]@{ Title = 'Update utilities add-ons'; Subtitle = 'Update installed utility add-ons only: RTK, ccusage, codex-auth, superpowers, OpenSpec, BMAD.'; Accent = 'Cyan'; Key = 'UpdateUtilities' }
 ::         [pscustomobject]@{ Title = 'Update all'; Subtitle = 'Run the broader toolchain update pass, including system package managers.'; Accent = 'Yellow'; Key = 'UpdateAll' }
 ::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the main menu.'; Accent = 'DarkGray'; Key = 'back' }
@@ -2739,10 +2755,11 @@ exit /b %errorlevel%
 ::     $distroReady = Test-WslPreferredDistroReadyForCli
 ::     $pwshInfo = Get-PwshInfo
 ::     if ($distroReady) {
-::         Warm-ToolDiagnosticsCache -Keys @('codex', 'omx', 'opencode', 'claude-code', 'gemini-cli', 'droid-cli', 'oh-my-openagent', 'oh-my-opencode-slim')
+::         Warm-ToolDiagnosticsCache -Keys @('codex', 'omx', 'opencode', 'kilocode-cli', 'claude-code', 'gemini-cli', 'droid-cli', 'oh-my-openagent', 'oh-my-opencode-slim')
 ::         $codexDiag = Get-ToolDiagnostics -Key 'codex'
 ::         $omxDiag = Get-ToolDiagnostics -Key 'omx'
 ::         $opencodeDiag = Get-ToolDiagnostics -Key 'opencode'
+::         $kilocodeDiag = Get-ToolDiagnostics -Key 'kilocode-cli'
 ::         $claudeDiag = Get-ToolDiagnostics -Key 'claude-code'
 ::         $geminiDiag = Get-ToolDiagnostics -Key 'gemini-cli'
 ::         $droidDiag = Get-ToolDiagnostics -Key 'droid-cli'
@@ -2753,6 +2770,7 @@ exit /b %errorlevel%
 ::         $codexDiag = New-WslMissingToolDiagnostics -Key 'codex' -SetupIncomplete:$setupIncomplete
 ::         $omxDiag = New-WslMissingToolDiagnostics -Key 'omx' -SetupIncomplete:$setupIncomplete
 ::         $opencodeDiag = New-WslMissingToolDiagnostics -Key 'opencode' -SetupIncomplete:$setupIncomplete
+::         $kilocodeDiag = New-WslMissingToolDiagnostics -Key 'kilocode-cli' -SetupIncomplete:$setupIncomplete
 ::         $claudeDiag = New-WslMissingToolDiagnostics -Key 'claude-code' -SetupIncomplete:$setupIncomplete
 ::         $geminiDiag = New-WslMissingToolDiagnostics -Key 'gemini-cli' -SetupIncomplete:$setupIncomplete
 ::         $droidDiag = New-WslMissingToolDiagnostics -Key 'droid-cli' -SetupIncomplete:$setupIncomplete
@@ -2777,6 +2795,7 @@ exit /b %errorlevel%
 ::         [pscustomobject]@{ Title = 'Install core AI CLI tools | simple'; Subtitle = if ($distroReady) { 'Run Codex, OpenCode, Claude Code, and Gemini CLI in one pass.' } elseif ($distroInstalled) { 'WSL Linux setup incomplete | launch Ubuntu once first.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Green' } else { 'Yellow' }; Key = 'all-ai-cli-tools' }
 ::         [pscustomobject]@{ Title = 'Codex CLI | guided'; Subtitle = $codexDiag.MenuText; Accent = if ($codexDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'codex' }
 ::         [pscustomobject]@{ Title = 'OpenCode | simple'; Subtitle = $opencodeDiag.MenuText; Accent = if ($opencodeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'opencode' }
+::         [pscustomobject]@{ Title = 'Kilo Code CLI | optional'; Subtitle = $kilocodeDiag.MenuText; Accent = if ($kilocodeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'kilocode-cli' }
 ::         [pscustomobject]@{ Title = 'Oh My OpenAgent | advanced optional'; Subtitle = $omaDiag.MenuText; Accent = if ($omaDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Yellow' }; Key = 'oh-my-openagent' }
 ::         [pscustomobject]@{ Title = 'Oh My Codex / OMX | advanced optional'; Subtitle = $omxDiag.MenuText; Accent = if ($omxDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'omx' }
 ::         [pscustomobject]@{ Title = 'Claude Code | optional'; Subtitle = $claudeDiag.MenuText; Accent = if ($claudeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'claude-code' }
@@ -2835,7 +2854,9 @@ exit /b %errorlevel%
 :: function Get-CodingCliSummaryLines {
 ::     $items = @(
 ::         [pscustomobject]@{ Label = 'Codex'; Key = 'codex' }
+::         [pscustomobject]@{ Label = 'OMX'; Key = 'omx' }
 ::         [pscustomobject]@{ Label = 'OpenCode'; Key = 'opencode' }
+::         [pscustomobject]@{ Label = 'Kilo'; Key = 'kilocode-cli' }
 ::         [pscustomobject]@{ Label = 'Claude'; Key = 'claude-code' }
 ::         [pscustomobject]@{ Label = 'Gemini'; Key = 'gemini-cli' }
 ::         [pscustomobject]@{ Label = 'DROID'; Key = 'droid-cli' }
@@ -3152,7 +3173,7 @@ exit /b %errorlevel%
 ::
 :: function Launch-UpdateLightMode {
 ::     $lines = @(
-::         'Scope   : Codex, OMX, OpenCode, Claude Code, Gemini CLI, DROID CLI',
+::         'Scope   : Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI',
 ::         "Folder  : $script:ScriptDir"
 ::     ) + (Get-CodingCliSummaryLines)
 ::     Show-InfoBox -Title 'Light Update Preflight' -Accent Green -Hint 'A new terminal tab opens immediately after this screen' -Lines $lines
@@ -3387,7 +3408,7 @@ exit /b %errorlevel%
 ::         return
 ::     }
 ::
-::     $wslRequiredKeys = @('all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'codex', 'opencode', 'omx', 'claude-code', 'gemini-cli', 'droid-cli', 'oh-my-openagent', 'oh-my-opencode-slim', 'utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec', 'utility-bmad')
+::     $wslRequiredKeys = @('all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'codex', 'opencode', 'kilocode-cli', 'omx', 'claude-code', 'gemini-cli', 'droid-cli', 'oh-my-openagent', 'oh-my-opencode-slim', 'utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec', 'utility-bmad')
 ::     if ($wslRequiredKeys -contains $selection.Key -and -not (Test-WslPreferredDistroReadyForCli)) {
 ::         $distroInstalled = Test-WslUserDistroInstalled
 ::         $lines = if ($distroInstalled) {
@@ -3729,6 +3750,14 @@ exit /b %errorlevel%
 ::       command_name='opencode'
 ::       [ -f "$HOME/.config/opencode/opencode.json" ] && config="$HOME/.config/opencode/opencode.json" && auth='config-present'
 ::       [ "$auth" = 'not-detected' ] && [ -n "${OPENAI_API_KEY:-}" ] && auth='env-key'
+::       ;;
+::     kilocode-cli)
+::       command_name='kilo'
+::       [ -f "$HOME/.config/kilo/config.json" ] && config="$HOME/.config/kilo/config.json" && auth='config-present'
+::       [ -z "$config" ] && [ -f "$HOME/.kilocode/cli/config.json" ] && config="$HOME/.kilocode/cli/config.json" && auth='config-present'
+::       [ -z "$config" ] && [ -d "$HOME/.config/kilo" ] && config="$HOME/.config/kilo" && auth='config-present'
+::       [ -z "$config" ] && [ -d "$HOME/.kilocode" ] && config="$HOME/.kilocode" && auth='config-present'
+::       [ -z "$config" ] && [ -d "$HOME/.kilo" ] && config="$HOME/.kilo" && auth='config-present'
 ::       ;;
 ::     claude-code)
 ::       command_name='claude'
@@ -4146,12 +4175,14 @@ exit /b %errorlevel%
 ::         codex_missing) printf 'codex n''est pas disponible dans le PATH.\n' ;;
 ::         omx_missing) printf 'omx n''est pas disponible dans le PATH.\n' ;;
 ::         opencode_missing) printf 'opencode n''est pas disponible dans le PATH.\n' ;;
+::         kilocode_missing) printf 'kilo n''est pas disponible dans le PATH.\n' ;;
 ::         claude_missing) printf 'claude n''est pas disponible dans le PATH.\n' ;;
 ::         gemini_missing) printf 'gemini n''est pas disponible dans le PATH.\n' ;;
 ::         droid_missing) printf 'droid n''est pas disponible dans le PATH.\n' ;;
 ::         launch_codex) printf 'Lancement de Codex YOLO...\n\n' ;;
 ::         launch_omx) printf 'Lancement de OMX MADMAX HIGH...\n\n' ;;
 ::         launch_opencode) printf 'Lancement de OpenCode...\n\n' ;;
+::         launch_kilocode) printf 'Lancement de Kilo Code CLI...\n\n' ;;
 ::         launch_claude) printf 'Lancement de Claude Code...\n\n' ;;
 ::         launch_gemini) printf 'Lancement de Gemini CLI...\n\n' ;;
 ::         launch_droid) printf 'Lancement de DROID CLI...\n\n' ;;
@@ -4168,12 +4199,14 @@ exit /b %errorlevel%
 ::         codex_missing) printf 'PATH 中没有 codex。\n' ;;
 ::         omx_missing) printf 'PATH 中没有 omx。\n' ;;
 ::         opencode_missing) printf 'PATH 中没有 opencode。\n' ;;
+::         kilocode_missing) printf 'PATH 中没有 kilo。\n' ;;
 ::         claude_missing) printf 'PATH 中没有 claude。\n' ;;
 ::         gemini_missing) printf 'PATH 中没有 gemini。\n' ;;
 ::         droid_missing) printf 'PATH 中没有 droid。\n' ;;
 ::         launch_codex) printf '正在启动 Codex YOLO...\n\n' ;;
 ::         launch_omx) printf '正在启动 OMX MADMAX HIGH...\n\n' ;;
 ::         launch_opencode) printf '正在启动 OpenCode...\n\n' ;;
+::         launch_kilocode) printf '正在启动 Kilo Code CLI...\n\n' ;;
 ::         launch_claude) printf '正在启动 Claude Code...\n\n' ;;
 ::         launch_gemini) printf '正在启动 Gemini CLI...\n\n' ;;
 ::         launch_droid) printf '正在启动 DROID CLI...\n\n' ;;
@@ -4190,12 +4223,14 @@ exit /b %errorlevel%
 ::         codex_missing) printf 'codex is not available in PATH.\n' ;;
 ::         omx_missing) printf 'omx is not available in PATH.\n' ;;
 ::         opencode_missing) printf 'opencode is not available in PATH.\n' ;;
+::         kilocode_missing) printf 'kilo is not available in PATH.\n' ;;
 ::         claude_missing) printf 'claude is not available in PATH.\n' ;;
 ::         gemini_missing) printf 'gemini is not available in PATH.\n' ;;
 ::         droid_missing) printf 'droid is not available in PATH.\n' ;;
 ::         launch_codex) printf 'Launching Codex YOLO...\n\n' ;;
 ::         launch_omx) printf 'Launching OMX MADMAX HIGH...\n\n' ;;
 ::         launch_opencode) printf 'Launching OpenCode...\n\n' ;;
+::         launch_kilocode) printf 'Launching Kilo Code CLI...\n\n' ;;
 ::         launch_claude) printf 'Launching Claude Code...\n\n' ;;
 ::         launch_gemini) printf 'Launching Gemini CLI...\n\n' ;;
 ::         launch_droid) printf 'Launching DROID CLI...\n\n' ;;
@@ -4226,6 +4261,9 @@ exit /b %errorlevel%
 ::     opencode)
 ::       if ! command -v opencode >/dev/null 2>&1; then msg opencode_missing; msg current_path "$PATH"; return 127; fi
 ::       msg launch_opencode; opencode ;;
+::     kilocode-cli)
+::       if ! command -v kilo >/dev/null 2>&1; then msg kilocode_missing; msg current_path "$PATH"; return 127; fi
+::       msg launch_kilocode; kilo ;;
 ::     claude-code)
 ::       if ! command -v claude >/dev/null 2>&1; then msg claude_missing; msg current_path "$PATH"; return 127; fi
 ::       msg launch_claude; claude ;;
@@ -4368,6 +4406,7 @@ exit /b %errorlevel%
 :: codex|@openai/codex
 :: omx|oh-my-codex
 :: opencode|opencode-ai
+:: kilo|@kilocode/cli
 :: claude|@anthropic-ai/claude-code
 :: gemini|@google/gemini-cli
 :: ccusage|ccusage
@@ -4619,6 +4658,13 @@ exit /b %errorlevel%
 ::   install_opencode_via_official_script || return 1
 ::   verify_opencode_install || return 1
 ::   return 0
+:: }
+::
+:: install_kilocode_cli() {
+::   ensure_node_npm_latest || return 1
+::   run_step "Install Kilo Code CLI" with_nvm npm install -g @kilocode/cli || return 1
+::   load_user_env
+::   with_nvm kilo --version 2>/dev/null || true
 :: }
 ::
 :: install_omx() {
@@ -4992,6 +5038,7 @@ exit /b %errorlevel%
 ::   reset-tool-configs) run_reset_tool_configs "$tool_option" || status=$? ;;
 ::   codex) install_codex || status=$? ;;
 ::   opencode) install_opencode || status=$? ;;
+::   kilocode-cli) install_kilocode_cli || status=$? ;;
 ::   omx) install_omx || status=$? ;;
 ::   claude-code) install_claude_code || status=$? ;;
 ::   gemini-cli) install_gemini_cli || status=$? ;;
@@ -5092,7 +5139,7 @@ exit /b %errorlevel%
 :: fi
 ::
 :: echo
-:: for tool in codex omx opencode claude gemini droid npm npx; do
+:: for tool in codex omx opencode kilo claude gemini droid npm npx; do
 ::   if have_cmd "$tool"; then
 ::     printf '%-14s %s
 :: ' "$tool" "$(command -v "$tool")"
@@ -5122,6 +5169,18 @@ exit /b %errorlevel%
 ::   else
 ::     echo
 ::     echo "== Update Oh My Codex / OMX =="
+::     echo SKIPPED
+::   fi
+::
+::   if have_cmd kilo; then
+::     if have_nvm; then
+::       run_step "Update Kilo Code CLI" with_nvm npm install -g @kilocode/cli || true
+::     else
+::       run_step "Update Kilo Code CLI" npm install -g @kilocode/cli || true
+::     fi
+::   else
+::     echo
+::     echo "== Update Kilo Code CLI =="
 ::     echo SKIPPED
 ::   fi
 ::

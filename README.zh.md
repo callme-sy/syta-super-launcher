@@ -39,7 +39,7 @@
 | `Code` | 打开项目并在 WSL 中启动编码 CLI |
 | `Install` | 安装或修复环境与受支持工具 |
 | `Extra` | 从主菜单打开维护工具和较小的工作流工具 |
-| `Light update` | 仅更新已安装的 AI 编码 CLI，包括 DROID CLI |
+| `Light update` | 仅更新已安装的 AI 编码 CLI，包括 Kilo Code CLI 和 DROID CLI |
 | `Update utilities add-ons` | 仅更新已安装的实用工具扩展 |
 | `Update all` | 运行更广泛的工具链维护更新 |
 | Diagnostics | 显示安装状态、版本与认证/配置提示 |
@@ -57,6 +57,7 @@
 - `Codex`
 - `OMX`
 - `OpenCode`
+- `Kilo Code CLI`
 - `Claude Code`
 - `Gemini CLI`
 
@@ -82,6 +83,7 @@
 - `Install core AI CLI tools`
 - `Codex CLI`
 - `OpenCode`
+- `Kilo Code CLI`
 - `Oh My OpenAgent`
 - `Oh My Codex / OMX`
 - `Claude Code`
@@ -90,6 +92,8 @@
 - `Oh My OpenCode Slim`
 
 `First install` 是面向新手的路径：在需要时先启动 WSL Ubuntu，再询问是否安装或修复 PowerShell 7，最后在 Ubuntu 真正就绪后安装核心 AI CLI 工具。
+
+`Kilo Code CLI` 会通过官方 npm 包 `@kilocode/cli` 安装，并在 WSL 中使用 `kilo` 命令启动。
 
 `Extra` 会从主菜单打开第二层菜单，里面包含：
 

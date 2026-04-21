@@ -68,8 +68,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-21-041524Z'
-:: $script:ReleaseTag = 'v1.9.5'
+:: $script:BuildId = 'SYTA-build-2026-04-21-092959Z'
+:: $script:ReleaseTag = 'v1.9.6'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -4615,49 +4615,21 @@ exit /b %errorlevel%
 ::   return 1
 :: }
 ::
-:: have_opencode_binary() {
-::   export PATH="$HOME/.opencode/bin:$PATH"
-::   if command -v opencode >/dev/null 2>&1; then
-::     return 0
-::   fi
-::   [ -x "$HOME/.opencode/bin/opencode" ]
+:: install_opencode_via_npm() {
+::   ensure_node_npm_latest || return 1
+::   run_step "Install OpenCode via npm" with_nvm npm install -g opencode-ai || return 1
 :: }
 ::
-:: verify_opencode_install() {
+:: install_opencode() {
+::   install_opencode_via_npm || return 1
 ::   load_user_env
-::   export PATH="$HOME/.opencode/bin:$PATH"
-::   if have_opencode_binary; then
+::   if command -v opencode >/dev/null 2>&1; then
 ::     opencode --version 2>/dev/null || true
 ::     return 0
 ::   fi
 ::   printf 'OpenCode install finished but opencode is still not on PATH.
 :: '
 ::   return 1
-:: }
-::
-:: install_opencode_via_official_script() {
-::   run_step "Install OpenCode" bash -lc 'export PATH="$HOME/.opencode/bin:$PATH"; curl -fsSL https://opencode.ai/install | bash'
-:: }
-::
-:: install_opencode_via_npm() {
-::   ensure_node_npm_latest || return 1
-::   run_step "Install OpenCode via npm" with_nvm npm install -g opencode-ai
-:: }
-::
-:: install_opencode() {
-::   if install_opencode_via_npm && verify_opencode_install; then
-::     return 0
-::   fi
-::   if verify_opencode_install; then
-::     return 0
-::   fi
-::   ensure_curl || return 1
-::   printf 'Falling back to the official OpenCode installer.
-::
-:: '
-::   install_opencode_via_official_script || return 1
-::   verify_opencode_install || return 1
-::   return 0
 :: }
 ::
 :: install_kilocode_cli() {
@@ -5228,17 +5200,10 @@ exit /b %errorlevel%
 ::     else
 ::       run_step "Update OpenCode via npm" npm install -g opencode-ai || true
 ::     fi
-::   fi
-::   if verify_opencode_install; then
-::     :
-::   elif run_step "Update OpenCode via official installer fallback" bash -lc 'export PATH="$HOME/.opencode/bin:$PATH"; curl -fsSL https://opencode.ai/install | bash'; then
-::     verify_opencode_install || true
-::   elif verify_opencode_install; then
+::   else
 ::     echo
-::     echo 'OpenCode official installer fallback returned a non-zero status, but the binary is present and passed verification.'
-::   elif have_nvm || have_cmd npm; then
-::     echo
-::     echo 'OpenCode remains unavailable after npm-first update and official-installer fallback.'
+::     echo "== Update OpenCode via npm =="
+::     echo SKIPPED
 ::   fi
 :: else
 ::   echo

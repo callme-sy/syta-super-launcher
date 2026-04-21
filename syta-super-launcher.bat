@@ -68,8 +68,8 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-20-095510Z'
-:: $script:ReleaseTag = 'v1.9.3'
+:: $script:BuildId = 'SYTA-build-2026-04-20-235728Z'
+:: $script:ReleaseTag = 'v1.9.4'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -370,6 +370,7 @@ exit /b %errorlevel%
 ::             'Missing' = '缺失'
 ::             'version not detected' = '未检测到版本'
 ::             'binary not found on PATH' = 'PATH 中未找到可执行文件'
+::             'config-only add-on' = '仅配置扩展'
 ::             'not installed' = '未安装'
 ::             'via nvm' = '通过 nvm'
 ::             'user-local' = '用户本地'
@@ -637,6 +638,7 @@ exit /b %errorlevel%
 ::             'Missing' = 'Absent'
 ::             'version not detected' = 'version non detectee'
 ::             'binary not found on PATH' = 'binaire introuvable dans le PATH'
+::             'config-only add-on' = 'extension a config seulement'
 ::             'not installed' = 'non installe'
 ::             'via nvm' = 'via nvm'
 ::             'user-local' = 'utilisateur local'
@@ -776,6 +778,13 @@ exit /b %errorlevel%
 ::         Subtitle = 'Useful if you already use Gemini.'
 ::         Accent = 'Blue'
 ::         WindowTitle = 'Gemini CLI'
+::     }
+::     [pscustomobject]@{
+::         Key = 'droid-cli'
+::         Title = 'DROID CLI | optional'
+::         Subtitle = 'Useful if you already use DROID.'
+::         Accent = 'DarkCyan'
+::         WindowTitle = 'DROID CLI'
 ::     }
 :: )
 :: $script:ToolSpecs = @{
@@ -1593,7 +1602,9 @@ exit /b %errorlevel%
 ::     }
 ::
 ::     $configPath = if ($Raw.config) { $Raw.config } else { $null }
-::     $statusText = if ($installSource -eq 'config' -or $configPath) { Localize-Text 'Configured only' } elseif ($installed) { Localize-Text "Installed ($sourceLabel)" } else { Localize-Text 'Missing' }
+::     $configOnlyPackage = ($installSource -eq 'config') -and [string]::IsNullOrWhiteSpace($spec.Command)
+::     $configuredOnly = (-not $installed) -and [bool]$configPath
+::     $statusText = if ($configOnlyPackage) { ('{0} ({1})' -f (Localize-Text 'Installed'), (Localize-Text 'config-only')) } elseif ($configuredOnly) { Localize-Text 'Configured only' } elseif ($installed) { ('{0} ({1})' -f (Localize-Text 'Installed'), $sourceLabel) } else { Localize-Text 'Missing' }
 ::
 ::     $diag = [pscustomobject]@{
 ::         Key = $ResolvedKey
@@ -1601,7 +1612,7 @@ exit /b %errorlevel%
 ::         Path = $path
 ::         PathText = if ($path) { $path } elseif ($configPath) { $configPath } else { $spec.InstallHint }
 ::         Version = $version
-::         VersionText = if ($installSource -eq 'config' -or $configPath) { (Localize-Text 'binary not found on PATH') } elseif ($installed) { if ($version) { $version } else { (Localize-Text 'version not detected') } } else { (Localize-Text 'not installed') }
+::         VersionText = if ($configOnlyPackage) { (Localize-Text 'config-only add-on') } elseif ($configuredOnly) { (Localize-Text 'binary not found on PATH') } elseif ($installed) { if ($version) { $version } else { (Localize-Text 'version not detected') } } else { (Localize-Text 'not installed') }
 ::         AuthRaw = $authRaw
 ::         AuthText = Format-AuthStatus -Raw $authRaw
 ::         InstallSource = $installSource
@@ -4137,11 +4148,13 @@ exit /b %errorlevel%
 ::         opencode_missing) printf 'opencode n''est pas disponible dans le PATH.\n' ;;
 ::         claude_missing) printf 'claude n''est pas disponible dans le PATH.\n' ;;
 ::         gemini_missing) printf 'gemini n''est pas disponible dans le PATH.\n' ;;
+::         droid_missing) printf 'droid n''est pas disponible dans le PATH.\n' ;;
 ::         launch_codex) printf 'Lancement de Codex YOLO...\n\n' ;;
 ::         launch_omx) printf 'Lancement de OMX MADMAX HIGH...\n\n' ;;
 ::         launch_opencode) printf 'Lancement de OpenCode...\n\n' ;;
 ::         launch_claude) printf 'Lancement de Claude Code...\n\n' ;;
 ::         launch_gemini) printf 'Lancement de Gemini CLI...\n\n' ;;
+::         launch_droid) printf 'Lancement de DROID CLI...\n\n' ;;
 ::         unknown_agent) printf 'Cle agent inconnue : %s\n' "$value" ;;
 ::         agent_exit) printf '\nL''agent s''est termine avec le code %s.\n' "$value" ;;
 ::         session_end) printf '\nSession agent terminee.\n' ;;
@@ -4157,11 +4170,13 @@ exit /b %errorlevel%
 ::         opencode_missing) printf 'PATH 中没有 opencode。\n' ;;
 ::         claude_missing) printf 'PATH 中没有 claude。\n' ;;
 ::         gemini_missing) printf 'PATH 中没有 gemini。\n' ;;
+::         droid_missing) printf 'PATH 中没有 droid。\n' ;;
 ::         launch_codex) printf '正在启动 Codex YOLO...\n\n' ;;
 ::         launch_omx) printf '正在启动 OMX MADMAX HIGH...\n\n' ;;
 ::         launch_opencode) printf '正在启动 OpenCode...\n\n' ;;
 ::         launch_claude) printf '正在启动 Claude Code...\n\n' ;;
 ::         launch_gemini) printf '正在启动 Gemini CLI...\n\n' ;;
+::         launch_droid) printf '正在启动 DROID CLI...\n\n' ;;
 ::         unknown_agent) printf '未知代理键：%s\n' "$value" ;;
 ::         agent_exit) printf '\n代理已退出，状态码为 %s。\n' "$value" ;;
 ::         session_end) printf '\n代理会话已结束。\n' ;;
@@ -4177,11 +4192,13 @@ exit /b %errorlevel%
 ::         opencode_missing) printf 'opencode is not available in PATH.\n' ;;
 ::         claude_missing) printf 'claude is not available in PATH.\n' ;;
 ::         gemini_missing) printf 'gemini is not available in PATH.\n' ;;
+::         droid_missing) printf 'droid is not available in PATH.\n' ;;
 ::         launch_codex) printf 'Launching Codex YOLO...\n\n' ;;
 ::         launch_omx) printf 'Launching OMX MADMAX HIGH...\n\n' ;;
 ::         launch_opencode) printf 'Launching OpenCode...\n\n' ;;
 ::         launch_claude) printf 'Launching Claude Code...\n\n' ;;
 ::         launch_gemini) printf 'Launching Gemini CLI...\n\n' ;;
+::         launch_droid) printf 'Launching DROID CLI...\n\n' ;;
 ::         unknown_agent) printf 'Unknown agent key: %s\n' "$value" ;;
 ::         agent_exit) printf '\nAgent exited with status %s.\n' "$value" ;;
 ::         session_end) printf '\nAgent session ended.\n' ;;
@@ -4215,6 +4232,9 @@ exit /b %errorlevel%
 ::     gemini-cli)
 ::       if ! command -v gemini >/dev/null 2>&1; then msg gemini_missing; msg current_path "$PATH"; return 127; fi
 ::       msg launch_gemini; gemini ;;
+::     droid-cli)
+::       if ! command -v droid >/dev/null 2>&1; then msg droid_missing; msg current_path "$PATH"; return 127; fi
+::       msg launch_droid; droid ;;
 ::     *) msg unknown_agent "$agent_key"; return 64 ;;
 ::   esac
 :: }

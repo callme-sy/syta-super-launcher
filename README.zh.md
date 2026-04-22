@@ -108,11 +108,12 @@
 - `codex-auth`
 - `superpowers`
 - `OpenSpec`
+- `Claw Code`
 - `BMAD`
 
-这些工具仍然遵循启动器的 WSL-first 模型。`RTK`、`ccusage`、`codex-auth` 和 `OpenSpec` 会在 WSL 中运行各自的官方安装命令。`superpowers` 会克隆上游仓库并把技能链接到 Codex，然后提示可选的 OpenCode / Gemini 后续步骤。`BMAD` 是项目级安装：SYTA 会先让你在 `C:\.CODEX` 下选择项目，然后在该项目里启动官方 BMAD 安装器。
+这些工具仍然遵循启动器的 WSL-first 模型。`RTK`、`ccusage`、`codex-auth` 和 `OpenSpec` 会在 WSL 中运行各自的官方安装命令。`superpowers` 会克隆上游仓库并把技能链接到 Codex，然后提示可选的 OpenCode / Gemini 后续步骤。`Claw Code` 会克隆 `ultraworkers/claw-code`，以 release 模式构建 `claw` 二进制，并把它链接到 `~/.local/bin`。`BMAD` 是项目级安装：SYTA 会先让你在 `C:\.CODEX` 下选择项目，然后在该项目里启动官方 BMAD 安装器。
 
-`Update -> Update utilities add-ons` 只会刷新检测到已安装的实用工具扩展。它会更新受支持的用户级工具，更新后校验 RTK，并对 `C:\.CODEX` 下已找到的 BMAD 项目执行 quick-update。
+`Update -> Update utilities add-ons` 只会刷新检测到已安装的实用工具扩展。它会更新受支持的用户级工具，更新后校验 RTK，重建并重新链接受管理的 Claw Code 检出目录，并对 `C:\.CODEX` 下已找到的 BMAD 项目执行 quick-update。
 
 ## 语言
 

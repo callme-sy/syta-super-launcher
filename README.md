@@ -130,11 +130,12 @@ The core bundle currently installs:
 - `codex-auth`
 - `superpowers`
 - `OpenSpec`
+- `Claw Code`
 - `BMAD`
 
-Those utility lanes still use the launcher's WSL-first model. `RTK`, `ccusage`, `codex-auth`, and `OpenSpec` run the upstream install commands in WSL. `superpowers` clones the upstream repo and links its skills into Codex, then prints the optional OpenCode and Gemini follow-up steps. `BMAD` is project-scoped: SYTA asks you to choose a project under `C:\.CODEX`, then launches the official BMAD installer inside that project.
+Those utility lanes still use the launcher's WSL-first model. `RTK`, `ccusage`, `codex-auth`, and `OpenSpec` run the upstream install commands in WSL. `superpowers` clones the upstream repo and links its skills into Codex, then prints the optional OpenCode and Gemini follow-up steps. `Claw Code` clones `ultraworkers/claw-code`, builds the `claw` binary in release mode, and links it into `~/.local/bin`. `BMAD` is project-scoped: SYTA asks you to choose a project under `C:\.CODEX`, then launches the official BMAD installer inside that project.
 
-`Update -> Update utilities add-ons` refreshes only detected installed utilities. It updates the supported user-scoped utility installs, verifies RTK after updating it, and quick-updates BMAD projects already found under `C:\.CODEX`.
+`Update -> Update utilities add-ons` refreshes only detected installed utilities. It updates the supported user-scoped utility installs, verifies RTK after updating it, rebuilds/relinks managed Claw Code checkouts, and quick-updates BMAD projects already found under `C:\.CODEX`.
 
 `OpenCode`, `Oh My OpenAgent`, and `Oh My OpenCode Slim` are now separate lanes:
 

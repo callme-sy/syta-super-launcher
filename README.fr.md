@@ -130,11 +130,12 @@ Le bundle de base installe actuellement :
 - `codex-auth`
 - `superpowers`
 - `OpenSpec`
+- `Claw Code`
 - `BMAD`
 
-Ces utilitaires restent installes dans le modele WSL-first du lanceur. `RTK`, `ccusage`, `codex-auth` et `OpenSpec` utilisent les commandes d'installation upstream dans WSL. `superpowers` clone le depot upstream et lie ses skills dans Codex, puis affiche les etapes optionnelles pour OpenCode et Gemini. `BMAD` est installe par projet : SYTA vous demande de choisir un projet sous `C:\.CODEX`, puis lance l'installateur officiel BMAD dans ce projet.
+Ces utilitaires restent installes dans le modele WSL-first du lanceur. `RTK`, `ccusage`, `codex-auth` et `OpenSpec` utilisent les commandes d'installation upstream dans WSL. `superpowers` clone le depot upstream et lie ses skills dans Codex, puis affiche les etapes optionnelles pour OpenCode et Gemini. `Claw Code` clone `ultraworkers/claw-code`, compile le binaire `claw` en mode release, puis le lie dans `~/.local/bin`. `BMAD` est installe par projet : SYTA vous demande de choisir un projet sous `C:\.CODEX`, puis lance l'installateur officiel BMAD dans ce projet.
 
-`Update -> Update utilities add-ons` met a jour seulement les utilitaires detectes comme installes. Cette voie actualise les utilitaires utilisateur pris en charge, verifie RTK apres mise a jour, et lance un quick-update BMAD sur les projets deja trouves sous `C:\.CODEX`.
+`Update -> Update utilities add-ons` met a jour seulement les utilitaires detectes comme installes. Cette voie actualise les utilitaires utilisateur pris en charge, verifie RTK apres mise a jour, recompile/relie les checkouts Claw Code geres, et lance un quick-update BMAD sur les projets deja trouves sous `C:\.CODEX`.
 
 `OpenCode`, `Oh My OpenAgent` et `Oh My OpenCode Slim` sont maintenant trois voies distinctes :
 

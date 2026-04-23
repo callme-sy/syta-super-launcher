@@ -68,11 +68,12 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-22-020606Z'
-:: $script:ReleaseTag = 'v1.9.7'
+:: $script:BuildId = 'SYTA-build-2026-04-23-103259Z'
+:: $script:ReleaseTag = 'v1.9.8'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
+:: $script:LocalizedTextMapCache = @{}
 ::
 :: function Resolve-Language {
 ::     param([string]$Requested = 'auto')
@@ -111,7 +112,8 @@ exit /b %errorlevel%
 ::         return $Text
 ::     }
 ::
-::     $map = if ($script:Language -eq 'zh') {
+::     if (-not $script:LocalizedTextMapCache.ContainsKey($script:Language)) {
+::         $script:LocalizedTextMapCache[$script:Language] = if ($script:Language -eq 'zh') {
 ::         @{
 ::             'Selector' = '选择器'
 ::             'Arrows move, Enter selects, Esc goes back' = '方向键移动，Enter 选择，Esc 返回'
@@ -654,6 +656,9 @@ exit /b %errorlevel%
 ::             'unknown source' = 'source inconnue'
 ::         }
 ::     }
+::     }
+::
+::     $map = $script:LocalizedTextMapCache[$script:Language]
 ::
 ::     if ($map.ContainsKey($Text)) { return $map[$Text] }
 ::
@@ -1316,21 +1321,6 @@ exit /b %errorlevel%
 ::     }
 ::     Save-StateObject $state
 ::     $script:RecentProjectCountCache = $updated.Count
-:: }
-::
-:: function Update-StateFields {
-::     param([hashtable]$Fields)
-::
-::     $state = Get-StateObject
-::     foreach ($key in $Fields.Keys) {
-::         if ($state.PSObject.Properties.Match($key).Count) {
-::             $state.$key = $Fields[$key]
-::         } else {
-::             $state | Add-Member -NotePropertyName $key -NotePropertyValue $Fields[$key]
-::         }
-::     }
-::     Save-StateObject $state
-::     return $state
 :: }
 ::
 :: function Get-LauncherBatchPath {

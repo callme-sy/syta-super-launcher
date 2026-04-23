@@ -140,6 +140,8 @@
 
 启动器 UI 现在会在 **法语**、**英语**、**中文** 之间自动检测。
 
+在第一次交互式启动时，SYTA 现在也会提供语言选择，并把选定值保存到 `C:\.CODEX\.syta-launcher-state.json`。之后你可以从 `Extra -> Settings` 再次修改。
+
 也支持手动覆盖：
 
 ```powershell

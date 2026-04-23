@@ -33,7 +33,7 @@ exit /b %errorlevel%
 
 ::BEGIN:syta-agentic-launcher.ps1
 :: param(
-::     [ValidateSet('Code', 'Install', 'Extra', 'Explanations', 'CleanerHelper', 'Update', 'UpdateAll', 'UpdateLight', 'UpdateUtilities')]
+::     [ValidateSet('Code', 'Install', 'Extra', 'Settings', 'Explanations', 'CleanerHelper', 'Update', 'UpdateAll', 'UpdateLight', 'UpdateUtilities')]
 ::     [string]$Mode,
 ::     [ValidateSet('codex-yolo', 'omx-madmax-high', 'opencode', 'kilocode-cli', 'claude-code', 'gemini-cli')]
 ::     [string]$Agent,
@@ -68,30 +68,71 @@ exit /b %errorlevel%
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-23-103259Z'
-:: $script:ReleaseTag = 'v1.9.8'
+:: $script:BuildId = 'SYTA-build-2026-04-23-104249Z'
+:: $script:ReleaseTag = 'v1.9.9'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
 :: $script:LocalizedTextMapCache = @{}
 ::
+:: function Normalize-LanguageCode {
+::     param(
+::         [string]$Value,
+::         [switch]$AllowAuto
+::     )
+::
+::     if ([string]::IsNullOrWhiteSpace($Value)) {
+::         return ''
+::     }
+::
+::     $normalized = $Value.ToLowerInvariant()
+::     if ($AllowAuto -and $normalized -eq 'auto') { return 'auto' }
+::     if ($normalized -match '^fr') { return 'fr' }
+::     if ($normalized -match '^zh') { return 'zh' }
+::     if ($normalized -match '^en') { return 'en' }
+::     return ''
+:: }
+::
+:: function Get-StoredUiLanguagePreference {
+::     if (-not (Test-Path -LiteralPath $script:StateFile)) {
+::         return ''
+::     }
+::
+::     try {
+::         $raw = Get-Content -LiteralPath $script:StateFile -Raw -ErrorAction Stop
+::         $state = $raw | ConvertFrom-Json
+::     } catch {
+::         return ''
+::     }
+::
+::     if (-not $state -or -not $state.PSObject.Properties.Match('uiLanguage').Count) {
+::         return ''
+::     }
+::
+::     return (Normalize-LanguageCode -Value "$($state.uiLanguage)" -AllowAuto)
+:: }
+::
 :: function Resolve-Language {
 ::     param([string]$Requested = 'auto')
 ::
-::     $candidate = $null
-::     if ($Requested -and $Requested -ne 'auto') {
-::         $candidate = $Requested
-::     } elseif ($env:SYTA_LANGUAGE) {
-::         $candidate = $env:SYTA_LANGUAGE
-::     } elseif ($env:SYTA_LANG) {
-::         $candidate = $env:SYTA_LANG
+::     $requestedLanguage = Normalize-LanguageCode -Value $Requested -AllowAuto
+::     if ($requestedLanguage -and $requestedLanguage -ne 'auto') {
+::         return $requestedLanguage
 ::     }
 ::
-::     if ($candidate) {
-::         $normalized = $candidate.ToLowerInvariant()
-::         if ($normalized -match '^fr') { return 'fr' }
-::         if ($normalized -match '^zh') { return 'zh' }
-::         if ($normalized -match '^en') { return 'en' }
+::     $envLanguage = Normalize-LanguageCode -Value $env:SYTA_LANGUAGE -AllowAuto
+::     if ($envLanguage -and $envLanguage -ne 'auto') {
+::         return $envLanguage
+::     }
+::
+::     $envLang = Normalize-LanguageCode -Value $env:SYTA_LANG -AllowAuto
+::     if ($envLang -and $envLang -ne 'auto') {
+::         return $envLang
+::     }
+::
+::     $storedPreference = Get-StoredUiLanguagePreference
+::     if ($storedPreference -and $storedPreference -ne 'auto') {
+::         return $storedPreference
 ::     }
 ::
 ::     try {
@@ -234,6 +275,11 @@ exit /b %errorlevel%
 ::             'Utilities | add-ons' = '实用工具 | 扩展'
 ::             'Extra' = '额外'
 ::             'Extra | tools and utilities' = '额外 | 工具和实用项'
+::             'Settings' = '设置'
+::             'Settings | launcher preferences' = '设置 | 启动器偏好'
+::             'Change launcher language and other saved preferences.' = '更改启动器语言和其他已保存的偏好。'
+::             'Language settings' = '语言设置'
+::             'Review or change the saved launcher language.' = '查看或更改已保存的启动器语言。'
 ::             'Open tools, cleanup helpers, and add-on utilities.' = '打开工具、清理助手和附加实用项。'
 ::             'Install smaller workflow utilities and add-ons.' = '安装较小的工作流实用工具和扩展。'
 ::             'Install rtk, ccusage, codex-auth, superpowers, OpenSpec, Claw Code, and BMAD.' = '安装 rtk、ccusage、codex-auth、superpowers、OpenSpec、Claw Code 和 BMAD。'
@@ -505,6 +551,11 @@ exit /b %errorlevel%
 ::             'Utilities | add-ons' = 'Utilitaires | extensions'
 ::             'Extra' = 'Extra'
 ::             'Extra | tools and utilities' = 'Extra | outils et utilitaires'
+::             'Settings' = 'Parametres'
+::             'Settings | launcher preferences' = 'Parametres | preferences du lanceur'
+::             'Change launcher language and other saved preferences.' = 'Modifier la langue du lanceur et les autres preferences enregistrees.'
+::             'Language settings' = 'Parametres de langue'
+::             'Review or change the saved launcher language.' = 'Consulter ou modifier la langue enregistree du lanceur.'
 ::             'Open tools, cleanup helpers, and add-on utilities.' = 'Ouvrir les outils, aides de nettoyage et utilitaires additionnels.'
 ::             'Install smaller workflow utilities and add-ons.' = 'Installer des utilitaires de workflow et des extensions plus legers.'
 ::             'Install rtk, ccusage, codex-auth, superpowers, OpenSpec, Claw Code, and BMAD.' = 'Installer rtk, ccusage, codex-auth, superpowers, OpenSpec, Claw Code et BMAD.'
@@ -2037,6 +2088,136 @@ exit /b %errorlevel%
 ::     }
 :: }
 ::
+:: function Get-LanguageChoiceItems {
+::     param([switch]$IncludeBack)
+::
+::     $items = @(
+::         [pscustomobject]@{
+::             Title = 'Auto | Windows / Suivre Windows / 跟随 Windows'
+::             Subtitle = 'Use the Windows display language. / Utiliser la langue Windows. / 使用 Windows 显示语言。'
+::             Accent = 'DarkGray'
+::             Key = 'auto'
+::         }
+::         [pscustomobject]@{
+::             Title = 'English'
+::             Subtitle = 'Always use English.'
+::             Accent = 'Cyan'
+::             Key = 'en'
+::         }
+::         [pscustomobject]@{
+::             Title = 'Francais'
+::             Subtitle = 'Toujours utiliser le francais.'
+::             Accent = 'Blue'
+::             Key = 'fr'
+::         }
+::         [pscustomobject]@{
+::             Title = '中文'
+::             Subtitle = '始终使用中文。'
+::             Accent = 'Yellow'
+::             Key = 'zh'
+::         }
+::     )
+::
+::     if ($IncludeBack) {
+::         $items += [pscustomobject]@{
+::             Title = 'Back'
+::             Subtitle = 'Return without changing the saved language.'
+::             Accent = 'DarkGray'
+::             Key = 'back'
+::         }
+::     }
+::
+::     return $items
+:: }
+::
+:: function Save-UiLanguagePreference {
+::     param([string]$Language)
+::
+::     $normalized = Normalize-LanguageCode -Value $Language -AllowAuto
+::     if (-not $normalized) {
+::         $normalized = 'auto'
+::     }
+::
+::     Update-StateFields @{
+::         uiLanguage = $normalized
+::         uiLanguagePrompted = $true
+::     } | Out-Null
+:: }
+::
+:: function Prompt-UiLanguageChoice {
+::     param([switch]$FirstRun)
+::
+::     $title = if ($FirstRun) { 'Language / Langue / 语言' } else { 'Language settings' }
+::     $subtitle = if ($FirstRun) {
+::         'Choose the launcher language. / Choisissez la langue du lanceur. / 选择启动器语言。'
+::     } else {
+::         'Choose the launcher language. / Choisissez la langue du lanceur. / 选择启动器语言。'
+::     }
+::
+::     $selection = Read-Menu -Title $title -Subtitle $subtitle -Items (Get-LanguageChoiceItems -IncludeBack:(-not $FirstRun))
+::     if (-not $selection) {
+::         if ($FirstRun) {
+::             return 'auto'
+::         }
+::         return $null
+::     }
+::
+::     if ($selection.Key -eq 'back') {
+::         return $null
+::     }
+::
+::     return $selection.Key
+:: }
+::
+:: function Ensure-UiLanguagePreference {
+::     if ($Mode -or $DryRun -or $SmokeTest) {
+::         return
+::     }
+::
+::     $requestedLanguage = Normalize-LanguageCode -Value $UiLanguage -AllowAuto
+::     if (($requestedLanguage -and $requestedLanguage -ne 'auto') -or $env:SYTA_LANGUAGE -or $env:SYTA_LANG) {
+::         return
+::     }
+::
+::     $state = Get-StateObject
+::     $wasPrompted = $state.PSObject.Properties.Match('uiLanguagePrompted').Count -and [bool]$state.uiLanguagePrompted
+::     if ($wasPrompted) {
+::         return
+::     }
+::
+::     $choice = Prompt-UiLanguageChoice -FirstRun
+::     Save-UiLanguagePreference -Language $choice
+::     $script:Language = Resolve-Language -Requested $UiLanguage
+:: }
+::
+:: function Launch-SettingsMode {
+::     $items = @(
+::         [pscustomobject]@{ Title = 'Language settings'; Subtitle = 'Review or change the saved launcher language.'; Accent = 'Cyan'; Key = 'language' }
+::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the previous menu.'; Accent = 'DarkGray'; Key = 'back' }
+::     )
+::
+::     if ($DryRun) {
+::         return [pscustomobject]@{
+::             Title = 'Settings'
+::             Subtitle = 'Change launcher language and other saved preferences.'
+::             Items = @($items | Select-Object Title, Subtitle, Accent, Key)
+::         }
+::     }
+::
+::     $selection = Read-Menu -Title 'Settings' -Subtitle 'Change launcher language and other saved preferences.' -Items $items
+::     if (-not $selection -or $selection.Key -eq 'back') {
+::         return
+::     }
+::
+::     if ($selection.Key -eq 'language') {
+::         $choice = Prompt-UiLanguageChoice
+::         if ($choice) {
+::             Save-UiLanguagePreference -Language $choice
+::             $script:Language = Resolve-Language -Requested $UiLanguage
+::         }
+::     }
+:: }
+::
 :: function Prompt-PowerShell7Choice {
 ::     param([bool]$Installed)
 ::
@@ -2818,6 +2999,7 @@ exit /b %errorlevel%
 ::     return @(
 ::         [pscustomobject]@{ Title = 'Cleaner helper | maintenance'; Subtitle = if ($distroReady) { 'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.' } else { $blockedText }; Accent = if ($distroReady) { 'Cyan' } else { 'Yellow' }; Key = 'cleaner-helper' }
 ::         [pscustomobject]@{ Title = 'Reset tool configs | maintenance'; Subtitle = if ($distroReady) { 'Review tracked config/auth paths and remove only the ones you confirm.' } else { $blockedText }; Accent = 'Yellow'; Key = 'reset-tool-configs' }
+::         [pscustomobject]@{ Title = 'Settings | launcher preferences'; Subtitle = 'Change launcher language and other saved preferences.'; Accent = 'White'; Key = 'settings' }
 ::         [pscustomobject]@{ Title = 'Utilities | add-ons'; Subtitle = if ($distroReady) { 'Install rtk, ccusage, codex-auth, superpowers, OpenSpec, Claw Code, and BMAD.' } else { $blockedText }; Accent = if ($distroReady) { 'Blue' } else { 'Yellow' }; Key = 'utilities' }
 ::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the previous menu.'; Accent = 'DarkGray'; Key = 'back' }
 ::     )
@@ -3244,6 +3426,11 @@ exit /b %errorlevel%
 ::         }
 ::     }
 ::
+::     if ($selection.Key -eq 'settings') {
+::         Launch-SettingsMode
+::         return
+::     }
+::
 ::     if ($selection.Key -eq 'cleaner-helper') {
 ::         Invoke-CleanerHelperFlow
 ::         return
@@ -3595,6 +3782,7 @@ exit /b %errorlevel%
 ::         BuildId = $script:BuildId
 ::         ReleaseTag = $script:ReleaseTag
 ::         Language = $script:Language
+::         StoredUiLanguage = Get-StoredUiLanguagePreference
 ::         RecentProjects = @((Get-RecentProjects | Select-Object -ExpandProperty Name))
 ::         Agents = $script:AgentOptions.Key
 ::         WslDistros = Get-WslDistros
@@ -3606,6 +3794,7 @@ exit /b %errorlevel%
 :: }
 ::
 :: Ensure-MaximizedWindow
+:: Ensure-UiLanguagePreference
 :: Show-IntroAnimation
 ::
 :: if (HandleLauncherUpdatePrompt) {
@@ -3624,6 +3813,14 @@ exit /b %errorlevel%
 ::
 :: if ($Mode -eq 'Extra') {
 ::     $result = Launch-ExtraMode
+::     if ($DryRun) {
+::         $result | ConvertTo-Json -Depth 6
+::     }
+::     exit 0
+:: }
+::
+:: if ($Mode -eq 'Settings') {
+::     $result = Launch-SettingsMode
 ::     if ($DryRun) {
 ::         $result | ConvertTo-Json -Depth 6
 ::     }

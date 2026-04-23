@@ -147,6 +147,8 @@ Those utility lanes still use the launcher's WSL-first model. `RTK`, `ccusage`, 
 
 The launcher UI now auto-detects between **French**, **English**, and **Chinese**.
 
+On the first interactive launch, SYTA now also offers a language picker and stores the chosen value in `C:\.CODEX\.syta-launcher-state.json`. You can change it later from `Extra -> Settings`.
+
 Manual override is also available:
 
 ```powershell

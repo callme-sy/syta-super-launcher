@@ -147,6 +147,8 @@ Ces utilitaires restent installes dans le modele WSL-first du lanceur. `RTK`, `c
 
 L'interface du lanceur détecte maintenant automatiquement le **français**, l'**anglais**, ou le **chinois**.
 
+Lors du premier lancement interactif, SYTA propose maintenant aussi un choix de langue et enregistre la valeur retenue dans `C:\.CODEX\.syta-launcher-state.json`. Vous pouvez la modifier plus tard via `Extra -> Settings`.
+
 Un forçage manuel est aussi disponible :
 
 ```powershell

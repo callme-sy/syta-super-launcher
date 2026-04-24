@@ -13,7 +13,7 @@
 
 <p>
   <img src="https://img.shields.io/badge/Interface-Interactive%20TUI-6A5ACD?style=flat-square" alt="Interactive TUI" />
-  <img src="https://img.shields.io/badge/Projects-C%3A%5C.CODEX-5C6BC0?style=flat-square" alt="Projects root" />
+  <img src="https://img.shields.io/badge/Projects-Configurable-5C6BC0?style=flat-square" alt="Projects root" />
   <img src="https://img.shields.io/badge/Runtime-Portable-455A64?style=flat-square" alt="Portable runtime" />
   <img src="https://img.shields.io/badge/Made%20by-Sylvain%20T.-D81B60?style=flat-square" alt="Made by Sylvain T." />
 </p>
@@ -28,7 +28,7 @@
 
 It gives you one interactive entry point to:
 
-- create and reopen projects under `C:\.CODEX`
+- create and reopen projects under a configurable projects root (default: `C:\.CODEX`)
 - search projects with ranked, case-insensitive partial matching
 - launch AI coding CLIs inside WSL
 - install missing tools
@@ -74,9 +74,12 @@ The launcher main menu includes:
 
 - `Code`
 - `Install`
+- `Settings`
 - `Extra`
 - `Explanations`
 - `Update`
+
+`Settings` is the main-menu lane for launcher preferences such as language and projects directory.
 
 `Extra` is the main-menu lane for maintenance and add-ons.
 
@@ -133,9 +136,9 @@ The core bundle currently installs:
 - `Claw Code`
 - `BMAD`
 
-Those utility lanes still use the launcher's WSL-first model. `RTK`, `ccusage`, `codex-auth`, and `OpenSpec` run the upstream install commands in WSL. `superpowers` clones the upstream repo and links its skills into Codex, then prints the optional OpenCode and Gemini follow-up steps. `Claw Code` clones `ultraworkers/claw-code`, builds the `claw` binary in release mode, and links it into `~/.local/bin`. `BMAD` is project-scoped: SYTA asks you to choose a project under `C:\.CODEX`, then launches the official BMAD installer inside that project.
+Those utility lanes still use the launcher's WSL-first model. `RTK`, `ccusage`, `codex-auth`, and `OpenSpec` run the upstream install commands in WSL. `superpowers` clones the upstream repo and links its skills into Codex, then prints the optional OpenCode and Gemini follow-up steps. `Claw Code` clones `ultraworkers/claw-code`, builds the `claw` binary in release mode, and links it into `~/.local/bin`. `BMAD` is project-scoped: SYTA asks you to choose a project under the currently configured projects root, then launches the official BMAD installer inside that project.
 
-`Update -> Update utilities add-ons` refreshes only detected installed utilities. It updates the supported user-scoped utility installs, verifies RTK after updating it, rebuilds/relinks managed Claw Code checkouts, and quick-updates BMAD projects already found under `C:\.CODEX`.
+`Update -> Update utilities add-ons` refreshes only detected installed utilities. It updates the supported user-scoped utility installs, verifies RTK after updating it, rebuilds/relinks managed Claw Code checkouts, and quick-updates BMAD projects already found under the currently configured projects root.
 
 `OpenCode`, `Oh My OpenAgent`, and `Oh My OpenCode Slim` are now separate lanes:
 
@@ -147,7 +150,7 @@ Those utility lanes still use the launcher's WSL-first model. `RTK`, `ccusage`, 
 
 The launcher UI now auto-detects between **French**, **English**, and **Chinese**.
 
-On the first interactive launch, SYTA now also offers a language picker and stores the chosen value in `C:\.CODEX\.syta-launcher-state.json`. You can change it later from `Extra -> Settings`.
+On the first interactive launch, SYTA now also offers a language picker and stores launcher preferences in `%LOCALAPPDATA%\SYTA Super Launcher\launcher-settings.json`. You can change them later from `Settings`.
 
 Manual override is also available:
 
@@ -168,18 +171,26 @@ The launcher UI follows this preference. Third-party installer or CLI output may
 
 ## Project Layout
 
-All projects are managed under:
+Projects are managed under a configurable Windows folder. The default root is:
 
 ```text
 C:\.CODEX
 ```
 
-If the folder does not exist, the launcher creates it automatically.
+You can switch that root later from `Settings`, including to another drive such as `D:\`.
 
-Recent projects are tracked in:
+If the chosen folder does not exist, the launcher creates it automatically.
+
+Recent projects for the active root are tracked in:
 
 ```text
-C:\.CODEX\.syta-launcher-state.json
+<Selected projects root>\.syta-launcher-state.json
+```
+
+Launcher-wide preferences such as language, selected projects root, and update-cache metadata are stored in:
+
+```text
+%LOCALAPPDATA%\SYTA Super Launcher\launcher-settings.json
 ```
 
 ## Runtime Model

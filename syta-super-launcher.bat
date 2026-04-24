@@ -61,15 +61,25 @@ exit /b %errorlevel%
 :: }
 ::
 :: $script:ScriptDir = [System.IO.Path]::GetFullPath((Split-Path -Parent $PSCommandPath)).TrimEnd('\')
-:: $script:ProjectsRoot = 'C:\.CODEX'
-:: if (-not (Test-Path -LiteralPath $script:ProjectsRoot)) {
-::     $null = New-Item -ItemType Directory -Path $script:ProjectsRoot -Force
+:: $script:DefaultProjectsRoot = 'C:\.CODEX'
+:: $defaultSettingsDir = Join-Path ([System.Environment]::GetFolderPath('LocalApplicationData')) 'SYTA Super Launcher'
+:: $requestedSettingsFile = if ([string]::IsNullOrWhiteSpace($env:SYTA_SETTINGS_FILE)) { Join-Path $defaultSettingsDir 'launcher-settings.json' } else { $env:SYTA_SETTINGS_FILE }
+:: try {
+::     $script:GlobalSettingsFile = [System.IO.Path]::GetFullPath([System.Environment]::ExpandEnvironmentVariables($requestedSettingsFile))
+:: } catch {
+::     $script:GlobalSettingsFile = Join-Path $defaultSettingsDir 'launcher-settings.json'
 :: }
+:: $settingsParent = Split-Path -Parent $script:GlobalSettingsFile
+:: if ($settingsParent -and -not (Test-Path -LiteralPath $settingsParent)) {
+::     $null = New-Item -ItemType Directory -Path $settingsParent -Force
+:: }
+:: $script:ProjectsRoot = $script:DefaultProjectsRoot
 :: $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
+:: $script:LegacyStateFile = Join-Path $script:DefaultProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-23-104249Z'
-:: $script:ReleaseTag = 'v1.9.9'
+:: $script:BuildId = 'SYTA-build-2026-04-24-132443Z'
+:: $script:ReleaseTag = 'v1.10.0'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -93,17 +103,154 @@ exit /b %errorlevel%
 ::     return ''
 :: }
 ::
-:: function Get-StoredUiLanguagePreference {
-::     if (-not (Test-Path -LiteralPath $script:StateFile)) {
+:: function Resolve-NormalizedWindowsPath {
+::     param(
+::         [string]$Path,
+::         [switch]$RequireRooted
+::     )
+::
+::     if ([string]::IsNullOrWhiteSpace($Path)) {
+::         return ''
+::     }
+::
+::     $trimmed = $Path.Trim()
+::     if ($trimmed.Length -ge 2 -and $trimmed.StartsWith('"') -and $trimmed.EndsWith('"')) {
+::         $trimmed = $trimmed.Substring(1, $trimmed.Length - 2)
+::     }
+::
+::     $expanded = [System.Environment]::ExpandEnvironmentVariables($trimmed)
+::     if ($RequireRooted -and -not [System.IO.Path]::IsPathRooted($expanded)) {
 ::         return ''
 ::     }
 ::
 ::     try {
-::         $raw = Get-Content -LiteralPath $script:StateFile -Raw -ErrorAction Stop
-::         $state = $raw | ConvertFrom-Json
+::         return [System.IO.Path]::GetFullPath($expanded)
 ::     } catch {
 ::         return ''
 ::     }
+:: }
+::
+:: function Read-JsonStateFile {
+::     param(
+::         [Parameter(Mandatory = $true)][string]$Path,
+::         [Parameter(Mandatory = $true)][scriptblock]$DefaultFactory
+::     )
+::
+::     if (-not (Test-Path -LiteralPath $Path)) {
+::         return & $DefaultFactory
+::     }
+::
+::     try {
+::         $raw = Get-Content -LiteralPath $Path -Raw -ErrorAction Stop
+::         $state = $raw | ConvertFrom-Json
+::     } catch {
+::         return & $DefaultFactory
+::     }
+::
+::     if (-not $state) {
+::         return & $DefaultFactory
+::     }
+::
+::     return $state
+:: }
+::
+:: function New-GlobalStateObject {
+::     return [pscustomobject]@{}
+:: }
+::
+:: function Select-GlobalStateFields {
+::     param($Source)
+::
+::     $state = New-GlobalStateObject
+::     foreach ($key in @(
+::         'projectsRoot',
+::         'uiLanguage',
+::         'uiLanguagePrompted',
+::         'updateLastCheckedUtc',
+::         'latestReleaseTag',
+::         'latestReleaseUrl',
+::         'latestReleaseAssetUrl',
+::         'latestReleaseAssetDigest',
+::         'latestReleasePublishedAt',
+::         'dismissedReleaseTag'
+::     )) {
+::         if ($Source -and $Source.PSObject.Properties.Match($key).Count) {
+::             $state | Add-Member -NotePropertyName $key -NotePropertyValue $Source.$key
+::         }
+::     }
+::
+::     return $state
+:: }
+::
+:: function Get-GlobalStateObject {
+::     $state = Read-JsonStateFile -Path $script:GlobalSettingsFile -DefaultFactory ${function:New-GlobalStateObject}
+::     if ($state.PSObject.Properties.Name.Count -eq 0 -and $script:LegacyStateFile -ne $script:GlobalSettingsFile) {
+::         $legacy = Read-JsonStateFile -Path $script:LegacyStateFile -DefaultFactory ${function:New-GlobalStateObject}
+::         return (Select-GlobalStateFields -Source $legacy)
+::     }
+::
+::     return (Select-GlobalStateFields -Source $state)
+:: }
+::
+:: function Save-GlobalStateObject {
+::     param([Parameter(Mandatory = $true)]$State)
+::
+::     $parent = Split-Path -Parent $script:GlobalSettingsFile
+::     if ($parent -and -not (Test-Path -LiteralPath $parent)) {
+::         $null = New-Item -ItemType Directory -Path $parent -Force
+::     }
+::
+::     $State | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $script:GlobalSettingsFile -Encoding utf8
+:: }
+::
+:: function Update-GlobalStateFields {
+::     param([hashtable]$Fields)
+::
+::     $state = Get-StateObject
+::     foreach ($key in $Fields.Keys) {
+::         if ($state.PSObject.Properties.Match($key).Count) {
+::             $state.$key = $Fields[$key]
+::         } else {
+::             $state | Add-Member -NotePropertyName $key -NotePropertyValue $Fields[$key]
+::         }
+::     }
+::     Save-GlobalStateObject $state
+::     return $state
+:: }
+::
+:: function Get-ConfiguredProjectsRoot {
+::     $state = Get-GlobalStateObject
+::     $configured = if ($state.PSObject.Properties.Match('projectsRoot').Count) { Resolve-NormalizedWindowsPath -Path "$($state.projectsRoot)" -RequireRooted } else { '' }
+::     if ($configured) {
+::         return $configured
+::     }
+::
+::     return $script:DefaultProjectsRoot
+:: }
+::
+:: function Set-ProjectsRootContext {
+::     param([Parameter(Mandatory = $true)][string]$Path)
+::
+::     $normalized = Resolve-NormalizedWindowsPath -Path $Path -RequireRooted
+::     if (-not $normalized) {
+::         throw 'Please enter a full Windows path such as C:\.CODEX or D:\SYTA Projects.'
+::     }
+::
+::     if (Test-Path -LiteralPath $normalized -PathType Leaf) {
+::         throw 'The selected path points to a file. Choose a folder path instead.'
+::     }
+::
+::     if (-not (Test-Path -LiteralPath $normalized)) {
+::         $null = New-Item -ItemType Directory -Path $normalized -Force
+::     }
+::
+::     $script:ProjectsRoot = $normalized
+::     $script:StateFile = Join-Path $script:ProjectsRoot '.syta-launcher-state.json'
+::     $script:RecentProjectCountCache = $null
+:: }
+::
+:: function Get-StoredUiLanguagePreference {
+::     $state = Get-GlobalStateObject
 ::
 ::     if (-not $state -or -not $state.PSObject.Properties.Match('uiLanguage').Count) {
 ::         return ''
@@ -278,8 +425,18 @@ exit /b %errorlevel%
 ::             'Settings' = '设置'
 ::             'Settings | launcher preferences' = '设置 | 启动器偏好'
 ::             'Change launcher language and other saved preferences.' = '更改启动器语言和其他已保存的偏好。'
+::             'Change launcher language, projects directory, and other saved preferences.' = '更改启动器语言、项目目录和其他已保存的偏好。'
+::             'Projects directory' = '项目目录'
 ::             'Language settings' = '语言设置'
 ::             'Review or change the saved launcher language.' = '查看或更改已保存的启动器语言。'
+::             'Enter a full Windows path such as C:\.CODEX or D:\SYTA Projects.' = '输入完整的 Windows 路径，例如 C:\.CODEX 或 D:\SYTA Projects。'
+::             '   New projects directory' = '   新项目目录'
+::             'Please enter a full Windows path such as C:\.CODEX or D:\SYTA Projects.' = '请输入完整的 Windows 路径，例如 C:\.CODEX 或 D:\SYTA Projects。'
+::             'The selected path points to a file. Choose a folder path instead.' = '所选路径指向的是文件。请改为选择文件夹路径。'
+::             'Projects directory saved' = '项目目录已保存'
+::             'Code, BMAD, and utility updates will now use this folder.' = 'Code、BMAD 和实用工具更新现在都会使用此文件夹。'
+::             'Invalid projects directory' = '项目目录无效'
+::             'Try another path' = '换一个路径'
 ::             'Open tools, cleanup helpers, and add-on utilities.' = '打开工具、清理助手和附加实用项。'
 ::             'Install smaller workflow utilities and add-ons.' = '安装较小的工作流实用工具和扩展。'
 ::             'Install rtk, ccusage, codex-auth, superpowers, OpenSpec, Claw Code, and BMAD.' = '安装 rtk、ccusage、codex-auth、superpowers、OpenSpec、Claw Code 和 BMAD。'
@@ -554,8 +711,18 @@ exit /b %errorlevel%
 ::             'Settings' = 'Parametres'
 ::             'Settings | launcher preferences' = 'Parametres | preferences du lanceur'
 ::             'Change launcher language and other saved preferences.' = 'Modifier la langue du lanceur et les autres preferences enregistrees.'
+::             'Change launcher language, projects directory, and other saved preferences.' = 'Modifier la langue du lanceur, le dossier des projets et les autres preferences enregistrees.'
+::             'Projects directory' = 'Dossier des projets'
 ::             'Language settings' = 'Parametres de langue'
 ::             'Review or change the saved launcher language.' = 'Consulter ou modifier la langue enregistree du lanceur.'
+::             'Enter a full Windows path such as C:\.CODEX or D:\SYTA Projects.' = 'Saisissez un chemin Windows complet comme C:\.CODEX ou D:\SYTA Projects.'
+::             '   New projects directory' = '   Nouveau dossier des projets'
+::             'Please enter a full Windows path such as C:\.CODEX or D:\SYTA Projects.' = 'Saisissez un chemin Windows complet comme C:\.CODEX ou D:\SYTA Projects.'
+::             'The selected path points to a file. Choose a folder path instead.' = 'Le chemin choisi pointe vers un fichier. Choisissez plutot un dossier.'
+::             'Projects directory saved' = 'Dossier des projets enregistre'
+::             'Code, BMAD, and utility updates will now use this folder.' = 'Code, BMAD et les mises a jour des utilitaires utiliseront maintenant ce dossier.'
+::             'Invalid projects directory' = 'Dossier des projets invalide'
+::             'Try another path' = 'Essayez un autre chemin'
 ::             'Open tools, cleanup helpers, and add-on utilities.' = 'Ouvrir les outils, aides de nettoyage et utilitaires additionnels.'
 ::             'Install smaller workflow utilities and add-ons.' = 'Installer des utilitaires de workflow et des extensions plus legers.'
 ::             'Install rtk, ccusage, codex-auth, superpowers, OpenSpec, Claw Code, and BMAD.' = 'Installer rtk, ccusage, codex-auth, superpowers, OpenSpec, Claw Code et BMAD.'
@@ -724,10 +891,12 @@ exit /b %errorlevel%
 ::         if ($Text -match '^Project folder at (.+)$') { return "项目文件夹位于 $($Matches[1])" }
 ::         if ($Text -match '^Project folder in (.+)$') { return "项目文件夹位于 $($Matches[1])" }
 ::         if ($Text -match '^Choose how to work inside (.+)\.$') { return "选择如何在 $($Matches[1]) 中工作。" }
+::         if ($Text -match '^Search scans existing folders under (.+)\.$') { return "搜索会扫描 $($Matches[1]) 下现有的文件夹。" }
 ::         if ($Text -match '^Jump into one of (.+) recently used project\(s\)\.$') { return "打开 $($Matches[1]) 个最近使用的项目之一。" }
 ::         if ($Text -match '^Browse (.+) existing project folder\(s\)\.$') { return "浏览 $($Matches[1]) 个现有项目文件夹。" }
 ::         if ($Text -match '^No existing project matched ''(.+)''\.$') { return "没有现有项目匹配 '$($Matches[1])'。" }
 ::         if ($Text -match '^Projects matching ''(.+)''\.$') { return "与 '$($Matches[1])' 匹配的项目。" }
+::         if ($Text -match '^Use Update -> Update utilities add-ons later to quick-update BMAD installs already found under (.+)\.$') { return "之后可使用 更新 -> 更新实用工具扩展，快速更新已在 $($Matches[1]) 下找到的 BMAD 安装。" }
 ::         if ($Text -match '^Project : (.+)$') { return "项目   : $($Matches[1])" }
 ::         if ($Text -match '^Tool    : (.+)$') { return "工具   : $(Localize-Text $Matches[1])" }
 ::         if ($Text -match '^Install : (.+)$') { return "安装   : $(Localize-Text $Matches[1])" }
@@ -757,10 +926,12 @@ exit /b %errorlevel%
 ::     if ($Text -match '^Project folder at (.+)$') { return "Dossier du projet dans $($Matches[1])" }
 ::     if ($Text -match '^Project folder in (.+)$') { return "Dossier du projet dans $($Matches[1])" }
 ::     if ($Text -match '^Choose how to work inside (.+)\.$') { return "Choisissez comment travailler dans $($Matches[1])." }
+::     if ($Text -match '^Search scans existing folders under (.+)\.$') { return "La recherche parcourt les dossiers existants sous $($Matches[1])." }
 ::     if ($Text -match '^Jump into one of (.+) recently used project\(s\)\.$') { return "Ouvrir l''un des $($Matches[1]) projet(s) recemment utilises." }
 ::     if ($Text -match '^Browse (.+) existing project folder\(s\)\.$') { return "Parcourir $($Matches[1]) dossier(s) de projet existant(s)." }
 ::     if ($Text -match '^No existing project matched ''(.+)''\.$') { return "Aucun projet existant ne correspond a ''$($Matches[1])''." }
 ::     if ($Text -match '^Projects matching ''(.+)''\.$') { return "Projets correspondant a ''$($Matches[1])''." }
+::     if ($Text -match '^Use Update -> Update utilities add-ons later to quick-update BMAD installs already found under (.+)\.$') { return "Utilisez ensuite Mise a jour -> Mettre a jour les utilitaires pour actualiser rapidement les installations BMAD deja trouvees sous $($Matches[1])." }
 ::     if ($Text -match '^Project : (.+)$') { return "Projet  : $($Matches[1])" }
 ::     if ($Text -match '^Tool    : (.+)$') { return "Outil   : $(Localize-Text $Matches[1])" }
 ::     if ($Text -match '^Install : (.+)$') { return "Install : $(Localize-Text $Matches[1])" }
@@ -778,6 +949,13 @@ exit /b %errorlevel%
 ::     if ($Text -match '^Items: (\d+) \| Selected: (\d+)/(\d+) \| Showing: (\d+)-(\d+)$') { return "Elements : $($Matches[1]) | Selection : $($Matches[2])/$($Matches[3]) | Affichage : $($Matches[4])-$($Matches[5])" }
 ::     if ($Text -match '^Installed \((.+)\)$') { return "Installe ($($Matches[1]))" }
 ::     return $Text
+:: }
+::
+:: try {
+::     Set-ProjectsRootContext -Path (Get-ConfiguredProjectsRoot)
+:: } catch {
+::     Set-ProjectsRootContext -Path $script:DefaultProjectsRoot
+::     Update-GlobalStateFields @{ projectsRoot = $script:ProjectsRoot } | Out-Null
 :: }
 ::
 :: $script:Language = Resolve-Language -Requested $UiLanguage
@@ -965,7 +1143,7 @@ exit /b %errorlevel%
 ::     'utility-bmad' = [pscustomobject]@{
 ::         Command = ''
 ::         VersionScript = ''
-::         DetectScript = 'first="$(find /mnt/c/.CODEX -mindepth 2 -maxdepth 2 -type d -name _bmad 2>/dev/null | sort | head -n 1)"; if [ -n "$first" ]; then echo "$first"; fi'
+::         DetectScript = 'projects_root="${SYTA_PROJECTS_ROOT_WSL:-/mnt/c/.CODEX}"; if [ -d "$projects_root" ]; then first="$(find "$projects_root" -mindepth 2 -maxdepth 2 -type d -name _bmad 2>/dev/null | sort | head -n 1)"; if [ -n "$first" ]; then echo "$first"; fi; fi'
 ::         AuthScript = 'echo project-scoped'
 ::         InstallHint = 'Install from Install -> Utilities -> BMAD.'
 ::     }
@@ -1108,7 +1286,17 @@ exit /b %errorlevel%
 ::     $scriptPath = Join-Path $script:ScriptDir 'syta-tool-diagnostics.sh'
 ::     $wslScriptPath = Get-WslPath -WindowsPath $scriptPath
 ::     $wslDir = Get-WslPath -WindowsPath $script:ScriptDir
-::     $output = & wsl.exe -d $distro --cd $wslDir --exec bash $wslScriptPath $Key 2>$null
+::     $previousProjectsRoot = $env:SYTA_PROJECTS_ROOT_WSL
+::     $env:SYTA_PROJECTS_ROOT_WSL = Get-WslPath -WindowsPath $script:ProjectsRoot
+::     try {
+::         $output = & wsl.exe -d $distro --cd $wslDir --exec bash $wslScriptPath $Key 2>$null
+::     } finally {
+::         if ($null -ne $previousProjectsRoot) {
+::             $env:SYTA_PROJECTS_ROOT_WSL = $previousProjectsRoot
+::         } else {
+::             Remove-Item Env:SYTA_PROJECTS_ROOT_WSL -ErrorAction SilentlyContinue
+::         }
+::     }
 ::     if ($LASTEXITCODE -ne 0 -or -not $output) {
 ::         return $null
 ::     }
@@ -1137,7 +1325,17 @@ exit /b %errorlevel%
 ::     $scriptPath = Join-Path $script:ScriptDir 'syta-tool-diagnostics.sh'
 ::     $wslScriptPath = Get-WslPath -WindowsPath $scriptPath
 ::     $wslDir = Get-WslPath -WindowsPath $script:ScriptDir
-::     $output = & wsl.exe -d $distro --cd $wslDir --exec bash $wslScriptPath @Keys 2>$null
+::     $previousProjectsRoot = $env:SYTA_PROJECTS_ROOT_WSL
+::     $env:SYTA_PROJECTS_ROOT_WSL = Get-WslPath -WindowsPath $script:ProjectsRoot
+::     try {
+::         $output = & wsl.exe -d $distro --cd $wslDir --exec bash $wslScriptPath @Keys 2>$null
+::     } finally {
+::         if ($null -ne $previousProjectsRoot) {
+::             $env:SYTA_PROJECTS_ROOT_WSL = $previousProjectsRoot
+::         } else {
+::             Remove-Item Env:SYTA_PROJECTS_ROOT_WSL -ErrorAction SilentlyContinue
+::         }
+::     }
 ::     if ($LASTEXITCODE -ne 0 -or -not $output) {
 ::         return @{}
 ::     }
@@ -1447,7 +1645,7 @@ exit /b %errorlevel%
 :: function Get-LatestReleaseInfo {
 ::     param([switch]$ForceRefresh)
 ::
-::     $state = Get-StateObject
+::     $state = Get-GlobalStateObject
 ::     $cachedTag = if ($state.PSObject.Properties.Match('latestReleaseTag').Count) { "$($state.latestReleaseTag)" } else { '' }
 ::     $cachedUrl = if ($state.PSObject.Properties.Match('latestReleaseUrl').Count) { "$($state.latestReleaseUrl)" } else { '' }
 ::     $cachedAssetUrl = if ($state.PSObject.Properties.Match('latestReleaseAssetUrl').Count) { "$($state.latestReleaseAssetUrl)" } else { '' }
@@ -1490,7 +1688,7 @@ exit /b %errorlevel%
 ::             PublishedAt = "$($response.published_at)"
 ::         }
 ::
-::         Update-StateFields @{
+::         Update-GlobalStateFields @{
 ::             updateLastCheckedUtc = (Get-Date).ToUniversalTime().ToString('o')
 ::             latestReleaseTag = $info.Tag
 ::             latestReleaseUrl = $info.Url
@@ -1503,7 +1701,7 @@ exit /b %errorlevel%
 ::     } catch {
 ::         $redirectInfo = Get-LatestReleaseInfoFromRedirect
 ::         if ($redirectInfo) {
-::             Update-StateFields @{
+::             Update-GlobalStateFields @{
 ::                 updateLastCheckedUtc = (Get-Date).ToUniversalTime().ToString('o')
 ::                 latestReleaseTag = $redirectInfo.Tag
 ::                 latestReleaseUrl = $redirectInfo.Url
@@ -1553,7 +1751,7 @@ exit /b %errorlevel%
 ::         return $null
 ::     }
 ::
-::     $state = Get-StateObject
+::     $state = Get-GlobalStateObject
 ::     $dismissedTag = if ($state.PSObject.Properties.Match('dismissedReleaseTag').Count) { "$($state.dismissedReleaseTag)" } else { '' }
 ::     if ($dismissedTag -and $dismissedTag -eq $release.Tag) {
 ::         return $null
@@ -2138,7 +2336,7 @@ exit /b %errorlevel%
 ::         $normalized = 'auto'
 ::     }
 ::
-::     Update-StateFields @{
+::     Update-GlobalStateFields @{
 ::         uiLanguage = $normalized
 ::         uiLanguagePrompted = $true
 ::     } | Out-Null
@@ -2169,6 +2367,43 @@ exit /b %errorlevel%
 ::     return $selection.Key
 :: }
 ::
+:: function Get-SettingsItems {
+::     return @(
+::         [pscustomobject]@{ Title = 'Projects directory'; Subtitle = "Projects root: $script:ProjectsRoot"; Accent = 'Green'; Key = 'projects-root' }
+::         [pscustomobject]@{ Title = 'Language settings'; Subtitle = 'Review or change the saved launcher language.'; Accent = 'Cyan'; Key = 'language' }
+::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the previous menu.'; Accent = 'DarkGray'; Key = 'back' }
+::     )
+:: }
+::
+:: function Prompt-ProjectsRootChoice {
+::     Clear-Host
+::     Write-Banner -Tagline 'Projects directory' -Hint 'Leave blank to cancel'
+::     Write-UiBorderLine -Color DarkGray
+::     Write-BoxLine -Content "Projects root: $script:ProjectsRoot" -Color White
+::     Write-BoxLine -Content 'Enter a full Windows path such as C:\.CODEX or D:\SYTA Projects.' -Color Gray
+::     Write-UiBorderLine -Color DarkGray
+::     Write-Host ''
+::
+::     return (Read-Host (Localize-Text '   New projects directory'))
+:: }
+::
+:: function Save-ProjectsRootPreference {
+::     param([Parameter(Mandatory = $true)][string]$Path)
+::
+::     $normalized = Resolve-NormalizedWindowsPath -Path $Path -RequireRooted
+::     if (-not $normalized) {
+::         throw (Localize-Text 'Please enter a full Windows path such as C:\.CODEX or D:\SYTA Projects.')
+::     }
+::
+::     if (Test-Path -LiteralPath $normalized -PathType Leaf) {
+::         throw (Localize-Text 'The selected path points to a file. Choose a folder path instead.')
+::     }
+::
+::     Set-ProjectsRootContext -Path $normalized
+::     Update-GlobalStateFields @{ projectsRoot = $script:ProjectsRoot } | Out-Null
+::     Clear-ToolDiagnosticsCache
+:: }
+::
 :: function Ensure-UiLanguagePreference {
 ::     if ($Mode -or $DryRun -or $SmokeTest) {
 ::         return
@@ -2179,7 +2414,7 @@ exit /b %errorlevel%
 ::         return
 ::     }
 ::
-::     $state = Get-StateObject
+::     $state = Get-GlobalStateObject
 ::     $wasPrompted = $state.PSObject.Properties.Match('uiLanguagePrompted').Count -and [bool]$state.uiLanguagePrompted
 ::     if ($wasPrompted) {
 ::         return
@@ -2191,22 +2426,39 @@ exit /b %errorlevel%
 :: }
 ::
 :: function Launch-SettingsMode {
-::     $items = @(
-::         [pscustomobject]@{ Title = 'Language settings'; Subtitle = 'Review or change the saved launcher language.'; Accent = 'Cyan'; Key = 'language' }
-::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the previous menu.'; Accent = 'DarkGray'; Key = 'back' }
-::     )
+::     $items = Get-SettingsItems
 ::
 ::     if ($DryRun) {
 ::         return [pscustomobject]@{
 ::             Title = 'Settings'
-::             Subtitle = 'Change launcher language and other saved preferences.'
+::             Subtitle = 'Change launcher language, projects directory, and other saved preferences.'
 ::             Items = @($items | Select-Object Title, Subtitle, Accent, Key)
 ::         }
 ::     }
 ::
-::     $selection = Read-Menu -Title 'Settings' -Subtitle 'Change launcher language and other saved preferences.' -Items $items
+::     $selection = Read-Menu -Title 'Settings' -Subtitle 'Change launcher language, projects directory, and other saved preferences.' -Items $items
 ::     if (-not $selection -or $selection.Key -eq 'back') {
 ::         return
+::     }
+::
+::     if ($selection.Key -eq 'projects-root') {
+::         while ($true) {
+::             $choice = Prompt-ProjectsRootChoice
+::             if ([string]::IsNullOrWhiteSpace($choice)) {
+::                 return
+::             }
+::
+::             try {
+::                 Save-ProjectsRootPreference -Path $choice
+::                 Show-InfoBox -Title 'Projects directory saved' -Accent Green -Hint 'Back' -Lines @(
+::                     "Projects root: $script:ProjectsRoot",
+::                     'Code, BMAD, and utility updates will now use this folder.'
+::                 )
+::                 return
+::             } catch {
+::                 Show-InfoBox -Title 'Invalid projects directory' -Accent Red -Hint 'Try another path' -Lines @("$($_.Exception.Message)")
+::             }
+::         }
 ::     }
 ::
 ::     if ($selection.Key -eq 'language') {
@@ -2590,7 +2842,7 @@ exit /b %errorlevel%
 ::             return $true
 ::         }
 ::         'skip' {
-::             Update-StateFields @{ dismissedReleaseTag = $update.LatestTag } | Out-Null
+::             Update-GlobalStateFields @{ dismissedReleaseTag = $update.LatestTag } | Out-Null
 ::             return $false
 ::         }
 ::         default {
@@ -2853,7 +3105,7 @@ exit /b %errorlevel%
 ::                 Clear-Host
 ::                 Write-Banner -Tagline 'Search Projects' -Hint 'Leave blank to cancel'
 ::                 Write-UiBorderLine -Color DarkGray
-::                 Write-BoxLine -Content 'Search scans existing folders under C:\.CODEX.' -Color Gray
+::                 Write-BoxLine -Content "Search scans existing folders under $script:ProjectsRoot." -Color Gray
 ::                 Write-BoxLine -Content 'Search is case-insensitive and matches partial words.' -Color DarkGray
 ::                 Write-UiBorderLine -Color DarkGray
 ::                 Write-Host ''
@@ -2999,7 +3251,6 @@ exit /b %errorlevel%
 ::     return @(
 ::         [pscustomobject]@{ Title = 'Cleaner helper | maintenance'; Subtitle = if ($distroReady) { 'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.' } else { $blockedText }; Accent = if ($distroReady) { 'Cyan' } else { 'Yellow' }; Key = 'cleaner-helper' }
 ::         [pscustomobject]@{ Title = 'Reset tool configs | maintenance'; Subtitle = if ($distroReady) { 'Review tracked config/auth paths and remove only the ones you confirm.' } else { $blockedText }; Accent = 'Yellow'; Key = 'reset-tool-configs' }
-::         [pscustomobject]@{ Title = 'Settings | launcher preferences'; Subtitle = 'Change launcher language and other saved preferences.'; Accent = 'White'; Key = 'settings' }
 ::         [pscustomobject]@{ Title = 'Utilities | add-ons'; Subtitle = if ($distroReady) { 'Install rtk, ccusage, codex-auth, superpowers, OpenSpec, Claw Code, and BMAD.' } else { $blockedText }; Accent = if ($distroReady) { 'Blue' } else { 'Yellow' }; Key = 'utilities' }
 ::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the previous menu.'; Accent = 'DarkGray'; Key = 'back' }
 ::     )
@@ -3426,11 +3677,6 @@ exit /b %errorlevel%
 ::         }
 ::     }
 ::
-::     if ($selection.Key -eq 'settings') {
-::         Launch-SettingsMode
-::         return
-::     }
-::
 ::     if ($selection.Key -eq 'cleaner-helper') {
 ::         Invoke-CleanerHelperFlow
 ::         return
@@ -3472,7 +3718,7 @@ exit /b %errorlevel%
 ::             'utility-bmad' { @(
 ::                 'BMAD installs into a selected project instead of your global shell profile.',
 ::                 'SYTA will ask you to choose a project folder before launching the BMAD installer.',
-::                 'Use Update -> Update utilities add-ons later to quick-update BMAD installs already found under C:\.CODEX.'
+::                 "Use Update -> Update utilities add-ons later to quick-update BMAD installs already found under $script:ProjectsRoot."
 ::             ) }
 ::             default { @() }
 ::         }
@@ -3722,7 +3968,7 @@ exit /b %errorlevel%
 ::             'utility-bmad' { @(
 ::                 'BMAD installs into a selected project instead of your global shell profile.',
 ::                 'SYTA will ask you to choose a project folder before launching the BMAD installer.',
-::                 'Use Update -> Update utilities add-ons later to quick-update BMAD installs already found under C:\.CODEX.'
+::                 "Use Update -> Update utilities add-ons later to quick-update BMAD installs already found under $script:ProjectsRoot."
 ::             ) }
 ::             default { @() }
 ::         }
@@ -3774,15 +4020,32 @@ exit /b %errorlevel%
 ::     Clear-ToolDiagnosticsCache
 :: }
 ::
+:: function Get-MainMenuItems {
+::     return @(
+::         [pscustomobject]@{ Title = 'Code'; Subtitle = 'Launch an agent with project selection, diagnostics, and recent-project support.'; Accent = 'Cyan'; Key = 'Code' }
+::         [pscustomobject]@{ Title = 'Install'; Subtitle = 'Install WSL Ubuntu or supported coding CLIs with preflight diagnostics.'; Accent = 'Green'; Key = 'Install' }
+::         [pscustomobject]@{ Title = 'Settings'; Subtitle = 'Change launcher language, projects directory, and other saved preferences.'; Accent = 'Green'; Key = 'Settings' }
+::         [pscustomobject]@{ Title = 'Extra | tools and utilities'; Subtitle = 'Open tools, cleanup helpers, and add-on utilities.'; Accent = 'Blue'; Key = 'Extra' }
+::         [pscustomobject]@{ Title = 'Explanations'; Subtitle = 'Learn what the tools are, what SYTA recommends, and how to choose a setup.'; Accent = 'Blue'; Key = 'Explanations' }
+::         [pscustomobject]@{ Title = 'Update'; Subtitle = 'Choose which update lane to run.'; Accent = 'Yellow'; Key = 'Update' }
+::         [pscustomobject]@{ Title = 'Exit'; Subtitle = 'Close the launcher.'; Accent = 'DarkGray'; Key = 'Exit' }
+::     )
+:: }
+::
 :: if ($SmokeTest) {
 ::     [pscustomobject]@{
 ::         ScriptDir = $script:ScriptDir
 ::         ProjectsRoot = $script:ProjectsRoot
+::         GlobalSettingsFile = $script:GlobalSettingsFile
 ::         StateFile = $script:StateFile
+::         ProjectStateFile = $script:StateFile
 ::         BuildId = $script:BuildId
 ::         ReleaseTag = $script:ReleaseTag
 ::         Language = $script:Language
 ::         StoredUiLanguage = Get-StoredUiLanguagePreference
+::         MainMenuKeys = @(Get-MainMenuItems | Select-Object -ExpandProperty Key)
+::         SettingsMenuKeys = @(Get-SettingsItems | Where-Object Key -ne 'back' | Select-Object -ExpandProperty Key)
+::         ExtraMenuKeys = @(Get-ExtraInstallItems | Where-Object Key -ne 'back' | Select-Object -ExpandProperty Key)
 ::         RecentProjects = @((Get-RecentProjects | Select-Object -ExpandProperty Name))
 ::         Agents = $script:AgentOptions.Key
 ::         WslDistros = Get-WslDistros
@@ -3867,14 +4130,7 @@ exit /b %errorlevel%
 :: }
 ::
 :: while ($true) {
-::     $modeChoice = Read-Menu -Title 'Mode Selector' -Subtitle 'Choose what SYTA should do.' -Items @(
-::         [pscustomobject]@{ Title = 'Code'; Subtitle = 'Launch an agent with project selection, diagnostics, and recent-project support.'; Accent = 'Cyan'; Key = 'Code' }
-::         [pscustomobject]@{ Title = 'Install'; Subtitle = 'Install WSL Ubuntu or supported coding CLIs with preflight diagnostics.'; Accent = 'Green'; Key = 'Install' }
-::         [pscustomobject]@{ Title = 'Extra | tools and utilities'; Subtitle = 'Open tools, cleanup helpers, and add-on utilities.'; Accent = 'Blue'; Key = 'Extra' }
-::         [pscustomobject]@{ Title = 'Explanations'; Subtitle = 'Learn what the tools are, what SYTA recommends, and how to choose a setup.'; Accent = 'Blue'; Key = 'Explanations' }
-::         [pscustomobject]@{ Title = 'Update'; Subtitle = 'Choose which update lane to run.'; Accent = 'Yellow'; Key = 'Update' }
-::         [pscustomobject]@{ Title = 'Exit'; Subtitle = 'Close the launcher.'; Accent = 'DarkGray'; Key = 'Exit' }
-::     )
+::     $modeChoice = Read-Menu -Title 'Mode Selector' -Subtitle 'Choose what SYTA should do.' -Items (Get-MainMenuItems)
 ::
 ::     if (-not $modeChoice -or $modeChoice.Key -eq 'Exit') {
 ::         exit 0
@@ -3883,6 +4139,7 @@ exit /b %errorlevel%
 ::     switch ($modeChoice.Key) {
 ::         'Code' { Launch-CodeMode }
 ::         'Install' { Launch-InstallMode }
+::         'Settings' { Launch-SettingsMode }
 ::         'Extra' { Launch-ExtraMode }
 ::         'Explanations' { Launch-ExplanationsMode }
 ::         'Update' { Launch-UpdateMenu }
@@ -4018,12 +4275,13 @@ exit /b %errorlevel%
 ::       ;;
 ::     utility-bmad)
 ::       auth='project-scoped'
-::       if [ -d /mnt/c/.CODEX ]; then
-::         path="$(find /mnt/c/.CODEX -mindepth 2 -maxdepth 2 -type d -name _bmad 2>/dev/null | sort | head -n 1 || true)"
+::       projects_root="${SYTA_PROJECTS_ROOT_WSL:-/mnt/c/.CODEX}"
+::       if [ -d "$projects_root" ]; then
+::         path="$(find "$projects_root" -mindepth 2 -maxdepth 2 -type d -name _bmad 2>/dev/null | sort | head -n 1 || true)"
 ::         if [ -n "$path" ]; then
 ::           installed=1
 ::           install_source='project'
-::           version="installed in $(find /mnt/c/.CODEX -mindepth 2 -maxdepth 2 -type d -name _bmad 2>/dev/null | wc -l | tr -d ' ') project(s)"
+::           version="installed in $(find "$projects_root" -mindepth 2 -maxdepth 2 -type d -name _bmad 2>/dev/null | wc -l | tr -d ' ') project(s)"
 ::         fi
 ::       fi
 ::       ;;

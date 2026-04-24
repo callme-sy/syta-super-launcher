@@ -21,7 +21,7 @@
 
 它提供一个统一的交互入口，可以：
 
-- 在 `C:\.CODEX` 下创建和重新打开项目
+- 在可配置的项目根目录下创建和重新打开项目（默认：`C:\.CODEX`）
 - 以大小写不敏感、支持部分匹配的方式搜索项目
 - 在 WSL 中启动 AI 编码 CLI
 - 安装缺失工具
@@ -126,9 +126,9 @@
 
 `Reset tool configs` 会打开另一层选择器。从那里你可以只重置 `Codex / OMX`、`OpenCode`、`Oh My OpenAgent`、`Oh My OpenCode Slim`、`Claude Code`、`Gemini CLI`，或 `All tracked configs`。
 
-这些工具仍然遵循启动器的 WSL-first 模型。`RTK`、`ccusage`、`codex-auth` 和 `OpenSpec` 会在 WSL 中运行各自的官方安装命令。`superpowers` 会克隆上游仓库并把技能链接到 Codex，然后提示可选的 OpenCode / Gemini 后续步骤。`Claw Code` 会克隆 `ultraworkers/claw-code`，以 release 模式构建 `claw` 二进制，并把它链接到 `~/.local/bin`。`BMAD` 是项目级安装：SYTA 会先让你在 `C:\.CODEX` 下选择项目，然后在该项目里启动官方 BMAD 安装器。
+这些工具仍然遵循启动器的 WSL-first 模型。`RTK`、`ccusage`、`codex-auth` 和 `OpenSpec` 会在 WSL 中运行各自的官方安装命令。`superpowers` 会克隆上游仓库并把技能链接到 Codex，然后提示可选的 OpenCode / Gemini 后续步骤。`Claw Code` 会克隆 `ultraworkers/claw-code`，以 release 模式构建 `claw` 二进制，并把它链接到 `~/.local/bin`。`BMAD` 是项目级安装：SYTA 会先让你在当前配置的项目根目录下选择项目，然后在该项目里启动官方 BMAD 安装器。
 
-`Update -> Update utilities add-ons` 只会刷新检测到已安装的实用工具扩展。它会更新受支持的用户级工具，更新后校验 RTK，重建并重新链接受管理的 Claw Code 检出目录，并对 `C:\.CODEX` 下已找到的 BMAD 项目执行 quick-update。
+`Update -> Update utilities add-ons` 只会刷新检测到已安装的实用工具扩展。它会更新受支持的用户级工具，更新后校验 RTK，重建并重新链接受管理的 Claw Code 检出目录，并对当前配置的项目根目录下已找到的 BMAD 项目执行 quick-update。
 
 `OpenCode`、`Oh My OpenAgent` 和 `Oh My OpenCode Slim` 现在是三条独立路径：
 
@@ -140,7 +140,7 @@
 
 启动器 UI 现在会在 **法语**、**英语**、**中文** 之间自动检测。
 
-在第一次交互式启动时，SYTA 现在也会提供语言选择，并把选定值保存到 `C:\.CODEX\.syta-launcher-state.json`。之后你可以从 `Extra -> Settings` 再次修改。
+在第一次交互式启动时，SYTA 现在也会提供语言选择，并把启动器偏好保存到 `%LOCALAPPDATA%\SYTA Super Launcher\launcher-settings.json`。之后你可以从 `Settings` 再次修改。
 
 也支持手动覆盖：
 
@@ -161,16 +161,26 @@ set SYTA_LANGUAGE=zh
 
 ## 项目目录
 
-所有项目都放在：
+项目放在一个可配置的 Windows 文件夹下。默认根目录是：
 
 ```text
 C:\.CODEX
 ```
 
-最近项目状态保存在：
+之后你可以从 `Settings` 把这个根目录切换到别的路径，比如 `D:\`。
+
+如果所选文件夹不存在，启动器会自动创建。
+
+当前项目根目录下的最近项目状态保存在：
 
 ```text
-C:\.CODEX\.syta-launcher-state.json
+<当前选中的项目根目录>\.syta-launcher-state.json
+```
+
+语言、项目根目录选择和更新缓存等全局启动器偏好保存在：
+
+```text
+%LOCALAPPDATA%\SYTA Super Launcher\launcher-settings.json
 ```
 
 ## 运行模型

@@ -13,7 +13,7 @@
 
 <p>
   <img src="https://img.shields.io/badge/Interface-TUI%20interactive-6A5ACD?style=flat-square" alt="TUI interactive" />
-  <img src="https://img.shields.io/badge/Projets-C%3A%5C.CODEX-5C6BC0?style=flat-square" alt="Racine projets" />
+  <img src="https://img.shields.io/badge/Projets-Configurable-5C6BC0?style=flat-square" alt="Racine projets" />
   <img src="https://img.shields.io/badge/Runtime-Portable-455A64?style=flat-square" alt="Runtime portable" />
   <img src="https://img.shields.io/badge/Made%20by-Sylvain%20T.-D81B60?style=flat-square" alt="Made by Sylvain T." />
 </p>
@@ -28,7 +28,7 @@
 
 Il offre un point d’entrée unique pour :
 
-- créer et rouvrir des projets dans `C:\.CODEX`
+- creer et rouvrir des projets dans une racine configurable (par defaut : `C:\.CODEX`)
 - rechercher des projets avec un classement plus pertinent, insensible à la casse et aux mots partiels
 - lancer des CLI IA de code dans WSL
 - installer les outils manquants
@@ -133,9 +133,9 @@ Le bundle de base installe actuellement :
 - `Claw Code`
 - `BMAD`
 
-Ces utilitaires restent installes dans le modele WSL-first du lanceur. `RTK`, `ccusage`, `codex-auth` et `OpenSpec` utilisent les commandes d'installation upstream dans WSL. `superpowers` clone le depot upstream et lie ses skills dans Codex, puis affiche les etapes optionnelles pour OpenCode et Gemini. `Claw Code` clone `ultraworkers/claw-code`, compile le binaire `claw` en mode release, puis le lie dans `~/.local/bin`. `BMAD` est installe par projet : SYTA vous demande de choisir un projet sous `C:\.CODEX`, puis lance l'installateur officiel BMAD dans ce projet.
+Ces utilitaires restent installes dans le modele WSL-first du lanceur. `RTK`, `ccusage`, `codex-auth` et `OpenSpec` utilisent les commandes d'installation upstream dans WSL. `superpowers` clone le depot upstream et lie ses skills dans Codex, puis affiche les etapes optionnelles pour OpenCode et Gemini. `Claw Code` clone `ultraworkers/claw-code`, compile le binaire `claw` en mode release, puis le lie dans `~/.local/bin`. `BMAD` est installe par projet : SYTA vous demande de choisir un projet sous la racine de projets actuellement configuree, puis lance l'installateur officiel BMAD dans ce projet.
 
-`Update -> Update utilities add-ons` met a jour seulement les utilitaires detectes comme installes. Cette voie actualise les utilitaires utilisateur pris en charge, verifie RTK apres mise a jour, recompile/relie les checkouts Claw Code geres, et lance un quick-update BMAD sur les projets deja trouves sous `C:\.CODEX`.
+`Update -> Update utilities add-ons` met a jour seulement les utilitaires detectes comme installes. Cette voie actualise les utilitaires utilisateur pris en charge, verifie RTK apres mise a jour, recompile/relie les checkouts Claw Code geres, et lance un quick-update BMAD sur les projets deja trouves sous la racine de projets actuellement configuree.
 
 `OpenCode`, `Oh My OpenAgent` et `Oh My OpenCode Slim` sont maintenant trois voies distinctes :
 
@@ -147,7 +147,7 @@ Ces utilitaires restent installes dans le modele WSL-first du lanceur. `RTK`, `c
 
 L'interface du lanceur détecte maintenant automatiquement le **français**, l'**anglais**, ou le **chinois**.
 
-Lors du premier lancement interactif, SYTA propose maintenant aussi un choix de langue et enregistre la valeur retenue dans `C:\.CODEX\.syta-launcher-state.json`. Vous pouvez la modifier plus tard via `Extra -> Settings`.
+Lors du premier lancement interactif, SYTA propose maintenant aussi un choix de langue et enregistre les preferences du lanceur dans `%LOCALAPPDATA%\SYTA Super Launcher\launcher-settings.json`. Vous pouvez ensuite les modifier depuis `Settings`.
 
 Un forçage manuel est aussi disponible :
 
@@ -168,18 +168,26 @@ L'interface du lanceur suit cette préférence. Les sorties des outils tiers ou 
 
 ## Racine Des Projets
 
-Tous les projets sont gérés sous :
+Les projets sont geres dans un dossier Windows configurable. La racine par defaut est :
 
 ```text
 C:\.CODEX
 ```
 
-Si le dossier n’existe pas, le lanceur le crée automatiquement.
+Vous pouvez changer cette racine plus tard depuis `Settings`, y compris vers un autre disque comme `D:\`.
 
-Les projets récents sont stockés ici :
+Si le dossier choisi n'existe pas, le lanceur le cree automatiquement.
+
+Les projets recents pour la racine active sont stockes ici :
 
 ```text
-C:\.CODEX\.syta-launcher-state.json
+<Racine de projets selectionnee>\.syta-launcher-state.json
+```
+
+Les preferences globales du lanceur comme la langue, la racine de projets choisie et le cache de mise a jour sont stockees ici :
+
+```text
+%LOCALAPPDATA%\SYTA Super Launcher\launcher-settings.json
 ```
 
 ## Modèle De Runtime

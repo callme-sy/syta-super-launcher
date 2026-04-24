@@ -38,7 +38,9 @@
 | --- | --- |
 | `Code` | 打开项目并在 WSL 中启动编码 CLI |
 | `Install` | 安装或修复环境与受支持工具 |
+| `Settings` | 修改启动器偏好，例如语言和项目目录 |
 | `Extra` | 从主菜单打开维护工具和较小的工作流工具 |
+| `Check launcher update` | 强制重新检查启动器发布版本，并在需要时提供自更新 |
 | `Light update` | 仅更新已安装的 AI 编码 CLI，包括 Kilo Code CLI 和 DROID CLI |
 | `Update utilities add-ons` | 仅更新已安装的实用工具扩展 |
 | `Update all` | 运行更广泛的工具链维护更新 |
@@ -67,11 +69,16 @@
 
 - `Code`
 - `Install`
+- `Settings`
 - `Extra`
 - `Explanations`
 - `Update`
 
+`Settings` 是主菜单里的启动器偏好入口，比如语言和项目目录。
+
 `Extra` 是主菜单里的维护和附加工具入口。
+
+`Update` 现在也包含一个手动启动器版本检查入口，适合自动启动提示没有显示新版本时使用。
 
 ### Install 菜单
 

@@ -33,7 +33,7 @@ exit /b %errorlevel%
 
 ::BEGIN:syta-agentic-launcher.ps1
 :: param(
-::     [ValidateSet('Code', 'Install', 'Extra', 'Settings', 'Explanations', 'CleanerHelper', 'Update', 'UpdateAll', 'UpdateLight', 'UpdateUtilities')]
+::     [ValidateSet('Code', 'Install', 'Extra', 'Settings', 'Explanations', 'CleanerHelper', 'Update', 'LauncherUpdate', 'UpdateAll', 'UpdateLight', 'UpdateUtilities')]
 ::     [string]$Mode,
 ::     [ValidateSet('codex-yolo', 'omx-madmax-high', 'opencode', 'kilocode-cli', 'claude-code', 'gemini-cli')]
 ::     [string]$Agent,
@@ -78,8 +78,8 @@ exit /b %errorlevel%
 :: $script:LegacyStateFile = Join-Path $script:DefaultProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-24-132443Z'
-:: $script:ReleaseTag = 'v1.10.0'
+:: $script:BuildId = 'SYTA-build-2026-04-24-134931Z'
+:: $script:ReleaseTag = 'v1.10.1'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -350,7 +350,9 @@ exit /b %errorlevel%
 ::             'Explanations' = '说明'
 ::             'Update' = '更新'
 ::             'Choose which update lane to run.' = '选择要运行的更新方式。'
-::             'Run a lighter AI-tools-only update, the utility-addons updater, or the broader full maintenance pass.' = '可运行轻量 AI 工具更新、实用工具扩展更新，或更全面的完整维护。'
+::             'Run a lighter AI-tools-only update, a forced launcher-release check, the utility-addons updater, or the broader full maintenance pass.' = '可运行轻量 AI 工具更新、强制启动器版本检查、实用工具扩展更新，或更全面的完整维护。'
+::             'Check launcher update' = '检查启动器更新'
+::             'Force a fresh GitHub release check for SYTA and offer self-update if a newer version exists.' = '强制重新检查 GitHub 上的 SYTA 发布版本；如果有新版本则提供自更新。'
 ::             'Light update' = '轻量更新'
 ::             'Update all' = '全量更新'
 ::             'Update utilities add-ons' = '更新实用工具扩展'
@@ -358,6 +360,14 @@ exit /b %errorlevel%
 ::             'Run the broader toolchain update pass, including system package managers.' = '运行更全面的工具链更新，包括系统包管理器。'
 ::             'Update installed utility add-ons only: RTK, ccusage, codex-auth, superpowers, OpenSpec, Claw Code, BMAD.' = '仅更新已安装的实用工具扩展：RTK、ccusage、codex-auth、superpowers、OpenSpec、Claw Code、BMAD。'
 ::             'Run the installed utility add-ons updater without touching the broader toolchain.' = '只运行已安装实用工具扩展的更新器，不触碰更广泛的工具链。'
+::             'Launcher is up to date' = '启动器已是最新版本'
+::             'Launcher update check failed' = '启动器更新检查失败'
+::             'Current launcher path is unavailable.' = '当前找不到启动器文件路径。'
+::             'Could not reach the latest SYTA release right now.' = '当前无法访问最新的 SYTA 发布版本。'
+::             'Action  : Fresh launcher release lookup' = '操作   : 重新检查启动器发布版本'
+::             'Impact  : Startup cache bypassed' = '影响   : 已绕过启动时缓存'
+::             'Impact  : Dismissed-version gate ignored' = '影响   : 已忽略跳过版本限制'
+::             'Impact  : Cached release info used after live lookup failed' = '影响   : 实时检查失败后使用了缓存的发布信息'
 ::             'First install (recommended)' = '首次安装（推荐）'
 ::             'Best beginner path for WSL Ubuntu, optional PowerShell 7, and the core AI CLI tools.' = '面向新手的最佳路径：WSL Ubuntu、可选 PowerShell 7，以及核心 AI CLI 工具。'
 ::             'Recommended path for a new machine or first SYTA setup' = '适用于新机器或首次 SYTA 安装的推荐路径'
@@ -636,7 +646,9 @@ exit /b %errorlevel%
 ::             'Explanations' = 'Explications'
 ::             'Update' = 'Mise a jour'
 ::             'Choose which update lane to run.' = 'Choisissez le type de mise a jour a lancer.'
-::             'Run a lighter AI-tools-only update, the utility-addons updater, or the broader full maintenance pass.' = 'Lancer soit une mise a jour legere des outils IA, soit la mise a jour des utilitaires, soit la maintenance complete.'
+::             'Run a lighter AI-tools-only update, a forced launcher-release check, the utility-addons updater, or the broader full maintenance pass.' = 'Lancer soit une mise a jour legere des outils IA, soit une verification forcee de la release du lanceur, soit la mise a jour des utilitaires, soit la maintenance complete.'
+::             'Check launcher update' = 'Verifier la mise a jour du lanceur'
+::             'Force a fresh GitHub release check for SYTA and offer self-update if a newer version exists.' = 'Force une nouvelle verification de la release GitHub de SYTA et propose l''auto-mise-a-jour si une version plus recente existe.'
 ::             'Light update' = 'Mise a jour legere'
 ::             'Update all' = 'Mise a jour complete'
 ::             'Update utilities add-ons' = 'Mettre a jour les utilitaires'
@@ -644,6 +656,14 @@ exit /b %errorlevel%
 ::             'Run the broader toolchain update pass, including system package managers.' = 'Lancer la maintenance plus large de la chaine d''outils, y compris les gestionnaires systeme.'
 ::             'Update installed utility add-ons only: RTK, ccusage, codex-auth, superpowers, OpenSpec, Claw Code, BMAD.' = 'Mettre a jour seulement les utilitaires installes : RTK, ccusage, codex-auth, superpowers, OpenSpec, Claw Code, BMAD.'
 ::             'Run the installed utility add-ons updater without touching the broader toolchain.' = 'Lancer la mise a jour des utilitaires installes sans toucher au reste de la chaine d''outils.'
+::             'Launcher is up to date' = 'Le lanceur est a jour'
+::             'Launcher update check failed' = 'La verification de mise a jour du lanceur a echoue'
+::             'Current launcher path is unavailable.' = 'Le chemin du lanceur actuel est introuvable.'
+::             'Could not reach the latest SYTA release right now.' = 'Impossible de joindre la derniere release SYTA pour le moment.'
+::             'Action  : Fresh launcher release lookup' = 'Action  : nouvelle verification de la release du lanceur'
+::             'Impact  : Startup cache bypassed' = 'Impact  : cache de demarrage contourne'
+::             'Impact  : Dismissed-version gate ignored' = 'Impact  : blocage de version ignoree contourne'
+::             'Impact  : Cached release info used after live lookup failed' = 'Impact  : info de release en cache utilisee apres echec de la verification live'
 ::             'First install (recommended)' = 'Premiere installation (recommandee)'
 ::             'Best beginner path for WSL Ubuntu, optional PowerShell 7, and the core AI CLI tools.' = 'Meilleur parcours debutant pour WSL Ubuntu, PowerShell 7 en option et les CLI IA de base.'
 ::             'Recommended path for a new machine or first SYTA setup' = 'Parcours recommande pour une nouvelle machine ou une premiere installation SYTA'
@@ -1636,6 +1656,7 @@ exit /b %errorlevel%
 ::             AssetUrl = "https://github.com/callme-sy/syta-super-launcher/releases/download/$tag/syta-super-launcher.bat"
 ::             Digest = ''
 ::             PublishedAt = ''
+::             Source = 'redirect'
 ::         }
 ::     } catch {
 ::         return $null
@@ -1663,6 +1684,7 @@ exit /b %errorlevel%
 ::                     AssetUrl = $cachedAssetUrl
 ::                     Digest = $cachedDigest
 ::                     PublishedAt = $cachedPublishedAt
+::                     Source = 'cache'
 ::                 }
 ::             }
 ::         } catch {
@@ -1686,6 +1708,7 @@ exit /b %errorlevel%
 ::             AssetUrl = "$($asset.browser_download_url)"
 ::             Digest = $digest
 ::             PublishedAt = "$($response.published_at)"
+::             Source = 'api'
 ::         }
 ::
 ::         Update-GlobalStateFields @{
@@ -1720,6 +1743,7 @@ exit /b %errorlevel%
 ::                 AssetUrl = $cachedAssetUrl
 ::                 Digest = $cachedDigest
 ::                 PublishedAt = $cachedPublishedAt
+::                 Source = 'cache'
 ::             }
 ::         }
 ::         return $null
@@ -2785,6 +2809,7 @@ exit /b %errorlevel%
 ::
 :: function Launch-UpdateMenu {
 ::     $items = @(
+::         [pscustomobject]@{ Title = 'Check launcher update'; Subtitle = 'Force a fresh GitHub release check for SYTA and offer self-update if a newer version exists.'; Accent = 'Yellow'; Key = 'LauncherUpdate' }
 ::         [pscustomobject]@{ Title = 'Light update'; Subtitle = 'Update AI coding CLIs only: Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI.'; Accent = 'Green'; Key = 'UpdateLight' }
 ::         [pscustomobject]@{ Title = 'Update utilities add-ons'; Subtitle = 'Update installed utility add-ons only: RTK, ccusage, codex-auth, superpowers, OpenSpec, Claw Code, BMAD.'; Accent = 'Cyan'; Key = 'UpdateUtilities' }
 ::         [pscustomobject]@{ Title = 'Update all'; Subtitle = 'Run the broader toolchain update pass, including system package managers.'; Accent = 'Yellow'; Key = 'UpdateAll' }
@@ -2794,22 +2819,100 @@ exit /b %errorlevel%
 ::     if ($DryRun) {
 ::         return [pscustomobject]@{
 ::             Title = 'Update'
-::             Subtitle = 'Run a lighter AI-tools-only update, the utility-addons updater, or the broader full maintenance pass.'
+::             Subtitle = 'Run a lighter AI-tools-only update, a forced launcher-release check, the utility-addons updater, or the broader full maintenance pass.'
 ::             Items = $items
 ::         }
 ::     }
 ::
-::     $selection = Read-Menu -Title 'Update' -Subtitle 'Run a lighter AI-tools-only update, the utility-addons updater, or the broader full maintenance pass.' -Items $items
+::     $selection = Read-Menu -Title 'Update' -Subtitle 'Run a lighter AI-tools-only update, a forced launcher-release check, the utility-addons updater, or the broader full maintenance pass.' -Items $items
 ::
 ::     if (-not $selection -or $selection.Key -eq 'back') {
 ::         return
 ::     }
 ::
 ::     switch ($selection.Key) {
+::         'LauncherUpdate' { Launch-LauncherUpdateMode }
 ::         'UpdateLight' { Launch-UpdateLightMode }
 ::         'UpdateUtilities' { Launch-UpdateUtilitiesMode }
 ::         'UpdateAll' { Launch-UpdateMode }
 ::     }
+:: }
+::
+:: function Launch-LauncherUpdateMode {
+::     $launcherPath = Get-LauncherBatchPath
+::
+::     if ($DryRun) {
+::         return [pscustomobject]@{
+::             Title = 'Check launcher update'
+::             CurrentTag = $script:ReleaseTag
+::             ReleaseApiUrl = $script:ReleaseApiUrl
+::             LauncherPath = $launcherPath
+::             ForceRefresh = $true
+::             IgnoreDismissed = $true
+::         }
+::     }
+::
+::     if (-not $launcherPath) {
+::         Show-InfoBox -Title 'Launcher update check failed' -Accent Red -Hint 'Back' -Lines @(
+::             'Current launcher path is unavailable.',
+::             'Action  : Fresh launcher release lookup'
+::         )
+::         return
+::     }
+::
+::     $release = Get-LatestReleaseInfo -ForceRefresh
+::     if (-not $release) {
+::         Show-InfoBox -Title 'Launcher update check failed' -Accent Red -Hint 'Back' -Lines @(
+::             "Current : $($script:ReleaseTag)",
+::             'Action  : Fresh launcher release lookup',
+::             'Impact  : Startup cache bypassed',
+::             'Could not reach the latest SYTA release right now.'
+::         )
+::         return
+::     }
+::
+::     $currentVersion = Convert-ReleaseTagToVersion $script:ReleaseTag
+::     $latestVersion = Convert-ReleaseTagToVersion $release.Tag
+::     if ($currentVersion -and $latestVersion -and $latestVersion -gt $currentVersion) {
+::         $update = [pscustomobject]@{
+::             CurrentTag = $script:ReleaseTag
+::             LatestTag = $release.Tag
+::             ReleaseUrl = $release.Url
+::             AssetUrl = $release.AssetUrl
+::             Digest = $release.Digest
+::             PublishedAt = $release.PublishedAt
+::             LauncherPath = $launcherPath
+::         }
+::
+::         $choice = Prompt-LauncherUpdateChoice -Update $update
+::         switch ($choice) {
+::             'update' {
+::                 $null = Start-LauncherSelfUpdate -Update $update
+::                 return
+::             }
+::             'skip' {
+::                 Update-GlobalStateFields @{ dismissedReleaseTag = $update.LatestTag } | Out-Null
+::                 return
+::             }
+::             default {
+::                 return
+::             }
+::         }
+::     }
+::
+::     $impactLine = if ($release.PSObject.Properties.Match('Source').Count -and "$($release.Source)" -eq 'cache') {
+::         'Impact  : Cached release info used after live lookup failed'
+::     } else {
+::         'Impact  : Dismissed-version gate ignored'
+::     }
+::
+::     Show-InfoBox -Title 'Launcher is up to date' -Accent Green -Hint 'Back' -Lines @(
+::         "Current : $($script:ReleaseTag)",
+::         "Target  : $($release.Tag)",
+::         'Action  : Fresh launcher release lookup',
+::         'Impact  : Startup cache bypassed',
+::         $impactLine
+::     )
 :: }
 ::
 :: function Start-LauncherSelfUpdate {
@@ -4108,6 +4211,14 @@ exit /b %errorlevel%
 ::
 :: if ($Mode -eq 'Update') {
 ::     $result = Launch-UpdateMenu
+::     if ($DryRun) {
+::         $result | ConvertTo-Json -Depth 4
+::     }
+::     exit 0
+:: }
+::
+:: if ($Mode -eq 'LauncherUpdate') {
+::     $result = Launch-LauncherUpdateMode
 ::     if ($DryRun) {
 ::         $result | ConvertTo-Json -Depth 4
 ::     }

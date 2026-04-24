@@ -45,7 +45,9 @@ Tout le runtime est embarqué dans le fichier batch lui-même. Au lancement, il 
 | --- | --- |
 | `Code` | Ouvre un projet et lance une CLI de code dans WSL |
 | `Install` | Installe ou répare l’environnement et les outils pris en charge |
+| `Settings` | Modifie les preferences du lanceur comme la langue et le dossier des projets |
 | `Extra` | Ouvre depuis le menu principal les outils de maintenance et les utilitaires plus legers |
+| `Check launcher update` | Force une nouvelle verification de release du lanceur et propose l'auto-mise-a-jour si besoin |
 | `Light update` | Met a jour uniquement les CLI IA de code deja installees, y compris Kilo Code CLI et DROID CLI |
 | `Update utilities add-ons` | Met a jour uniquement les utilitaires deja installes |
 | `Update all` | Lance une mise à jour plus large de la chaîne d’outils |
@@ -74,11 +76,16 @@ Le menu principal du lanceur contient :
 
 - `Code`
 - `Install`
+- `Settings`
 - `Extra`
 - `Explications`
 - `Update`
 
+`Settings` est la voie du menu principal pour les preferences du lanceur comme la langue et le dossier des projets.
+
 `Extra` est la voie du menu principal pour la maintenance et les add-ons.
+
+`Update` inclut maintenant aussi une verification manuelle de release du lanceur au cas ou l'invite automatique de demarrage n'aurait pas signale une nouvelle version.
 
 ### Menu Install
 

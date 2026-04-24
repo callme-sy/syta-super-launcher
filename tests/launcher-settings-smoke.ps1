@@ -76,6 +76,20 @@ try {
         throw 'Expected Settings dry-run menu to include a projects-root item.'
     }
 
+    $updateMenu = Invoke-LauncherJson -Launcher $resolvedLauncher -Arguments @('-Mode', 'Update', '-DryRun', '-NoAnimation')
+    if (-not ($updateMenu.Items | Where-Object Key -eq 'LauncherUpdate')) {
+        throw 'Expected Update dry-run menu to include a LauncherUpdate item.'
+    }
+
+    $launcherUpdate = Invoke-LauncherJson -Launcher $resolvedLauncher -Arguments @('-Mode', 'LauncherUpdate', '-DryRun', '-NoAnimation')
+    if (-not $launcherUpdate.ForceRefresh) {
+        throw 'Expected LauncherUpdate dry-run to force a fresh release lookup.'
+    }
+
+    if (-not $launcherUpdate.IgnoreDismissed) {
+        throw 'Expected LauncherUpdate dry-run to ignore dismissed-release gating.'
+    }
+
     $extraMenu = Invoke-LauncherJson -Launcher $resolvedLauncher -Arguments @('-Mode', 'Extra', '-DryRun', '-NoAnimation')
     if ($extraMenu.Items | Where-Object Key -eq 'settings') {
         throw 'Expected Extra dry-run menu to stop exposing launcher settings.'

@@ -45,7 +45,9 @@ The entire runtime is embedded into the batch file itself. At launch, it extract
 | --- | --- |
 | `Code` | Opens a project and launches a coding CLI in WSL |
 | `Install` | Installs or repairs the environment and supported tools |
+| `Settings` | Changes launcher preferences such as language and projects directory |
 | `Extra` | Opens maintenance tools and smaller workflow utilities from the main menu |
+| `Check launcher update` | Forces a fresh launcher-release check and offers self-update when needed |
 | `Light update` | Updates installed AI coding CLIs only, including Kilo Code CLI and DROID CLI |
 | `Update utilities add-ons` | Updates installed utility add-ons only |
 | `Update all` | Runs a broader toolchain update pass |
@@ -82,6 +84,8 @@ The launcher main menu includes:
 `Settings` is the main-menu lane for launcher preferences such as language and projects directory.
 
 `Extra` is the main-menu lane for maintenance and add-ons.
+
+`Update` now also includes a manual launcher-release checker in case the automatic startup prompt did not surface a newer version.
 
 ### Install Menu
 

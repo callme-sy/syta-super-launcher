@@ -113,6 +113,18 @@ try {
         throw "Expected UpdateUtilities dry-run to use '$projectsRoot' but got '$($updateUtilities.WindowsDirectory)'."
     }
 
+    $utilitiesMenu = Invoke-LauncherJson -Launcher $resolvedLauncher -Arguments @('-Mode', 'Install', '-InstallTarget', 'utilities', '-DryRun', '-NoAnimation')
+    $utilityDiagItems = @($utilitiesMenu.Items | Where-Object { "$($_.Key)" -like 'utility-*' })
+    if (-not $utilityDiagItems) {
+        throw 'Expected utility install dry-run to include utility diagnostic items.'
+    }
+
+    $allowedUtilityDiagnosticModes = @('fast', 'wsl-unavailable')
+    $nonFastUtilityItems = @($utilityDiagItems | Where-Object { "$($_.DiagnosticMode)" -notin $allowedUtilityDiagnosticModes })
+    if ($nonFastUtilityItems) {
+        throw "Expected utility install dry-run diagnostics to use fast mode, but non-fast items were: $(@($nonFastUtilityItems.Key) -join ', ')."
+    }
+
     Write-Host 'launcher-settings-smoke: PASS'
 } finally {
     Remove-Item Env:SYTA_SETTINGS_FILE -ErrorAction SilentlyContinue

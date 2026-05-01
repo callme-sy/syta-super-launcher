@@ -52,7 +52,7 @@ Tout le runtime est embarqué dans le fichier batch lui-même. Au lancement, il 
 | `Update utilities add-ons` | Met a jour uniquement les utilitaires deja installes |
 | `Update all` | Lance une mise à jour plus large de la chaîne d’outils |
 | Diagnostics | Affiche l’état d’installation, la version et des indices d’auth/config |
-| Menus plus reactifs | Regroupe les diagnostics et affiche des barres de chargement pendant les ecrans plus lents |
+| Menus plus reactifs | Repousse les diagnostics Code apres le choix de l'agent et utilise des diagnostics rapides pour les menus Install/Update avant le pre-vol complet |
 | Invite de mise a jour | Peut proposer une nouvelle release du lanceur lorsqu'elle existe |
 | Portabilité | Distribution en un seul `.bat` |
 | Langue | Détecte automatiquement le français/l'anglais/le chinois pour l'interface du lanceur |
@@ -250,7 +250,7 @@ Avant les lancements et les installations, l’interface peut afficher :
 
 Ces diagnostics sont volontairement pragmatiques. Ils sont utiles pour l’exploitation, mais ne remplacent pas une vérification parfaite de l’auth réelle chez chaque fournisseur.
 
-Pour les lancements Code, le selecteur d'agent s'ouvre d'abord et les diagnostics live ne s'executent que pour l'agent choisi. Les autres menus lourds en diagnostics affichent toujours une progression claire au lieu de sembler figes.
+Pour les lancements Code, le selecteur d'agent s'ouvre d'abord et les diagnostics live ne s'executent que pour l'agent choisi. Les menus Install et Update utilisent des diagnostics generaux plus rapides, puis l'action choisie relance un pre-vol live avant d'ouvrir l'onglet WSL.
 
 ## Environnement Recommandé
 

@@ -45,7 +45,7 @@
 | `Update utilities add-ons` | 仅更新已安装的实用工具扩展 |
 | `Update all` | 运行更广泛的工具链维护更新 |
 | Diagnostics | 显示安装状态、版本与认证/配置提示 |
-| Responsive menus | Code agent 诊断延后到选择之后，安装诊断批量执行，并在较慢菜单准备期间显示加载进度 |
+| Responsive menus | Code agent 诊断延后到选择之后；Install/Update 菜单先使用快速概览诊断，选中动作后再运行完整实时预检 |
 | Update prompt | 检测到新版本时可提示更新启动器 |
 | Portability | 以单个 `.bat` 文件发布 |
 | Language | 启动器 UI 可自动识别法语 / 英语 / 中文 |
@@ -235,7 +235,7 @@ syta-super-launcher.bat
 
 这些诊断刻意保持务实。它们是有用的运维信号，但并不等同于对每个供应商真实认证状态的完美验证。
 
-启动 Code 时，agent 选择器会先打开，实时诊断只针对你选中的 agent 运行。其他诊断较重的菜单仍会显示明确的加载进度，而不是让界面看起来像失去响应。
+启动 Code 时，agent 选择器会先打开，实时诊断只针对你选中的 agent 运行。Install 和 Update 菜单会先使用更快的概览诊断；真正选中启动、安装或更新动作后，仍会在打开 WSL 标签页前运行实时预检。
 
 ## 推荐环境
 

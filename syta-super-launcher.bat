@@ -4,7 +4,7 @@ setlocal EnableExtensions DisableDelayedExpansion
 
 set "SYTA_PORTABLE_ROOT=%~dp0"
 set "SYTA_SELF=%~f0"
-set "SYTA_BUILD_ID=SYTA-build-2026-05-01-144231Z"
+set "SYTA_BUILD_ID=SYTA-build-2026-05-01-154055Z"
 set "SYTA_RUNTIME_BASE=%LOCALAPPDATA%\SYTA Super Launcher\runtime"
 if not defined LOCALAPPDATA set "SYTA_RUNTIME_BASE=%TEMP%\SYTA Super Launcher\runtime"
 set "SYTA_RUNTIME=%SYTA_RUNTIME_BASE%\%SYTA_BUILD_ID%"
@@ -89,8 +89,8 @@ exit /b %errorlevel%
 :: $script:WslUserDistrosCache = $null
 :: $script:PreferredWslDistroCache = $null
 :: $script:WslCliReadyCache = $null
-:: $script:BuildId = 'SYTA-build-2026-05-01-144231Z'
-:: $script:ReleaseTag = 'v1.10.3'
+:: $script:BuildId = 'SYTA-build-2026-05-01-154055Z'
+:: $script:ReleaseTag = 'v1.10.4'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -598,6 +598,7 @@ exit /b %errorlevel%
 ::             'Configured only' = '仅检测到配置'
 ::             'Missing' = '缺失'
 ::             'version not detected' = '未检测到版本'
+::             'checked during action' = '操作时检查'
 ::             'binary not found on PATH' = 'PATH 中未找到可执行文件'
 ::             'config-only add-on' = '仅配置扩展'
 ::             'not installed' = '未安装'
@@ -894,6 +895,7 @@ exit /b %errorlevel%
 ::             'Configured only' = 'Configuration detectee seulement'
 ::             'Missing' = 'Absent'
 ::             'version not detected' = 'version non detectee'
+::             'checked during action' = 'verifie pendant l''action'
 ::             'binary not found on PATH' = 'binaire introuvable dans le PATH'
 ::             'config-only add-on' = 'extension a config seulement'
 ::             'not installed' = 'non installe'
@@ -1375,7 +1377,10 @@ exit /b %errorlevel%
 :: }
 ::
 :: function Invoke-ToolDiagnosticsBatchScript {
-::     param([string[]]$Keys)
+::     param(
+::         [string[]]$Keys,
+::         [switch]$Fast
+::     )
 ::
 ::     if (-not (Test-WslPreferredDistroReadyForCli) -or -not $Keys -or $Keys.Count -eq 0) {
 ::         return @{}
@@ -1391,8 +1396,14 @@ exit /b %errorlevel%
 ::     $wslDir = Get-WslPath -WindowsPath $script:ScriptDir
 ::     $previousProjectsRoot = $env:SYTA_PROJECTS_ROOT_WSL
 ::     $env:SYTA_PROJECTS_ROOT_WSL = Get-WslPath -WindowsPath $script:ProjectsRoot
+::     $wslArgs = @('-d', $distro, '--cd', $wslDir, '--exec')
+::     if ($Fast) {
+::         $wslArgs += @('env', 'SYTA_DIAG_FAST=1')
+::     }
+::     $wslArgs += @('bash', $wslScriptPath) + $Keys
+::
 ::     try {
-::         $output = & wsl.exe -d $distro --cd $wslDir --exec bash $wslScriptPath @Keys 2>$null
+::         $output = & wsl.exe @wslArgs 2>$null
 ::     } finally {
 ::         if ($null -ne $previousProjectsRoot) {
 ::             $env:SYTA_PROJECTS_ROOT_WSL = $previousProjectsRoot
@@ -1882,6 +1893,8 @@ exit /b %errorlevel%
 ::             Path = $null
 ::             PathText = (Localize-Text 'Unknown tool')
 ::             Version = $null
+::             DiagnosticMode = 'unknown'
+::             VersionDeferred = $false
 ::             VersionText = (Localize-Text 'Unknown tool')
 ::             AuthRaw = 'not-detected'
 ::             AuthText = (Localize-Text 'Auth unknown')
@@ -1904,6 +1917,8 @@ exit /b %errorlevel%
 ::             Path = $null
 ::             PathText = $spec.InstallHint
 ::             Version = $null
+::             DiagnosticMode = 'wsl-unavailable'
+::             VersionDeferred = $false
 ::             VersionText = $setupText
 ::             AuthRaw = $authRaw
 ::             AuthText = $setupText
@@ -1931,6 +1946,8 @@ exit /b %errorlevel%
 ::     $installed = ($Raw.installed -eq '1')
 ::     $path = if ($Raw.path) { $Raw.path } else { $null }
 ::     $version = if ($Raw.version) { $Raw.version } else { $null }
+::     $diagnosticMode = if ($Raw.diagnostic_mode) { $Raw.diagnostic_mode } else { 'full' }
+::     $versionDeferred = ($Raw.version_deferred -eq '1')
 ::     $authRaw = if ($Raw.auth) { $Raw.auth } else { 'not-detected' }
 ::     $installSource = if ($Raw.install_source) { $Raw.install_source } else { 'unknown' }
 ::
@@ -1955,7 +1972,9 @@ exit /b %errorlevel%
 ::         Path = $path
 ::         PathText = if ($path) { $path } elseif ($configPath) { $configPath } else { $spec.InstallHint }
 ::         Version = $version
-::         VersionText = if ($configOnlyPackage) { (Localize-Text 'config-only add-on') } elseif ($configuredOnly) { (Localize-Text 'binary not found on PATH') } elseif ($installed) { if ($version) { $version } else { (Localize-Text 'version not detected') } } else { (Localize-Text 'not installed') }
+::         DiagnosticMode = $diagnosticMode
+::         VersionDeferred = $versionDeferred
+::         VersionText = if ($configOnlyPackage) { (Localize-Text 'config-only add-on') } elseif ($configuredOnly) { (Localize-Text 'binary not found on PATH') } elseif ($installed) { if ($version) { $version } elseif ($versionDeferred) { (Localize-Text 'checked during action') } else { (Localize-Text 'version not detected') } } else { (Localize-Text 'not installed') }
 ::         AuthRaw = $authRaw
 ::         AuthText = Format-AuthStatus -Raw $authRaw
 ::         InstallSource = $installSource
@@ -1981,6 +2000,8 @@ exit /b %errorlevel%
 ::         Path = $null
 ::         PathText = $spec.InstallHint
 ::         Version = $null
+::         DiagnosticMode = 'wsl-unavailable'
+::         VersionDeferred = $false
 ::         VersionText = $statusText
 ::         AuthRaw = $authRaw
 ::         AuthText = $statusText
@@ -1992,7 +2013,10 @@ exit /b %errorlevel%
 :: }
 ::
 :: function Warm-ToolDiagnosticsCache {
-::     param([string[]]$Keys)
+::     param(
+::         [string[]]$Keys,
+::         [switch]$Fast
+::     )
 ::
 ::     $resolvedKeys = @($Keys | ForEach-Object { Resolve-ToolKey $_ } | Select-Object -Unique)
 ::     if ($resolvedKeys.Count -eq 0) {
@@ -2006,7 +2030,7 @@ exit /b %errorlevel%
 ::         return
 ::     }
 ::
-::     $rawMap = Invoke-ToolDiagnosticsBatchScript -Keys $resolvedKeys
+::     $rawMap = Invoke-ToolDiagnosticsBatchScript -Keys $resolvedKeys -Fast:$Fast
 ::     foreach ($key in $resolvedKeys) {
 ::         if ($script:ToolDiagCache.ContainsKey($key)) {
 ::             continue
@@ -2014,6 +2038,18 @@ exit /b %errorlevel%
 ::
 ::         if ($rawMap.ContainsKey($key)) {
 ::             $script:ToolDiagCache[$key] = Convert-ToolDiagnosticsRawToObject -ResolvedKey $key -Raw $rawMap[$key]
+::         } elseif ($Fast) {
+::             $script:ToolDiagCache[$key] = Convert-ToolDiagnosticsRawToObject -ResolvedKey $key -Raw @{
+::                 key = $key
+::                 installed = '0'
+::                 path = ''
+::                 version = ''
+::                 auth = 'not-detected'
+::                 config = ''
+::                 install_source = 'unknown'
+::                 diagnostic_mode = 'fast'
+::                 version_deferred = '1'
+::             }
 ::         } else {
 ::             $null = Get-ToolDiagnostics -Key $key -Refresh
 ::         }
@@ -3345,7 +3381,7 @@ exit /b %errorlevel%
 ::     $distroReady = Test-WslPreferredDistroReadyForCli
 ::     $pwshInfo = Get-PwshInfo
 ::     if ($distroReady) {
-::         Warm-ToolDiagnosticsCache -Keys @('codex', 'omx', 'opencode', 'kilocode-cli', 'claude-code', 'gemini-cli', 'droid-cli', 'oh-my-openagent', 'oh-my-opencode-slim')
+::         Warm-ToolDiagnosticsCache -Keys @('codex', 'omx', 'opencode', 'kilocode-cli', 'claude-code', 'gemini-cli', 'droid-cli', 'oh-my-openagent', 'oh-my-opencode-slim') -Fast
 ::         $codexDiag = Get-ToolDiagnostics -Key 'codex'
 ::         $omxDiag = Get-ToolDiagnostics -Key 'omx'
 ::         $opencodeDiag = Get-ToolDiagnostics -Key 'opencode'
@@ -3383,15 +3419,15 @@ exit /b %errorlevel%
 ::         }
 ::         [pscustomobject]@{ Title = 'PowerShell 7 | optional'; Subtitle = $pwshInfo.MenuText; Accent = if ($pwshInfo.Installed) { 'Green' } else { 'Yellow' }; Key = 'powershell-7' }
 ::         [pscustomobject]@{ Title = 'Install core AI CLI tools | simple'; Subtitle = if ($distroReady) { 'Run Codex, OpenCode, Claude Code, and Gemini CLI in one pass.' } elseif ($distroInstalled) { 'WSL Linux setup incomplete | launch Ubuntu once first.' } else { 'WSL Linux distro missing | install Ubuntu first.' }; Accent = if ($distroReady) { 'Green' } else { 'Yellow' }; Key = 'all-ai-cli-tools' }
-::         [pscustomobject]@{ Title = 'Codex CLI | guided'; Subtitle = $codexDiag.MenuText; Accent = if ($codexDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'codex' }
-::         [pscustomobject]@{ Title = 'OpenCode | simple'; Subtitle = $opencodeDiag.MenuText; Accent = if ($opencodeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'opencode' }
-::         [pscustomobject]@{ Title = 'Kilo Code CLI | optional'; Subtitle = $kilocodeDiag.MenuText; Accent = if ($kilocodeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'kilocode-cli' }
-::         [pscustomobject]@{ Title = 'Oh My OpenAgent | advanced optional'; Subtitle = $omaDiag.MenuText; Accent = if ($omaDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Yellow' }; Key = 'oh-my-openagent' }
-::         [pscustomobject]@{ Title = 'Oh My Codex / OMX | advanced optional'; Subtitle = $omxDiag.MenuText; Accent = if ($omxDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'omx' }
-::         [pscustomobject]@{ Title = 'Claude Code | optional'; Subtitle = $claudeDiag.MenuText; Accent = if ($claudeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'claude-code' }
-::         [pscustomobject]@{ Title = 'Gemini CLI | optional'; Subtitle = $geminiDiag.MenuText; Accent = if ($geminiDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'gemini-cli' }
-::         [pscustomobject]@{ Title = 'DROID CLI | optional'; Subtitle = $droidDiag.MenuText; Accent = if ($droidDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'droid-cli' }
-::         [pscustomobject]@{ Title = 'Oh My OpenCode Slim | optional'; Subtitle = $omoDiag.MenuText; Accent = if ($omoDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Cyan' }; Key = 'oh-my-opencode-slim' }
+::         [pscustomobject]@{ Title = 'Codex CLI | guided'; Subtitle = $codexDiag.MenuText; Accent = if ($codexDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'codex'; DiagnosticMode = $codexDiag.DiagnosticMode }
+::         [pscustomobject]@{ Title = 'OpenCode | simple'; Subtitle = $opencodeDiag.MenuText; Accent = if ($opencodeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'opencode'; DiagnosticMode = $opencodeDiag.DiagnosticMode }
+::         [pscustomobject]@{ Title = 'Kilo Code CLI | optional'; Subtitle = $kilocodeDiag.MenuText; Accent = if ($kilocodeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'kilocode-cli'; DiagnosticMode = $kilocodeDiag.DiagnosticMode }
+::         [pscustomobject]@{ Title = 'Oh My OpenAgent | advanced optional'; Subtitle = $omaDiag.MenuText; Accent = if ($omaDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Yellow' }; Key = 'oh-my-openagent'; DiagnosticMode = $omaDiag.DiagnosticMode }
+::         [pscustomobject]@{ Title = 'Oh My Codex / OMX | advanced optional'; Subtitle = $omxDiag.MenuText; Accent = if ($omxDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'omx'; DiagnosticMode = $omxDiag.DiagnosticMode }
+::         [pscustomobject]@{ Title = 'Claude Code | optional'; Subtitle = $claudeDiag.MenuText; Accent = if ($claudeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'claude-code'; DiagnosticMode = $claudeDiag.DiagnosticMode }
+::         [pscustomobject]@{ Title = 'Gemini CLI | optional'; Subtitle = $geminiDiag.MenuText; Accent = if ($geminiDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'gemini-cli'; DiagnosticMode = $geminiDiag.DiagnosticMode }
+::         [pscustomobject]@{ Title = 'DROID CLI | optional'; Subtitle = $droidDiag.MenuText; Accent = if ($droidDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'droid-cli'; DiagnosticMode = $droidDiag.DiagnosticMode }
+::         [pscustomobject]@{ Title = 'Oh My OpenCode Slim | optional'; Subtitle = $omoDiag.MenuText; Accent = if ($omoDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Cyan' }; Key = 'oh-my-opencode-slim'; DiagnosticMode = $omoDiag.DiagnosticMode }
 ::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the main menu.'; Accent = 'DarkGray'; Key = 'back' }
 ::     )
 :: }
@@ -3413,7 +3449,7 @@ exit /b %errorlevel%
 ::     $distroInstalled = Test-WslUserDistroInstalled
 ::     $distroReady = Test-WslPreferredDistroReadyForCli
 ::     if ($distroReady) {
-::         Warm-ToolDiagnosticsCache -Keys @('utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec', 'utility-claw-code', 'utility-bmad')
+::         Warm-ToolDiagnosticsCache -Keys @('utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec', 'utility-claw-code', 'utility-bmad') -Fast
 ::         $rtkDiag = Get-ToolDiagnostics -Key 'utility-rtk'
 ::         $ccusageDiag = Get-ToolDiagnostics -Key 'utility-ccusage'
 ::         $codexAuthDiag = Get-ToolDiagnostics -Key 'utility-codex-auth'
@@ -3433,15 +3469,52 @@ exit /b %errorlevel%
 ::     }
 ::
 ::     return @(
-::         [pscustomobject]@{ Title = 'RTK | output proxy'; Subtitle = $rtkDiag.MenuText; Accent = if ($rtkDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'utility-rtk' }
-::         [pscustomobject]@{ Title = 'ccusage | usage reports'; Subtitle = $ccusageDiag.MenuText; Accent = if ($ccusageDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'utility-ccusage' }
-::         [pscustomobject]@{ Title = 'codex-auth | account switcher'; Subtitle = $codexAuthDiag.MenuText; Accent = if ($codexAuthDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'utility-codex-auth' }
-::         [pscustomobject]@{ Title = 'superpowers | Codex skills pack'; Subtitle = $superpowersDiag.MenuText; Accent = if ($superpowersDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Yellow' }; Key = 'utility-superpowers' }
-::         [pscustomobject]@{ Title = 'OpenSpec | spec workflow'; Subtitle = $openspecDiag.MenuText; Accent = if ($openspecDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'utility-openspec' }
-::         [pscustomobject]@{ Title = 'Claw Code | terminal harness'; Subtitle = $clawCodeDiag.MenuText; Accent = if ($clawCodeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'utility-claw-code' }
-::         [pscustomobject]@{ Title = 'BMAD | project framework'; Subtitle = $bmadDiag.MenuText; Accent = if ($bmadDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'utility-bmad' }
+::         [pscustomobject]@{ Title = 'RTK | output proxy'; Subtitle = $rtkDiag.MenuText; Accent = if ($rtkDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'utility-rtk'; DiagnosticMode = $rtkDiag.DiagnosticMode }
+::         [pscustomobject]@{ Title = 'ccusage | usage reports'; Subtitle = $ccusageDiag.MenuText; Accent = if ($ccusageDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'utility-ccusage'; DiagnosticMode = $ccusageDiag.DiagnosticMode }
+::         [pscustomobject]@{ Title = 'codex-auth | account switcher'; Subtitle = $codexAuthDiag.MenuText; Accent = if ($codexAuthDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'utility-codex-auth'; DiagnosticMode = $codexAuthDiag.DiagnosticMode }
+::         [pscustomobject]@{ Title = 'superpowers | Codex skills pack'; Subtitle = $superpowersDiag.MenuText; Accent = if ($superpowersDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Yellow' }; Key = 'utility-superpowers'; DiagnosticMode = $superpowersDiag.DiagnosticMode }
+::         [pscustomobject]@{ Title = 'OpenSpec | spec workflow'; Subtitle = $openspecDiag.MenuText; Accent = if ($openspecDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'utility-openspec'; DiagnosticMode = $openspecDiag.DiagnosticMode }
+::         [pscustomobject]@{ Title = 'Claw Code | terminal harness'; Subtitle = $clawCodeDiag.MenuText; Accent = if ($clawCodeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'utility-claw-code'; DiagnosticMode = $clawCodeDiag.DiagnosticMode }
+::         [pscustomobject]@{ Title = 'BMAD | project framework'; Subtitle = $bmadDiag.MenuText; Accent = if ($bmadDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'utility-bmad'; DiagnosticMode = $bmadDiag.DiagnosticMode }
 ::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the previous menu.'; Accent = 'DarkGray'; Key = 'back' }
 ::     )
+:: }
+::
+:: function Resolve-InstallTargetSelection {
+::     param([Parameter(Mandatory = $true)][string]$Key)
+::
+::     $targetItems = @{
+::         'first-install' = [pscustomobject]@{ Title = 'First install | recommended'; Subtitle = 'Best beginner path for WSL Ubuntu, optional PowerShell 7, and the core AI CLI tools.'; Accent = 'Yellow'; Key = 'first-install' }
+::         'wsl-ubuntu' = [pscustomobject]@{ Title = 'WSL Ubuntu | system setup'; Subtitle = 'Install or repair Ubuntu for WSL.'; Accent = 'Yellow'; Key = 'wsl-ubuntu' }
+::         'powershell-7' = [pscustomobject]@{ Title = 'PowerShell 7 | optional'; Subtitle = 'Install or repair PowerShell 7.'; Accent = 'Yellow'; Key = 'powershell-7' }
+::         'extra' = [pscustomobject]@{ Title = 'Extra'; Subtitle = 'Open tools, cleanup helpers, and add-on utilities.'; Accent = 'Blue'; Key = 'extra' }
+::         'all-ai-cli-tools' = [pscustomobject]@{ Title = 'Install core AI CLI tools | simple'; Subtitle = 'Run Codex, OpenCode, Claude Code, and Gemini CLI in one pass.'; Accent = 'Green'; Key = 'all-ai-cli-tools' }
+::         'cleaner-helper' = [pscustomobject]@{ Title = 'Cleaner helper | maintenance'; Subtitle = 'Scan old nvm/npm AI CLI installs and duplicate PATH hits before cleaning.'; Accent = 'Cyan'; Key = 'cleaner-helper' }
+::         'reset-tool-configs' = [pscustomobject]@{ Title = 'Reset tool configs | maintenance'; Subtitle = 'Review tracked config/auth paths and remove only the ones you confirm.'; Accent = 'Yellow'; Key = 'reset-tool-configs' }
+::         'utilities' = [pscustomobject]@{ Title = 'Utilities | add-ons'; Subtitle = 'Install smaller workflow utilities and add-ons.'; Accent = 'Blue'; Key = 'utilities' }
+::         'codex' = [pscustomobject]@{ Title = 'Codex CLI | guided'; Subtitle = 'Install or repair Codex CLI.'; Accent = 'Cyan'; Key = 'codex' }
+::         'opencode' = [pscustomobject]@{ Title = 'OpenCode | simple'; Subtitle = 'Install or repair OpenCode.'; Accent = 'Cyan'; Key = 'opencode' }
+::         'kilocode-cli' = [pscustomobject]@{ Title = 'Kilo Code CLI | optional'; Subtitle = 'Install or repair Kilo Code CLI.'; Accent = 'Cyan'; Key = 'kilocode-cli' }
+::         'omx' = [pscustomobject]@{ Title = 'Oh My Codex / OMX | advanced optional'; Subtitle = 'Install or repair OMX.'; Accent = 'Cyan'; Key = 'omx' }
+::         'claude-code' = [pscustomobject]@{ Title = 'Claude Code | optional'; Subtitle = 'Install or repair Claude Code.'; Accent = 'Cyan'; Key = 'claude-code' }
+::         'gemini-cli' = [pscustomobject]@{ Title = 'Gemini CLI | optional'; Subtitle = 'Install or repair Gemini CLI.'; Accent = 'Cyan'; Key = 'gemini-cli' }
+::         'droid-cli' = [pscustomobject]@{ Title = 'DROID CLI | optional'; Subtitle = 'Install or repair DROID CLI.'; Accent = 'Cyan'; Key = 'droid-cli' }
+::         'oh-my-openagent' = [pscustomobject]@{ Title = 'Oh My OpenAgent | advanced optional'; Subtitle = 'Install or repair the OpenCode add-on.'; Accent = 'Yellow'; Key = 'oh-my-openagent' }
+::         'oh-my-opencode-slim' = [pscustomobject]@{ Title = 'Oh My OpenCode Slim | optional'; Subtitle = 'Install or repair the slim OpenCode preset.'; Accent = 'Cyan'; Key = 'oh-my-opencode-slim' }
+::         'utility-rtk' = [pscustomobject]@{ Title = 'RTK | output proxy'; Subtitle = 'Install or repair RTK.'; Accent = 'Cyan'; Key = 'utility-rtk' }
+::         'utility-ccusage' = [pscustomobject]@{ Title = 'ccusage | usage reports'; Subtitle = 'Install or repair ccusage.'; Accent = 'Cyan'; Key = 'utility-ccusage' }
+::         'utility-codex-auth' = [pscustomobject]@{ Title = 'codex-auth | account switcher'; Subtitle = 'Install or repair codex-auth.'; Accent = 'Cyan'; Key = 'utility-codex-auth' }
+::         'utility-superpowers' = [pscustomobject]@{ Title = 'superpowers | Codex skills pack'; Subtitle = 'Install or repair Superpowers.'; Accent = 'Yellow'; Key = 'utility-superpowers' }
+::         'utility-openspec' = [pscustomobject]@{ Title = 'OpenSpec | spec workflow'; Subtitle = 'Install or repair OpenSpec.'; Accent = 'Cyan'; Key = 'utility-openspec' }
+::         'utility-claw-code' = [pscustomobject]@{ Title = 'Claw Code | terminal harness'; Subtitle = 'Install or repair Claw Code.'; Accent = 'Cyan'; Key = 'utility-claw-code' }
+::         'utility-bmad' = [pscustomobject]@{ Title = 'BMAD | project framework'; Subtitle = 'Install BMAD into a selected project.'; Accent = 'Cyan'; Key = 'utility-bmad' }
+::     }
+::
+::     if ($targetItems.ContainsKey($Key)) {
+::         return $targetItems[$Key]
+::     }
+::
+::     return $null
 :: }
 ::
 :: function Get-CodingCliSummaryLines {
@@ -3454,6 +3527,8 @@ exit /b %errorlevel%
 ::         [pscustomobject]@{ Label = 'Gemini'; Key = 'gemini-cli' }
 ::         [pscustomobject]@{ Label = 'DROID'; Key = 'droid-cli' }
 ::     )
+::
+::     Warm-ToolDiagnosticsCache -Keys @($items | Select-Object -ExpandProperty Key) -Fast
 ::
 ::     return @($items | ForEach-Object {
 ::         $diag = Get-ToolDiagnostics -Key $_.Key
@@ -3471,6 +3546,8 @@ exit /b %errorlevel%
 ::         [pscustomobject]@{ Label = 'Claw Code'; Key = 'utility-claw-code' }
 ::         [pscustomobject]@{ Label = 'BMAD'; Key = 'utility-bmad' }
 ::     )
+::
+::     Warm-ToolDiagnosticsCache -Keys @($items | Select-Object -ExpandProperty Key) -Fast
 ::
 ::     return @($items | ForEach-Object {
 ::         $diag = Get-ToolDiagnostics -Key $_.Key
@@ -3924,8 +4001,7 @@ exit /b %errorlevel%
 ::
 :: function Launch-InstallMode {
 ::     $selection = if ($InstallTarget) {
-::         $allInstallItems = @((Get-InstallItems) + (Get-ExtraInstallItems) + (Get-UtilityInstallItems))
-::         ($allInstallItems | Where-Object Key -eq $InstallTarget | Select-Object -First 1)
+::         Resolve-InstallTargetSelection -Key $InstallTarget
 ::     } else {
 ::         try {
 ::             Show-LoadProgress -Title 'Installer' -Status 'Checking Windows prerequisites' -Current 1 -Total 2 -Accent Yellow
@@ -3977,7 +4053,7 @@ exit /b %errorlevel%
 ::         if ($DryRun) {
 ::             [pscustomobject]@{
 ::                 Title = 'Utilities'
-::                 Items = @(Get-UtilityInstallItems | Where-Object Key -ne 'back' | Select-Object Title, Subtitle, Accent, Key)
+::                 Items = @(Get-UtilityInstallItems | Where-Object Key -ne 'back' | Select-Object Title, Subtitle, Accent, Key, DiagnosticMode)
 ::             } | ConvertTo-Json -Depth 5
 ::             return
 ::         }
@@ -4350,14 +4426,27 @@ exit /b %errorlevel%
 ::   hash -r 2>/dev/null || true
 :: }
 ::
+:: SYTA_NVM_BIN_DIRS_READY=0
+:: SYTA_NVM_BIN_DIRS=()
+::
+:: prepare_nvm_binary_dirs() {
+::   [ "$SYTA_NVM_BIN_DIRS_READY" = '1' ] && return 0
+::   SYTA_NVM_BIN_DIRS_READY=1
+::   local root="${NVM_DIR:-$HOME/.nvm}/versions/node"
+::   local version
+::   [ -d "$root" ] || return 0
+::   while IFS= read -r version; do
+::     [ -n "$version" ] && SYTA_NVM_BIN_DIRS+=("$root/$version/bin")
+::   done < <(find "$root" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null | sort -Vr)
+:: }
+::
 :: find_nvm_binary() {
 ::   local name="$1"
 ::   local dir
-::   for dir in $(find "${NVM_DIR:-$HOME/.nvm}/versions/node" -mindepth 1 -maxdepth 1 -type d -printf '%f
-:: ' 2>/dev/null | sort -Vr); do
-::     if [ -x "${NVM_DIR:-$HOME/.nvm}/versions/node/$dir/bin/$name" ]; then
-::       printf '%s
-:: ' "${NVM_DIR:-$HOME/.nvm}/versions/node/$dir/bin/$name"
+::   prepare_nvm_binary_dirs
+::   for dir in "${SYTA_NVM_BIN_DIRS[@]}"; do
+::     if [ -x "$dir/$name" ]; then
+::       printf '%s\n' "$dir/$name"
 ::       return 0
 ::     fi
 ::   done
@@ -4378,6 +4467,11 @@ exit /b %errorlevel%
 ::   local path=''
 ::   local installed=0
 ::   local install_source='unknown'
+::   local diagnostic_mode='full'
+::   local version_deferred=0
+::   local bmad_matches=''
+::   local bmad_count=''
+::   [ "${SYTA_DIAG_FAST:-0}" = '1' ] && diagnostic_mode='fast'
 ::
 ::   case "$key" in
 ::     codex)
@@ -4449,11 +4543,22 @@ exit /b %errorlevel%
 ::       auth='project-scoped'
 ::       projects_root="${SYTA_PROJECTS_ROOT_WSL:-/mnt/c/.CODEX}"
 ::       if [ -d "$projects_root" ]; then
-::         path="$(find "$projects_root" -mindepth 2 -maxdepth 2 -type d -name _bmad 2>/dev/null | sort | head -n 1 || true)"
-::         if [ -n "$path" ]; then
-::           installed=1
-::           install_source='project'
-::           version="installed in $(find "$projects_root" -mindepth 2 -maxdepth 2 -type d -name _bmad 2>/dev/null | wc -l | tr -d ' ') project(s)"
+::         if [ "$diagnostic_mode" = 'fast' ]; then
+::           path="$(find "$projects_root" -mindepth 2 -maxdepth 2 -type d -name _bmad -print -quit 2>/dev/null || true)"
+::           if [ -n "$path" ]; then
+::             installed=1
+::             install_source='project'
+::             version_deferred=1
+::           fi
+::         else
+::           bmad_matches="$(find "$projects_root" -mindepth 2 -maxdepth 2 -type d -name _bmad 2>/dev/null | sort || true)"
+::           path="$(printf '%s\n' "$bmad_matches" | sed '/^$/d' | head -n 1)"
+::           if [ -n "$path" ]; then
+::             installed=1
+::             install_source='project'
+::             bmad_count="$(printf '%s\n' "$bmad_matches" | sed '/^$/d' | wc -l | tr -d ' ')"
+::             version="installed in $bmad_count project(s)"
+::           fi
 ::         fi
 ::       fi
 ::       ;;
@@ -4477,6 +4582,8 @@ exit /b %errorlevel%
 ::       print_kv auth 'not-detected'
 ::       print_kv config ''
 ::       print_kv install_source 'unknown'
+::       print_kv diagnostic_mode "$diagnostic_mode"
+::       print_kv version_deferred "$version_deferred"
 ::       return 0
 ::       ;;
 ::   esac
@@ -4507,7 +4614,11 @@ exit /b %errorlevel%
 ::   fi
 ::
 ::   if [ "$installed" -eq 1 ] && [ -n "$command_name" ] && [ -x "$path" ]; then
-::     version="$($path --version 2>/dev/null | head -n 1)"
+::     if [ "$diagnostic_mode" = 'fast' ]; then
+::       version_deferred=1
+::     else
+::       version="$($path --version 2>/dev/null | head -n 1)"
+::     fi
 ::   fi
 ::
 ::   print_kv key "$key"
@@ -4517,6 +4628,8 @@ exit /b %errorlevel%
 ::   print_kv auth "$auth"
 ::   print_kv config "$config"
 ::   print_kv install_source "$install_source"
+::   print_kv diagnostic_mode "$diagnostic_mode"
+::   print_kv version_deferred "$version_deferred"
 :: }
 ::
 :: load_user_env

@@ -37,7 +37,7 @@ It gives you one interactive entry point to:
 - run light, utility-only, or full update flows
 - surface diagnostics before launch
 
-The entire runtime is embedded into the batch file itself. At launch, it extracts helper scripts into a temporary runtime directory, runs the UI from there, and keeps the actual installs in the user environment where they belong.
+The entire runtime is embedded into the batch file itself. At launch, it reuses a build-specific runtime cache when available, extracts helper scripts only when needed, runs the UI from there, and keeps the actual installs in the user environment where they belong.
 
 ## At A Glance
 
@@ -211,7 +211,7 @@ syta-super-launcher.bat
 
 ### Runtime layer
 
-At execution time, the launcher extracts its embedded helper scripts into `%TEMP%` and runs from there.
+At execution time, the launcher extracts its embedded helper scripts into a build-specific runtime cache under the user profile and runs from there. Reopening the same launcher build reuses that cache instead of unpacking the helper scripts again.
 
 This keeps the distribution portable while still allowing:
 
@@ -232,7 +232,7 @@ Important behaviors:
 - `Reset tool configs` stays under `Extra` and gives users a conservative way to undo tracked tool config/auth paths, with a second menu for tool-specific reset choices or `All tracked configs`.
 - `Utilities` now lives under `Extra` so smaller workflow add-ons stay out of the main install list while still getting diagnostics and preflight screens.
 - `Update utilities add-ons` gives the launcher a dedicated maintenance lane for installed extras without forcing the broader full update pass.
-- Menus use a cleaner focused-detail layout and loading progress when project or tool data takes time to prepare.
+- Menus use a cleaner focused-detail layout, loading progress when project or tool data takes time to prepare, and cached WSL readiness probes during a live session.
 - The launcher can check for a newer GitHub release and offer an in-place launcher update.
 - It prefers `nvm` for Node-based CLI installs.
 - It tries to preserve the user’s active/default Node version instead of blindly switching to a fresh one.

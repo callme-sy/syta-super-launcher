@@ -4,8 +4,14 @@ setlocal EnableExtensions DisableDelayedExpansion
 
 set "SYTA_PORTABLE_ROOT=%~dp0"
 set "SYTA_SELF=%~f0"
-for /f "usebackq delims=" %%I in (`powershell.exe -NoLogo -NoProfile -Command "[guid]::NewGuid().ToString()"`) do set "SYTA_RUNTIME=%TEMP%\syta-super-launcher-runtime-%%I"
+set "SYTA_BUILD_ID=SYTA-build-2026-05-01-142808Z"
+set "SYTA_RUNTIME_BASE=%LOCALAPPDATA%\SYTA Super Launcher\runtime"
+if not defined LOCALAPPDATA set "SYTA_RUNTIME_BASE=%TEMP%\SYTA Super Launcher\runtime"
+set "SYTA_RUNTIME=%SYTA_RUNTIME_BASE%\%SYTA_BUILD_ID%"
+set "SYTA_RUNTIME_READY="
+if exist "%SYTA_RUNTIME%\syta-agentic-launcher.ps1" if exist "%SYTA_RUNTIME%\syta-tool-diagnostics.sh" if exist "%SYTA_RUNTIME%\syta-wsl-session.sh" if exist "%SYTA_RUNTIME%\syta-self-update.ps1" set "SYTA_RUNTIME_READY=1"
 
+if not defined SYTA_RUNTIME_READY (
 powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command ^
   "$ErrorActionPreference='Stop';" ^
   "$self=$env:SYTA_SELF;" ^
@@ -20,12 +26,12 @@ powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command ^
   "  if($null -ne $name){ if($line -eq '::'){ $buf.Add('') } elseif($line.StartsWith(':: ')){ $buf.Add($line.Substring(3)) } }" ^
   "}" ^
   "if(-not (Test-Path (Join-Path $out 'syta-agentic-launcher.ps1'))){ throw 'Portable launcher extraction failed.' }"
-
 if errorlevel 1 (
     echo.
     echo Failed to prepare SYTA portable runtime.
     pause
     exit /b 1
+)
 )
 
 powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%SYTA_RUNTIME%\syta-agentic-launcher.ps1" %*
@@ -78,8 +84,13 @@ exit /b %errorlevel%
 :: $script:LegacyStateFile = Join-Path $script:DefaultProjectsRoot '.syta-launcher-state.json'
 :: $script:ToolDiagCache = @{}
 :: $script:RecentProjectCountCache = $null
-:: $script:BuildId = 'SYTA-build-2026-04-24-134931Z'
-:: $script:ReleaseTag = 'v1.10.1'
+:: $script:WslAvailableCache = $null
+:: $script:WslDistrosCache = $null
+:: $script:WslUserDistrosCache = $null
+:: $script:PreferredWslDistroCache = $null
+:: $script:WslCliReadyCache = $null
+:: $script:BuildId = 'SYTA-build-2026-05-01-142808Z'
+:: $script:ReleaseTag = 'v1.10.2'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -1180,29 +1191,54 @@ exit /b %errorlevel%
 :: }
 ::
 :: function Test-WslAvailable {
-::     return [bool](Get-Command wsl.exe -ErrorAction SilentlyContinue)
+::     if ($null -eq $script:WslAvailableCache) {
+::         $script:WslAvailableCache = [bool](Get-Command wsl.exe -ErrorAction SilentlyContinue)
+::     }
+::
+::     return [bool]$script:WslAvailableCache
 :: }
 ::
 :: function Get-WslDistros {
+::     if ($null -ne $script:WslDistrosCache) {
+::         return @($script:WslDistrosCache)
+::     }
+::
 ::     if (-not (Test-WslAvailable)) {
+::         $script:WslDistrosCache = @()
 ::         return @()
 ::     }
 ::
-::     $raw = & wsl.exe -l -q 2>$null
+::     try {
+::         $raw = & wsl.exe -l -q 2>$null
+::     } catch {
+::         $script:WslDistrosCache = @()
+::         return @()
+::     }
+::
 ::     if ($LASTEXITCODE -ne 0 -or -not $raw) {
+::         $script:WslDistrosCache = @()
 ::         return @()
 ::     }
 ::
-::     return @($raw | ForEach-Object { ($_ -replace "`0", '').Trim() } | Where-Object { $_ })
+::     $script:WslDistrosCache = @($raw | ForEach-Object { ($_ -replace "`0", '').Trim() } | Where-Object { $_ })
+::     return @($script:WslDistrosCache)
 :: }
 ::
 :: function Get-WslUserDistros {
-::     return @(Get-WslDistros | Where-Object {
-::         $_ -and $_ -notmatch '^(docker-desktop|docker-desktop-data|rancher-desktop|podman-machine-default|podman-machine-default-rootful)$'
-::     })
+::     if ($null -eq $script:WslUserDistrosCache) {
+::         $script:WslUserDistrosCache = @(Get-WslDistros | Where-Object {
+::             $_ -and $_ -notmatch '^(docker-desktop|docker-desktop-data|rancher-desktop|podman-machine-default|podman-machine-default-rootful)$'
+::         })
+::     }
+::
+::     return @($script:WslUserDistrosCache)
 :: }
 ::
 :: function Get-PreferredWslDistro {
+::     if ($null -ne $script:PreferredWslDistroCache) {
+::         return $script:PreferredWslDistroCache
+::     }
+::
 ::     $userDistros = @(Get-WslUserDistros)
 ::     if ($userDistros.Count -eq 0) {
 ::         return $null
@@ -1210,10 +1246,12 @@ exit /b %errorlevel%
 ::
 ::     $ubuntu = @($userDistros | Where-Object { $_ -match '^Ubuntu' } | Select-Object -First 1)
 ::     if ($ubuntu.Count -gt 0) {
-::         return $ubuntu[0]
+::         $script:PreferredWslDistroCache = $ubuntu[0]
+::         return $script:PreferredWslDistroCache
 ::     }
 ::
-::     return $userDistros[0]
+::     $script:PreferredWslDistroCache = $userDistros[0]
+::     return $script:PreferredWslDistroCache
 :: }
 ::
 :: function Test-WslUserDistroInstalled {
@@ -1221,13 +1259,19 @@ exit /b %errorlevel%
 :: }
 ::
 :: function Test-WslPreferredDistroReadyForCli {
+::     if ($null -ne $script:WslCliReadyCache) {
+::         return [bool]$script:WslCliReadyCache
+::     }
+::
 ::     $distro = Get-PreferredWslDistro
 ::     if (-not $distro) {
+::         $script:WslCliReadyCache = $false
 ::         return $false
 ::     }
 ::
 ::     & wsl.exe -d $distro --exec sh -lc "grep -Ev '^nobody:' /etc/passwd | grep -Eq '^[^:]+:[^:]*:[1-9][0-9]{3,}:'" 2>$null
-::     return ($LASTEXITCODE -eq 0)
+::     $script:WslCliReadyCache = ($LASTEXITCODE -eq 0)
+::     return [bool]$script:WslCliReadyCache
 :: }
 ::
 :: function Test-UbuntuInstalled {
@@ -1504,8 +1548,17 @@ exit /b %errorlevel%
 ::     return [pscustomobject]@{ Start = $start; End = $end; Visible = $visible }
 :: }
 ::
+:: function Clear-WslProbeCache {
+::     $script:WslAvailableCache = $null
+::     $script:WslDistrosCache = $null
+::     $script:WslUserDistrosCache = $null
+::     $script:PreferredWslDistroCache = $null
+::     $script:WslCliReadyCache = $null
+:: }
+::
 :: function Clear-ToolDiagnosticsCache {
 ::     $script:ToolDiagCache = @{}
+::     Clear-WslProbeCache
 :: }
 ::
 :: function Get-StateObject {

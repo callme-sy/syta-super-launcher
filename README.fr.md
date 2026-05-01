@@ -37,7 +37,7 @@ Il offre un point d’entrée unique pour :
 - exécuter des mises à jour legeres, utilitaires seuls, ou completes
 - afficher des diagnostics avant lancement
 
-Tout le runtime est embarqué dans le fichier batch lui-même. Au lancement, il extrait ses scripts dans un dossier temporaire, exécute l’interface depuis là, puis laisse les vrais outils s’installer dans l’environnement utilisateur approprié.
+Tout le runtime est embarqué dans le fichier batch lui-même. Au lancement, il réutilise un cache de runtime propre au build quand il existe, extrait les scripts seulement si nécessaire, exécute l’interface depuis là, puis laisse les vrais outils s’installer dans l’environnement utilisateur approprié.
 
 ## En Résumé
 
@@ -232,7 +232,7 @@ Comportements importants :
 - `Reset tool configs` reste sous `Extra` et donne un moyen conservateur d'annuler des chemins config/auth suivis, avec un second menu pour choisir un outil precis ou `Toutes les configs suivies`.
 - `Utilities` vit maintenant sous `Extra` pour garder les petits add-ons de workflow hors de la liste principale d'installation tout en leur donnant des diagnostics et un ecran de pre-vol.
 - `Update utilities add-ons` ajoute une voie de maintenance dediee pour les extras installes sans forcer la mise a jour complete.
-- Les menus utilisent un affichage plus lisible avec un panneau de detail et une progression pendant la preparation des donnees projet ou outil.
+- Les menus utilisent un affichage plus lisible avec un panneau de detail, une progression pendant la preparation des donnees projet ou outil, et des verifications WSL mises en cache pendant la session.
 - Le lanceur peut verifier si une nouvelle release GitHub est disponible et proposer une mise a jour du lanceur sur place.
 - Il privilégie `nvm` pour les CLI basées sur Node.
 - Il essaie de préserver la version Node active ou par défaut de l’utilisateur.

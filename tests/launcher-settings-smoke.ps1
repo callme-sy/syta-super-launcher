@@ -71,6 +71,19 @@ try {
         throw 'Expected SmokeTest.MainMenuKeys to include Settings.'
     }
 
+    $codeMenu = Invoke-LauncherJson -Launcher $resolvedLauncher -Arguments @('-Mode', 'Code', '-DryRun', '-NoAnimation')
+    if ($codeMenu.AgentDiagnostics -ne 'deferred-until-agent-selected') {
+        throw "Expected Code dry-run to defer agent diagnostics but got '$($codeMenu.AgentDiagnostics)'."
+    }
+
+    if (-not ($codeMenu.Items | Where-Object Key -eq 'codex-yolo')) {
+        throw 'Expected Code dry-run menu to include codex-yolo.'
+    }
+
+    if ($codeMenu.Items | Where-Object { "$($_.Subtitle)" -match 'Auth|version|Installed|Missing' }) {
+        throw 'Expected Code dry-run menu to avoid live diagnostic status in agent subtitles.'
+    }
+
     $settingsMenu = Invoke-LauncherJson -Launcher $resolvedLauncher -Arguments @('-Mode', 'Settings', '-DryRun', '-NoAnimation')
     if (-not ($settingsMenu.Items | Where-Object Key -eq 'projects-root')) {
         throw 'Expected Settings dry-run menu to include a projects-root item.'

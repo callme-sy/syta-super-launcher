@@ -43,7 +43,7 @@ Tout le runtime est embarqué dans le fichier batch lui-même. Au lancement, il 
 
 | Fonction | Rôle |
 | --- | --- |
-| `Code` | Ouvre un projet et lance une CLI de code dans WSL |
+| `Code` | Ouvre un projet et lance une CLI de code dans WSL ; les diagnostics se lancent apres le choix de l'agent pour afficher le selecteur plus vite |
 | `Install` | Installe ou répare l’environnement et les outils pris en charge |
 | `Settings` | Modifie les preferences du lanceur comme la langue et le dossier des projets |
 | `Extra` | Ouvre depuis le menu principal les outils de maintenance et les utilitaires plus legers |
@@ -250,7 +250,7 @@ Avant les lancements et les installations, l’interface peut afficher :
 
 Ces diagnostics sont volontairement pragmatiques. Ils sont utiles pour l’exploitation, mais ne remplacent pas une vérification parfaite de l’auth réelle chez chaque fournisseur.
 
-Quand les diagnostics live prennent un moment, le lanceur affiche maintenant une progression claire au lieu de sembler fige.
+Pour les lancements Code, le selecteur d'agent s'ouvre d'abord et les diagnostics live ne s'executent que pour l'agent choisi. Les autres menus lourds en diagnostics affichent toujours une progression claire au lieu de sembler figes.
 
 ## Environnement Recommandé
 

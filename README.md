@@ -43,7 +43,7 @@ The entire runtime is embedded into the batch file itself. At launch, it reuses 
 
 | Capability | What it does |
 | --- | --- |
-| `Code` | Opens a project and launches a coding CLI in WSL |
+| `Code` | Opens a project and launches a coding CLI in WSL; tool diagnostics run after agent selection so the selector opens quickly |
 | `Install` | Installs or repairs the environment and supported tools |
 | `Settings` | Changes launcher preferences such as language and projects directory |
 | `Extra` | Opens maintenance tools and smaller workflow utilities from the main menu |
@@ -52,7 +52,7 @@ The entire runtime is embedded into the batch file itself. At launch, it reuses 
 | `Update utilities add-ons` | Updates installed utility add-ons only |
 | `Update all` | Runs a broader toolchain update pass |
 | Diagnostics | Shows install, version, and auth/config hints |
-| Responsive menus | Batches diagnostics and shows loading bars during slower menu preparation |
+| Responsive menus | Defers Code-agent diagnostics until selection, batches install diagnostics, and shows loading bars during slower menu preparation |
 | Update prompt | Can offer a newer launcher release when one is available |
 | Portability | Ships as one `.bat` file |
 | Language | Auto-detects French/English/Chinese for the launcher UI |
@@ -250,7 +250,7 @@ Before launching or installing, the UI can surface:
 
 These diagnostics are intentionally pragmatic. They are useful operational signals, not perfect provider-auth verification.
 
-When live diagnostics take a moment, the launcher now shows focused loading progress instead of appearing frozen.
+For Code launches, the agent selector opens first and live diagnostics run only for the agent you picked. Other diagnostic-heavy menus still show focused loading progress instead of appearing frozen.
 
 ## Recommended Environment
 

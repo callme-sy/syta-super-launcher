@@ -4,7 +4,7 @@ setlocal EnableExtensions DisableDelayedExpansion
 
 set "SYTA_PORTABLE_ROOT=%~dp0"
 set "SYTA_SELF=%~f0"
-set "SYTA_BUILD_ID=SYTA-build-2026-05-01-142808Z"
+set "SYTA_BUILD_ID=SYTA-build-2026-05-01-144231Z"
 set "SYTA_RUNTIME_BASE=%LOCALAPPDATA%\SYTA Super Launcher\runtime"
 if not defined LOCALAPPDATA set "SYTA_RUNTIME_BASE=%TEMP%\SYTA Super Launcher\runtime"
 set "SYTA_RUNTIME=%SYTA_RUNTIME_BASE%\%SYTA_BUILD_ID%"
@@ -89,8 +89,8 @@ exit /b %errorlevel%
 :: $script:WslUserDistrosCache = $null
 :: $script:PreferredWslDistroCache = $null
 :: $script:WslCliReadyCache = $null
-:: $script:BuildId = 'SYTA-build-2026-05-01-142808Z'
-:: $script:ReleaseTag = 'v1.10.2'
+:: $script:BuildId = 'SYTA-build-2026-05-01-144231Z'
+:: $script:ReleaseTag = 'v1.10.3'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -2021,17 +2021,14 @@ exit /b %errorlevel%
 :: }
 ::
 :: function Get-AgentMenuItems {
-::     Show-LoadProgress -Title 'Agent Selector' -Status 'Loading live tool diagnostics' -Current 1 -Total 1 -Accent Cyan
-::     Warm-ToolDiagnosticsCache -Keys @($script:AgentOptions | Select-Object -ExpandProperty Key)
 ::     return @($script:AgentOptions | ForEach-Object {
-::         $diag = Get-ToolDiagnostics -Key $_.Key
 ::         [pscustomobject]@{
 ::             Key = $_.Key
 ::             Title = $_.Title
-::             Subtitle = "$($_.Subtitle) | $($diag.MenuText)"
-::             Accent = if ($diag.Installed) { $_.Accent } else { 'DarkYellow' }
+::             Subtitle = "$($_.Subtitle) | Diagnostics run after selection."
+::             Accent = $_.Accent
 ::             WindowTitle = $_.WindowTitle
-::             ToolDiag = $diag
+::             AgentDiagnostics = 'deferred-until-agent-selected'
 ::         }
 ::     })
 :: }
@@ -3710,6 +3707,15 @@ exit /b %errorlevel%
 ::     $result.CliInstall = Invoke-AllAiCliInstallFlow
 :: }
 :: function Launch-CodeMode {
+::     if ($DryRun -and -not $ProjectName -and -not $Agent) {
+::         return [pscustomobject]@{
+::             Title = 'Code'
+::             Subtitle = 'Choose a project, then choose an agent. Tool diagnostics run after an agent is selected.'
+::             AgentDiagnostics = 'deferred-until-agent-selected'
+::             Items = @(Get-AgentMenuItems | Select-Object Title, Subtitle, Accent, Key, WindowTitle, AgentDiagnostics)
+::         }
+::     }
+::
 ::     $project = Select-Project
 ::     if (-not $project) {
 ::         return
@@ -3738,8 +3744,7 @@ exit /b %errorlevel%
 ::         -ScriptArguments @('code', $agent.Key, $script:Language)
 ::
 ::     if ($DryRun) {
-::         $result | ConvertTo-Json -Depth 4
-::         return
+::         return $result
 ::     }
 ::
 ::     Add-RecentProject -Name $project.Name
@@ -4221,7 +4226,10 @@ exit /b %errorlevel%
 :: }
 ::
 :: if ($Mode -eq 'Code') {
-::     Launch-CodeMode
+::     $result = Launch-CodeMode
+::     if ($DryRun -and $result) {
+::         $result | ConvertTo-Json -Depth 6
+::     }
 ::     exit 0
 :: }
 ::

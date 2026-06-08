@@ -4,12 +4,12 @@ setlocal EnableExtensions DisableDelayedExpansion
 
 set "SYTA_PORTABLE_ROOT=%~dp0"
 set "SYTA_SELF=%~f0"
-set "SYTA_BUILD_ID=SYTA-build-2026-06-08-121500Z"
+set "SYTA_BUILD_ID=SYTA-build-2026-06-08-231500Z"
 set "SYTA_RUNTIME_BASE=%LOCALAPPDATA%\SYTA Super Launcher\runtime"
 if not defined LOCALAPPDATA set "SYTA_RUNTIME_BASE=%TEMP%\SYTA Super Launcher\runtime"
 set "SYTA_RUNTIME=%SYTA_RUNTIME_BASE%\%SYTA_BUILD_ID%"
 set "SYTA_RUNTIME_READY="
-if exist "%SYTA_RUNTIME%\syta-agentic-launcher.ps1" if exist "%SYTA_RUNTIME%\syta-tool-diagnostics.sh" if exist "%SYTA_RUNTIME%\syta-wsl-session.sh" if exist "%SYTA_RUNTIME%\syta-self-update.ps1" set "SYTA_RUNTIME_READY=1"
+if exist "%SYTA_RUNTIME%\syta-agentic-launcher.ps1" if exist "%SYTA_RUNTIME%\syta-tool-diagnostics.sh" if exist "%SYTA_RUNTIME%\syta-wsl-session.sh" if exist "%SYTA_RUNTIME%\syta-self-update.ps1" if exist "%SYTA_RUNTIME%\syta-install-tool.sh" if exist "%SYTA_RUNTIME%\syta-run-agent.sh" set "SYTA_RUNTIME_READY=1"
 
 if not defined SYTA_RUNTIME_READY (
 powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command ^
@@ -25,7 +25,7 @@ powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command ^
   "  if($line -like '::END:*'){ $enc = if($name -like '*.ps1'){ New-Object Text.UTF8Encoding $true } else { New-Object Text.UTF8Encoding $false }; [IO.File]::WriteAllText((Join-Path $out $name), ($buf -join \"`n\"), $enc); $name=$null; continue }" ^
   "  if($null -ne $name){ if($line -eq '::'){ $buf.Add('') } elseif($line.StartsWith(':: ')){ $buf.Add($line.Substring(3)) } }" ^
   "}" ^
-  "if(-not (Test-Path (Join-Path $out 'syta-agentic-launcher.ps1'))){ throw 'Portable launcher extraction failed.' }"
+  "$currentBuild=(Split-Path -Leaf $out); $base=$env:SYTA_RUNTIME_BASE; if(Test-Path -LiteralPath $base){ Get-ChildItem -LiteralPath $base -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -ne $currentBuild } | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue }; if(-not (Test-Path (Join-Path $out 'syta-agentic-launcher.ps1'))){ throw 'Portable launcher extraction failed.' }"
 if errorlevel 1 (
     echo.
     echo Failed to prepare SYTA portable runtime.
@@ -89,8 +89,9 @@ exit /b %errorlevel%
 :: $script:WslUserDistrosCache = $null
 :: $script:PreferredWslDistroCache = $null
 :: $script:WslCliReadyCache = $null
-:: $script:BuildId = 'SYTA-build-2026-06-08-121500Z'
-:: $script:ReleaseTag = 'v1.10.6'
+:: $script:LastToolDiagnosticsError = ''
+:: $script:BuildId = 'SYTA-build-2026-06-08-231500Z'
+:: $script:ReleaseTag = 'v1.10.7'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -367,7 +368,7 @@ exit /b %errorlevel%
 ::             'Light update' = '轻量更新'
 ::             'Update all' = '全量更新'
 ::             'Update utilities add-ons' = '更新实用工具扩展'
-::             'Update AI coding CLIs only: Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI.' = '仅更新 AI 编码 CLI：Codex、OMX、OpenCode、Kilo Code CLI、Claude Code、Gemini CLI、DROID CLI。'
+::             'Update AI coding CLIs only: Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI.' = '仅更新 AI 编码 CLI：Codex、OMX、OpenCode、Kilo Code CLI、Claude Code、Gemini CLI、DROID CLI、Grok CLI。'
 ::             'Run the broader toolchain update pass, including system package managers.' = '运行更全面的工具链更新，包括系统包管理器。'
 ::             'Update installed utility add-ons only: RTK, ccusage, codex-auth, superpowers, OpenSpec, Claw Code, BMAD.' = '仅更新已安装的实用工具扩展：RTK、ccusage、codex-auth、superpowers、OpenSpec、Claw Code、BMAD。'
 ::             'Run the installed utility add-ons updater without touching the broader toolchain.' = '只运行已安装实用工具扩展的更新器，不触碰更广泛的工具链。'
@@ -593,6 +594,19 @@ exit /b %errorlevel%
 ::             'Unknown tool' = '未知工具'
 ::             'Auth via env key' = '通过环境变量 key 认证'
 ::             'Auth/config detected' = '已检测到认证/配置'
+::             'Config found' = '已找到配置'
+::             'Check unavailable' = '检查不可用'
+::             'Check could not run' = '诊断不可用'
+::             'Tool not installed' = '工具未安装'
+::             'Install this tool' = '安装此工具'
+::             'Open the guided installer for this CLI.' = '打开此 CLI 的引导安装器。'
+::             'Choose another agent' = '选择其他代理'
+::             'Return to the agent selector.' = '返回代理选择器。'
+::             'Launch anyway' = '仍然启动'
+::             'Open WSL even though this tool looks missing.' = '即使此工具看起来缺失也打开 WSL。'
+::             'Diagnostics unavailable' = '诊断不可用'
+::             'Tool diagnostics could not be confirmed right now.' = '当前无法确认工具诊断结果。'
+::             'Install from the Installer menu, or try again later.' = '请从安装菜单安装，或稍后重试。'
 ::             'Auth n/a' = '无需认证'
 ::             'WSL Linux distro missing' = '缺少 WSL Linux 发行版'
 ::             'WSL Linux setup incomplete' = 'WSL Linux 设置未完成'
@@ -668,7 +682,7 @@ exit /b %errorlevel%
 ::             'Light update' = 'Mise a jour legere'
 ::             'Update all' = 'Mise a jour complete'
 ::             'Update utilities add-ons' = 'Mettre a jour les utilitaires'
-::             'Update AI coding CLIs only: Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI.' = 'Mettre a jour seulement les CLI IA : Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI.'
+::             'Update AI coding CLIs only: Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI.' = 'Mettre a jour seulement les CLI IA : Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI.'
 ::             'Run the broader toolchain update pass, including system package managers.' = 'Lancer la maintenance plus large de la chaine d''outils, y compris les gestionnaires systeme.'
 ::             'Update installed utility add-ons only: RTK, ccusage, codex-auth, superpowers, OpenSpec, Claw Code, BMAD.' = 'Mettre a jour seulement les utilitaires installes : RTK, ccusage, codex-auth, superpowers, OpenSpec, Claw Code, BMAD.'
 ::             'Run the installed utility add-ons updater without touching the broader toolchain.' = 'Lancer la mise a jour des utilitaires installes sans toucher au reste de la chaine d''outils.'
@@ -894,6 +908,19 @@ exit /b %errorlevel%
 ::             'Unknown tool' = 'Outil inconnu'
 ::             'Auth via env key' = 'Auth via cle d''environnement'
 ::             'Auth/config detected' = 'Auth/config detectee'
+::             'Config found' = 'Config detectee'
+::             'Check unavailable' = 'Verification indisponible'
+::             'Check could not run' = 'diagnostics indisponibles'
+::             'Tool not installed' = 'Outil non installe'
+::             'Install this tool' = 'Installer cet outil'
+::             'Open the guided installer for this CLI.' = 'Ouvrir l''installateur guide pour ce CLI.'
+::             'Choose another agent' = 'Choisir un autre agent'
+::             'Return to the agent selector.' = 'Revenir au selecteur d''agent.'
+::             'Launch anyway' = 'Lancer quand meme'
+::             'Open WSL even though this tool looks missing.' = 'Ouvrir WSL meme si cet outil semble absent.'
+::             'Diagnostics unavailable' = 'Diagnostics indisponibles'
+::             'Tool diagnostics could not be confirmed right now.' = 'Les diagnostics de l''outil n''ont pas pu etre confirmes pour le moment.'
+::             'Install from the Installer menu, or try again later.' = 'Installez depuis le menu Installer, ou reessayez plus tard.'
 ::             'Auth n/a' = 'Auth n/a'
 ::             'WSL Linux distro missing' = 'Aucune distribution Linux WSL prete'
 ::             'WSL Linux setup incomplete' = 'Configuration Linux WSL incomplete'
@@ -1376,16 +1403,23 @@ exit /b %errorlevel%
 ::     $wslDir = Get-WslPath -WindowsPath $script:ScriptDir
 ::     $previousProjectsRoot = $env:SYTA_PROJECTS_ROOT_WSL
 ::     $env:SYTA_PROJECTS_ROOT_WSL = Get-WslPath -WindowsPath $script:ProjectsRoot
+::     $script:LastToolDiagnosticsError = ''
+::     $stderrFile = [IO.Path]::GetTempFileName()
 ::     try {
-::         $output = & wsl.exe -d $distro --cd $wslDir --exec bash $wslScriptPath $Key 2>$null
+::         $output = & wsl.exe -d $distro --cd $wslDir --exec bash $wslScriptPath $Key 2> $stderrFile
+::         if (Test-Path -LiteralPath $stderrFile) {
+::             $stderr = Get-Content -LiteralPath $stderrFile -Raw -ErrorAction SilentlyContinue
+::             if ($stderr) { $script:LastToolDiagnosticsError = $stderr.Trim() }
+::         }
 ::     } finally {
+::         Remove-Item -LiteralPath $stderrFile -Force -ErrorAction SilentlyContinue
 ::         if ($null -ne $previousProjectsRoot) {
 ::             $env:SYTA_PROJECTS_ROOT_WSL = $previousProjectsRoot
 ::         } else {
 ::             Remove-Item Env:SYTA_PROJECTS_ROOT_WSL -ErrorAction SilentlyContinue
 ::         }
 ::     }
-::     if ($LASTEXITCODE -ne 0 -or -not $output) {
+::     if (-not $output) {
 ::         return $null
 ::     }
 ::
@@ -1424,16 +1458,23 @@ exit /b %errorlevel%
 ::     }
 ::     $wslArgs += @('bash', $wslScriptPath) + $Keys
 ::
+::     $script:LastToolDiagnosticsError = ''
+::     $stderrFile = [IO.Path]::GetTempFileName()
 ::     try {
-::         $output = & wsl.exe @wslArgs 2>$null
+::         $output = & wsl.exe @wslArgs 2> $stderrFile
+::         if (Test-Path -LiteralPath $stderrFile) {
+::             $stderr = Get-Content -LiteralPath $stderrFile -Raw -ErrorAction SilentlyContinue
+::             if ($stderr) { $script:LastToolDiagnosticsError = $stderr.Trim() }
+::         }
 ::     } finally {
+::         Remove-Item -LiteralPath $stderrFile -Force -ErrorAction SilentlyContinue
 ::         if ($null -ne $previousProjectsRoot) {
 ::             $env:SYTA_PROJECTS_ROOT_WSL = $previousProjectsRoot
 ::         } else {
 ::             Remove-Item Env:SYTA_PROJECTS_ROOT_WSL -ErrorAction SilentlyContinue
 ::         }
 ::     }
-::     if ($LASTEXITCODE -ne 0 -or -not $output) {
+::     if (-not $output) {
 ::         return @{}
 ::     }
 ::
@@ -1849,13 +1890,6 @@ exit /b %errorlevel%
 ::     }
 ::
 ::     $latestVersion = Convert-ReleaseTagToVersion $release.Tag
-::     if ($currentVersion -and $latestVersion -and $latestVersion -le $currentVersion) {
-::         $refreshedRelease = Get-LatestReleaseInfo -ForceRefresh
-::         if ($refreshedRelease) {
-::             $release = $refreshedRelease
-::             $latestVersion = Convert-ReleaseTagToVersion $release.Tag
-::         }
-::     }
 ::
 ::     if (-not $currentVersion -or -not $latestVersion -or $latestVersion -le $currentVersion) {
 ::         return $null
@@ -1883,7 +1917,8 @@ exit /b %errorlevel%
 ::
 ::     switch ($Raw) {
 ::         'env-key' { return (Localize-Text 'Auth via env key') }
-::         'config-present' { return (Localize-Text 'Auth/config detected') }
+::         'config-present' { return (Localize-Text 'Config found') }
+::         'diag-unavailable' { return (Localize-Text 'Check unavailable') }
 ::         'project-scoped' { return (Localize-Text 'Project-scoped install') }
 ::         'not-installed' { return (Localize-Text 'Auth n/a') }
 ::         'wsl-missing' { return (Localize-Text 'WSL Linux distro missing') }
@@ -1953,6 +1988,26 @@ exit /b %errorlevel%
 ::     }
 ::
 ::     $raw = Invoke-ToolDiagnosticsScript -Key $resolvedKey
+::     if ($null -eq $raw) {
+::         $detail = if ($script:LastToolDiagnosticsError) { $script:LastToolDiagnosticsError } else { $spec.InstallHint }
+::         $diag = [pscustomobject]@{
+::             Key = $resolvedKey
+::             Installed = $false
+::             Path = $null
+::             PathText = $detail
+::             Version = $null
+::             DiagnosticMode = 'unavailable'
+::             VersionDeferred = $false
+::             VersionText = (Localize-Text 'Check could not run')
+::             AuthRaw = 'diag-unavailable'
+::             AuthText = (Localize-Text 'Check unavailable')
+::             InstallSource = 'unknown'
+::             InstallText = (Localize-Text 'Check unavailable')
+::             MenuText = (Localize-Text 'Check unavailable')
+::         }
+::         $script:ToolDiagCache[$resolvedKey] = $diag
+::         return $diag
+::     }
 ::     $diag = Convert-ToolDiagnosticsRawToObject -ResolvedKey $resolvedKey -Raw $raw
 ::     $script:ToolDiagCache[$resolvedKey] = $diag
 ::     return $diag
@@ -1986,7 +2041,7 @@ exit /b %errorlevel%
 ::     $configPath = if ($Raw.config) { $Raw.config } else { $null }
 ::     $configOnlyPackage = ($installSource -eq 'config') -and [string]::IsNullOrWhiteSpace($spec.Command)
 ::     $configuredOnly = (-not $installed) -and [bool]$configPath
-::     $statusText = if ($configOnlyPackage) { ('{0} ({1})' -f (Localize-Text 'Installed'), (Localize-Text 'config-only')) } elseif ($configuredOnly) { Localize-Text 'Configured only' } elseif ($installed) { ('{0} ({1})' -f (Localize-Text 'Installed'), $sourceLabel) } else { Localize-Text 'Missing' }
+::     $statusText = if ($diagnosticMode -eq 'unavailable') { Localize-Text 'Check unavailable' } elseif ($configOnlyPackage) { ('{0} ({1})' -f (Localize-Text 'Installed'), (Localize-Text 'config-only')) } elseif ($configuredOnly) { Localize-Text 'Configured only' } elseif ($installed) { ('{0} ({1})' -f (Localize-Text 'Installed'), $sourceLabel) } else { Localize-Text 'Missing' }
 ::
 ::     $diag = [pscustomobject]@{
 ::         Key = $ResolvedKey
@@ -1996,7 +2051,7 @@ exit /b %errorlevel%
 ::         Version = $version
 ::         DiagnosticMode = $diagnosticMode
 ::         VersionDeferred = $versionDeferred
-::         VersionText = if ($configOnlyPackage) { (Localize-Text 'config-only add-on') } elseif ($configuredOnly) { (Localize-Text 'binary not found on PATH') } elseif ($installed) { if ($version) { $version } elseif ($versionDeferred) { (Localize-Text 'checked during action') } else { (Localize-Text 'version not detected') } } else { (Localize-Text 'not installed') }
+::         VersionText = if ($diagnosticMode -eq 'unavailable') { (Localize-Text 'Check could not run') } elseif ($configOnlyPackage) { (Localize-Text 'config-only add-on') } elseif ($configuredOnly) { (Localize-Text 'binary not found on PATH') } elseif ($installed) { if ($version) { $version } elseif ($versionDeferred) { (Localize-Text 'checked during action') } else { (Localize-Text 'version not detected') } } else { (Localize-Text 'not installed') }
 ::         AuthRaw = $authRaw
 ::         AuthText = Format-AuthStatus -Raw $authRaw
 ::         InstallSource = $installSource
@@ -2066,11 +2121,11 @@ exit /b %errorlevel%
 ::                 installed = '0'
 ::                 path = ''
 ::                 version = ''
-::                 auth = 'not-detected'
+::                 auth = 'diag-unavailable'
 ::                 config = ''
 ::                 install_source = 'unknown'
-::                 diagnostic_mode = 'fast'
-::                 version_deferred = '1'
+::                 diagnostic_mode = 'unavailable'
+::                 version_deferred = '0'
 ::             }
 ::         } else {
 ::             $null = Get-ToolDiagnostics -Key $key -Refresh
@@ -2918,7 +2973,7 @@ exit /b %errorlevel%
 :: function Launch-UpdateMenu {
 ::     $items = @(
 ::         [pscustomobject]@{ Title = 'Check launcher update'; Subtitle = 'Force a fresh GitHub release check for SYTA and offer self-update if a newer version exists.'; Accent = 'Yellow'; Key = 'LauncherUpdate' }
-::         [pscustomobject]@{ Title = 'Light update'; Subtitle = 'Update AI coding CLIs only: Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI.'; Accent = 'Green'; Key = 'UpdateLight' }
+::         [pscustomobject]@{ Title = 'Light update'; Subtitle = 'Update AI coding CLIs only: Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI.'; Accent = 'Green'; Key = 'UpdateLight' }
 ::         [pscustomobject]@{ Title = 'Update utilities add-ons'; Subtitle = 'Update installed utility add-ons only: RTK, ccusage, codex-auth, superpowers, OpenSpec, Claw Code, BMAD.'; Accent = 'Cyan'; Key = 'UpdateUtilities' }
 ::         [pscustomobject]@{ Title = 'Update all'; Subtitle = 'Run the broader toolchain update pass, including system package managers.'; Accent = 'Yellow'; Key = 'UpdateAll' }
 ::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the main menu.'; Accent = 'DarkGray'; Key = 'back' }
@@ -3399,6 +3454,7 @@ exit /b %errorlevel%
 :: }
 ::
 :: function Get-InstallItems {
+::     Clear-WslProbeCache
 ::     $distroInstalled = Test-WslUserDistroInstalled
 ::     $distroReady = Test-WslPreferredDistroReadyForCli
 ::     $pwshInfo = Get-PwshInfo
@@ -3843,6 +3899,42 @@ exit /b %errorlevel%
 ::         "Path    : $($diag.PathText)"
 ::     )
 ::
+::     if (-not $diag.Installed) {
+::         if ($diag.DiagnosticMode -eq 'unavailable') {
+::             $unavailableLines = @(
+::                 (Localize-Text 'Tool diagnostics could not be confirmed right now.'),
+::                 (Localize-Text 'Install from the Installer menu, or try again later.')
+::             )
+::             if ($script:LastToolDiagnosticsError) {
+::                 $unavailableLines += "Detail  : $($script:LastToolDiagnosticsError)"
+::             }
+::             Show-InfoBox -Title (Localize-Text 'Diagnostics unavailable') -Accent Yellow -Hint (Localize-Text 'Back') -Lines $unavailableLines
+::             Start-Sleep -Milliseconds 1500
+::             return
+::         }
+::
+::         if (-not $DryRun) {
+::             $recovery = Read-Menu -Title (Localize-Text 'Tool not installed') -Subtitle (Localize-Text 'Install from the Installer menu, or try again later.') -Items @(
+::                 [pscustomobject]@{ Title = (Localize-Text 'Install this tool'); Subtitle = (Localize-Text 'Open the guided installer for this CLI.'); Accent = 'Green'; Key = 'install' }
+::                 [pscustomobject]@{ Title = (Localize-Text 'Choose another agent'); Subtitle = (Localize-Text 'Return to the agent selector.'); Accent = 'Cyan'; Key = 'back' }
+::                 [pscustomobject]@{ Title = (Localize-Text 'Launch anyway'); Subtitle = (Localize-Text 'Open WSL even though this tool looks missing.'); Accent = 'Yellow'; Key = 'launch-anyway' }
+::             )
+::             if (-not $recovery -or $recovery.Key -eq 'back') {
+::                 return
+::             }
+::             if ($recovery.Key -eq 'install') {
+::                 $savedInstallTarget = $InstallTarget
+::                 $InstallTarget = Resolve-ToolKey $agent.Key
+::                 try {
+::                     Launch-InstallMode
+::                 } finally {
+::                     $InstallTarget = $savedInstallTarget
+::                 }
+::                 return
+::             }
+::         }
+::     }
+::
 ::     $result = Open-WslWindow `
 ::         -Title "$(Localize-Text $agent.WindowTitle) - $($project.Name)" `
 ::         -WindowsDirectory $projectDir `
@@ -3881,7 +3973,7 @@ exit /b %errorlevel%
 ::
 :: function Launch-UpdateLightMode {
 ::     $lines = @(
-::         'Scope   : Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI',
+::         'Scope   : Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI',
 ::         "Folder  : $script:ScriptDir"
 ::     ) + (Get-CodingCliSummaryLines)
 ::     Show-InfoBox -Title 'Light Update Preflight' -Accent Green -Hint 'A new terminal tab opens immediately after this screen' -Lines $lines
@@ -4046,11 +4138,12 @@ exit /b %errorlevel%
 ::             }
 ::             Read-Menu -Title 'Installer' -Subtitle 'Install or repair WSL Ubuntu and supported coding CLIs.' -Items (Get-InstallItems)
 ::         } catch {
+::             $diagHint = if ($script:LastToolDiagnosticsError) { "Detail  : $($script:LastToolDiagnosticsError)" } else { $null }
 ::             Show-InfoBox -Title 'Installer' -Accent Yellow -Hint 'Back' -Lines @(
 ::                 'Live diagnostics were unavailable, so SYTA switched to a safe fallback install menu.',
 ::                 'You can still install WSL Ubuntu or PowerShell 7 from here.',
 ::                 'You can still use First install from here for the guided beginner path.'
-::             )
+::             ) + @($diagHint) | Where-Object { $_ }
 ::             Read-Menu -Title 'Installer' -Subtitle 'Install or repair WSL Ubuntu and supported coding CLIs.' -Items @(
 ::                 [pscustomobject]@{ Title = 'First install (recommended)'; Subtitle = 'Best beginner path for WSL Ubuntu, optional PowerShell 7, and the core AI CLI tools.'; Accent = 'Yellow'; Key = 'first-install' }
 ::                 [pscustomobject]@{ Title = 'WSL Ubuntu'; Subtitle = 'Missing | runs wsl --install -d Ubuntu'; Accent = 'Yellow'; Key = 'wsl-ubuntu' }
@@ -4543,11 +4636,13 @@ exit /b %errorlevel%
 ::     codex)
 ::       command_name='codex'
 ::       [ -n "${OPENAI_API_KEY:-}" ] && auth='env-key'
+::       [ "$auth" = 'not-detected' ] && [ -f "$HOME/.codex/auth.json" ] && auth='config-present'
 ::       [ "$auth" = 'not-detected' ] && [ -f "$HOME/.codex/config.toml" ] && auth='config-present'
 ::       ;;
 ::     omx)
 ::       command_name='omx'
 ::       [ -n "${OPENAI_API_KEY:-}" ] && auth='env-key'
+::       [ "$auth" = 'not-detected' ] && [ -f "$HOME/.codex/auth.json" ] && auth='config-present'
 ::       [ "$auth" = 'not-detected' ] && [ -f "$HOME/.codex/config.toml" ] && auth='config-present'
 ::       ;;
 ::     opencode)
@@ -4985,6 +5080,40 @@ exit /b %errorlevel%
 ::
 :: lang="$(normalize_lang "$lang")"
 ::
+:: nvm_preferred_target() {
+::   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+::   [ -s "$NVM_DIR/nvm.sh" ] || return 1
+::   # shellcheck source=/dev/null
+::   . "$NVM_DIR/nvm.sh" >/dev/null 2>&1 || return 1
+::
+::   local def cur latest
+::   def="$(nvm version default 2>/dev/null || true)"
+::   case "$def" in ''|N/A|system) def='' ;; esac
+::   if [ -n "$def" ]; then
+::     printf '%s
+:: ' "$def"
+::     return 0
+::   fi
+::
+::   cur="$(nvm current 2>/dev/null || true)"
+::   case "$cur" in ''|none|system) cur='' ;; esac
+::   if [ -n "$cur" ]; then
+::     printf '%s
+:: ' "$cur"
+::     return 0
+::   fi
+::
+::   latest="$(find "$NVM_DIR/versions/node" -mindepth 1 -maxdepth 1 -type d -printf '%f
+:: ' 2>/dev/null | sort -V | tail -n 1)"
+::   if [ -n "$latest" ]; then
+::     printf '%s
+:: ' "$latest"
+::     return 0
+::   fi
+::
+::   return 1
+:: }
+::
 :: load_user_env() {
 ::   export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 ::   [ -d "$HOME/.grok/bin" ] && export PATH="$HOME/.grok/bin:$PATH"
@@ -4992,8 +5121,19 @@ exit /b %errorlevel%
 ::   [ -d "$HOME/.cargo/bin" ] && export PATH="$HOME/.cargo/bin:$PATH"
 ::   [ -f "$HOME/.profile" ] && . "$HOME/.profile" >/dev/null 2>&1 || true
 ::   [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc" >/dev/null 2>&1 || true
+::   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+::   if [ -s "$NVM_DIR/nvm.sh" ]; then
+::     # shellcheck source=/dev/null
+::     . "$NVM_DIR/nvm.sh" >/dev/null 2>&1 || true
+::     local target
+::     target="$(nvm_preferred_target 2>/dev/null || true)"
+::     if [ -n "$target" ]; then
+::       nvm use "$target" >/dev/null 2>&1 || true
+::     fi
+::   fi
 ::   hash -r 2>/dev/null || true
 :: }
+
 ::
 :: msg() {
 ::   local key="$1"
@@ -5256,6 +5396,9 @@ exit /b %errorlevel%
 :: codex-auth|@loongphy/codex-auth
 :: openspec|@fission-ai/openspec
 :: comment-checker|@code-yeongyu/comment-checker
+:: droid|droid
+:: grok|grok
+:: rtk|rtk
 :: EOF
 :: }
 ::
@@ -6015,6 +6158,40 @@ exit /b %errorlevel%
 ::   fi
 :: }
 ::
+:: nvm_preferred_target() {
+::   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+::   [ -s "$NVM_DIR/nvm.sh" ] || return 1
+::   # shellcheck source=/dev/null
+::   . "$NVM_DIR/nvm.sh" >/dev/null 2>&1 || return 1
+::
+::   local def cur latest
+::   def="$(nvm version default 2>/dev/null || true)"
+::   case "$def" in ''|N/A|system) def='' ;; esac
+::   if [ -n "$def" ]; then
+::     printf '%s
+:: ' "$def"
+::     return 0
+::   fi
+::
+::   cur="$(nvm current 2>/dev/null || true)"
+::   case "$cur" in ''|none|system) cur='' ;; esac
+::   if [ -n "$cur" ]; then
+::     printf '%s
+:: ' "$cur"
+::     return 0
+::   fi
+::
+::   latest="$(find "$NVM_DIR/versions/node" -mindepth 1 -maxdepth 1 -type d -printf '%f
+:: ' 2>/dev/null | sort -V | tail -n 1)"
+::   if [ -n "$latest" ]; then
+::     printf '%s
+:: ' "$latest"
+::     return 0
+::   fi
+::
+::   return 1
+:: }
+::
 :: load_user_env() {
 ::   export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 ::   [ -d "$HOME/.grok/bin" ] && export PATH="$HOME/.grok/bin:$PATH"
@@ -6024,11 +6201,17 @@ exit /b %errorlevel%
 ::   [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc" >/dev/null 2>&1 || true
 ::   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 ::   if [ -s "$NVM_DIR/nvm.sh" ]; then
+::     # shellcheck source=/dev/null
 ::     . "$NVM_DIR/nvm.sh" >/dev/null 2>&1 || true
-::     nvm use default >/dev/null 2>&1 || true
+::     local target
+::     target="$(nvm_preferred_target 2>/dev/null || true)"
+::     if [ -n "$target" ]; then
+::       nvm use "$target" >/dev/null 2>&1 || true
+::     fi
 ::   fi
 ::   hash -r 2>/dev/null || true
 :: }
+
 ::
 :: have_cmd() {
 ::   command -v "$1" >/dev/null 2>&1
@@ -6060,7 +6243,7 @@ exit /b %errorlevel%
 :: if have_nvm; then
 ::   echo "Node toolchain: nvm-managed"
 ::   ensure_node_runtime_libs
-::   run_step "Refresh npm to latest" bash -lc 'export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"; . "$NVM_DIR/nvm.sh"; nvm use default >/dev/null 2>&1 || nvm install node >/dev/null; npm install -g npm@latest' || true
+::   run_step "Refresh npm to latest" bash -lc 'export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"; . "$NVM_DIR/nvm.sh"; target="$(nvm version default 2>/dev/null || true)"; case "$target" in ""|N/A|system) target="$(nvm current 2>/dev/null || true)" ;; esac; case "$target" in ""|none|system) target="" ;; esac; if [ -z "$target" ]; then nvm install node >/dev/null; else nvm use "$target" >/dev/null 2>&1 || nvm install node >/dev/null; fi; npm install -g npm@latest' || true
 ::   load_user_env
 :: else
 ::   echo "Node toolchain: system npm"
@@ -6206,6 +6389,40 @@ exit /b %errorlevel%
 ::   fi
 :: }
 ::
+:: nvm_preferred_target() {
+::   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+::   [ -s "$NVM_DIR/nvm.sh" ] || return 1
+::   # shellcheck source=/dev/null
+::   . "$NVM_DIR/nvm.sh" >/dev/null 2>&1 || return 1
+::
+::   local def cur latest
+::   def="$(nvm version default 2>/dev/null || true)"
+::   case "$def" in ''|N/A|system) def='' ;; esac
+::   if [ -n "$def" ]; then
+::     printf '%s
+:: ' "$def"
+::     return 0
+::   fi
+::
+::   cur="$(nvm current 2>/dev/null || true)"
+::   case "$cur" in ''|none|system) cur='' ;; esac
+::   if [ -n "$cur" ]; then
+::     printf '%s
+:: ' "$cur"
+::     return 0
+::   fi
+::
+::   latest="$(find "$NVM_DIR/versions/node" -mindepth 1 -maxdepth 1 -type d -printf '%f
+:: ' 2>/dev/null | sort -V | tail -n 1)"
+::   if [ -n "$latest" ]; then
+::     printf '%s
+:: ' "$latest"
+::     return 0
+::   fi
+::
+::   return 1
+:: }
+::
 :: load_user_env() {
 ::   export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 ::   [ -d "$HOME/.grok/bin" ] && export PATH="$HOME/.grok/bin:$PATH"
@@ -6215,11 +6432,17 @@ exit /b %errorlevel%
 ::   [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc" >/dev/null 2>&1 || true
 ::   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 ::   if [ -s "$NVM_DIR/nvm.sh" ]; then
+::     # shellcheck source=/dev/null
 ::     . "$NVM_DIR/nvm.sh" >/dev/null 2>&1 || true
-::     nvm use default >/dev/null 2>&1 || true
+::     local target
+::     target="$(nvm_preferred_target 2>/dev/null || true)"
+::     if [ -n "$target" ]; then
+::       nvm use "$target" >/dev/null 2>&1 || true
+::     fi
 ::   fi
 ::   hash -r 2>/dev/null || true
 :: }
+
 ::
 :: have_cmd() {
 ::   command -v "$1" >/dev/null 2>&1
@@ -6577,6 +6800,40 @@ exit /b %errorlevel%
 ::   fi
 :: }
 ::
+:: nvm_preferred_target() {
+::   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+::   [ -s "$NVM_DIR/nvm.sh" ] || return 1
+::   # shellcheck source=/dev/null
+::   . "$NVM_DIR/nvm.sh" >/dev/null 2>&1 || return 1
+::
+::   local def cur latest
+::   def="$(nvm version default 2>/dev/null || true)"
+::   case "$def" in ''|N/A|system) def='' ;; esac
+::   if [ -n "$def" ]; then
+::     printf '%s
+:: ' "$def"
+::     return 0
+::   fi
+::
+::   cur="$(nvm current 2>/dev/null || true)"
+::   case "$cur" in ''|none|system) cur='' ;; esac
+::   if [ -n "$cur" ]; then
+::     printf '%s
+:: ' "$cur"
+::     return 0
+::   fi
+::
+::   latest="$(find "$NVM_DIR/versions/node" -mindepth 1 -maxdepth 1 -type d -printf '%f
+:: ' 2>/dev/null | sort -V | tail -n 1)"
+::   if [ -n "$latest" ]; then
+::     printf '%s
+:: ' "$latest"
+::     return 0
+::   fi
+::
+::   return 1
+:: }
+::
 :: load_user_env() {
 ::   export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 ::   [ -d "$HOME/.grok/bin" ] && export PATH="$HOME/.grok/bin:$PATH"
@@ -6586,11 +6843,17 @@ exit /b %errorlevel%
 ::   [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc" >/dev/null 2>&1 || true
 ::   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 ::   if [ -s "$NVM_DIR/nvm.sh" ]; then
+::     # shellcheck source=/dev/null
 ::     . "$NVM_DIR/nvm.sh" >/dev/null 2>&1 || true
-::     nvm use default >/dev/null 2>&1 || true
+::     local target
+::     target="$(nvm_preferred_target 2>/dev/null || true)"
+::     if [ -n "$target" ]; then
+::       nvm use "$target" >/dev/null 2>&1 || true
+::     fi
 ::   fi
 ::   hash -r 2>/dev/null || true
 :: }
+
 ::
 :: have_nvm() {
 ::   [ -s "${NVM_DIR:-$HOME/.nvm}/nvm.sh" ]

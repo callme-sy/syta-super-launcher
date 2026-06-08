@@ -4,7 +4,7 @@ setlocal EnableExtensions DisableDelayedExpansion
 
 set "SYTA_PORTABLE_ROOT=%~dp0"
 set "SYTA_SELF=%~f0"
-set "SYTA_BUILD_ID=SYTA-build-2026-06-08-112723Z"
+set "SYTA_BUILD_ID=SYTA-build-2026-06-08-121500Z"
 set "SYTA_RUNTIME_BASE=%LOCALAPPDATA%\SYTA Super Launcher\runtime"
 if not defined LOCALAPPDATA set "SYTA_RUNTIME_BASE=%TEMP%\SYTA Super Launcher\runtime"
 set "SYTA_RUNTIME=%SYTA_RUNTIME_BASE%\%SYTA_BUILD_ID%"
@@ -89,8 +89,8 @@ exit /b %errorlevel%
 :: $script:WslUserDistrosCache = $null
 :: $script:PreferredWslDistroCache = $null
 :: $script:WslCliReadyCache = $null
-:: $script:BuildId = 'SYTA-build-2026-06-08-112723Z'
-:: $script:ReleaseTag = 'v1.10.5'
+:: $script:BuildId = 'SYTA-build-2026-06-08-121500Z'
+:: $script:ReleaseTag = 'v1.10.6'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -1143,7 +1143,7 @@ exit /b %errorlevel%
 ::         Command = 'grok'
 ::         VersionScript = 'grok --version 2>/dev/null | head -n 1'
 ::         DetectScript = $null
-::         AuthScript = 'if [ -n "${GROK_DEPLOYMENT_KEY:-}" ]; then echo env-key; elif [ -f "$HOME/.grok/auth.json" ]; then echo config-present; else echo not-detected; fi'
+::         AuthScript = 'if [ -n "${GROK_DEPLOYMENT_KEY:-}" ] || [ -n "${XAI_API_KEY:-}" ]; then echo env-key; elif [ -f "$HOME/.grok/auth.json" ] || [ -f "$HOME/.grok/config.toml" ]; then echo config-present; else echo not-detected; fi'
 ::         InstallHint = 'Install from Install -> Grok CLI.'
 ::     }
 ::     'oh-my-opencode-slim' = [pscustomobject]@{
@@ -4429,15 +4429,19 @@ exit /b %errorlevel%
 :: #!/usr/bin/env bash
 :: set -u
 ::
-:: load_user_env() {
+:: prepend_known_cli_paths() {
 ::   export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 ::   [ -d "$HOME/.grok/bin" ] && export PATH="$HOME/.grok/bin:$PATH"
-::   [ -d "$HOME/.grok/bin" ] && export PATH="$HOME/.grok/bin:$PATH"
-::   [ -d "$HOME/.grok/bin" ] && export PATH="$HOME/.grok/bin:$PATH"
-::   [ -d "$HOME/.grok/bin" ] && export PATH="$HOME/.grok/bin:$PATH"
-::   [ -d "$HOME/.grok/bin" ] && export PATH="$HOME/.grok/bin:$PATH"
-::   [ -d "$HOME/.grok/bin" ] && export PATH="$HOME/.grok/bin:$PATH"
 ::   [ -d "$HOME/.opencode/bin" ] && export PATH="$HOME/.opencode/bin:$PATH"
+::   [ -d "$HOME/.cargo/bin" ] && export PATH="$HOME/.cargo/bin:$PATH"
+:: }
+::
+:: load_user_env() {
+::   prepend_known_cli_paths
+::   if [ "${SYTA_DIAG_FAST:-0}" = '1' ]; then
+::     hash -r 2>/dev/null || true
+::     return 0
+::   fi
 ::   [ -f "$HOME/.profile" ] && . "$HOME/.profile" >/dev/null 2>&1 || true
 ::   [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc" >/dev/null 2>&1 || true
 ::   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
@@ -4485,6 +4489,33 @@ exit /b %errorlevel%
 ::       return 0
 ::     fi
 ::   done
+::   return 1
+:: }
+::
+:: resolve_binary_path() {
+::   local name="$1"
+::   local candidate
+::   if command -v "$name" >/dev/null 2>&1; then
+::     command -v "$name"
+::     return 0
+::   fi
+::   for candidate in \
+::     "$HOME/.grok/bin/$name" \
+::     "$HOME/.local/bin/$name" \
+::     "$HOME/bin/$name" \
+::     "$HOME/.cargo/bin/$name"; do
+::     if [ -x "$candidate" ]; then
+::       printf '%s\n' "$candidate"
+::       return 0
+::     fi
+::   done
+::   if [ "${SYTA_DIAG_FAST:-0}" != '1' ]; then
+::     candidate="$(find_nvm_binary "$name" 2>/dev/null || true)"
+::     if [ -n "$candidate" ]; then
+::       printf '%s\n' "$candidate"
+::       return 0
+::     fi
+::   fi
 ::   return 1
 :: }
 ::
@@ -4549,8 +4580,8 @@ exit /b %errorlevel%
 ::       ;;
 ::     grok-cli)
 ::       command_name='grok'
-::       [ -n "${GROK_DEPLOYMENT_KEY:-}" ] && auth='env-key'
-::       [ "$auth" = 'not-detected' ] && [ -f "$HOME/.grok/auth.json" ] && auth='config-present'
+::       { [ -n "${GROK_DEPLOYMENT_KEY:-}" ] || [ -n "${XAI_API_KEY:-}" ]; } && auth='env-key'
+::       [ "$auth" = 'not-detected' ] && { [ -f "$HOME/.grok/auth.json" ] || [ -f "$HOME/.grok/config.toml" ]; } && auth='config-present'
 ::       ;;
 ::     utility-rtk)
 ::       command_name='rtk'
@@ -4629,13 +4660,8 @@ exit /b %errorlevel%
 ::   esac
 ::
 ::   if [ -n "$command_name" ]; then
-::     if command -v "$command_name" >/dev/null 2>&1; then
-::       path="$(command -v "$command_name")"
-::       installed=1
-::     else
-::       path="$(find_nvm_binary "$command_name" 2>/dev/null || true)"
-::       [ -n "$path" ] && installed=1
-::     fi
+::     path="$(resolve_binary_path "$command_name" 2>/dev/null || true)"
+::     [ -n "$path" ] && installed=1
 ::
 ::     if [ "$installed" -eq 1 ]; then
 ::       case "$path" in
@@ -4961,7 +4987,9 @@ exit /b %errorlevel%
 ::
 :: load_user_env() {
 ::   export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+::   [ -d "$HOME/.grok/bin" ] && export PATH="$HOME/.grok/bin:$PATH"
 ::   [ -d "$HOME/.opencode/bin" ] && export PATH="$HOME/.opencode/bin:$PATH"
+::   [ -d "$HOME/.cargo/bin" ] && export PATH="$HOME/.cargo/bin:$PATH"
 ::   [ -f "$HOME/.profile" ] && . "$HOME/.profile" >/dev/null 2>&1 || true
 ::   [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc" >/dev/null 2>&1 || true
 ::   hash -r 2>/dev/null || true
@@ -5145,7 +5173,9 @@ exit /b %errorlevel%
 ::
 :: load_user_env() {
 ::   export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+::   [ -d "$HOME/.grok/bin" ] && export PATH="$HOME/.grok/bin:$PATH"
 ::   [ -d "$HOME/.opencode/bin" ] && export PATH="$HOME/.opencode/bin:$PATH"
+::   [ -d "$HOME/.cargo/bin" ] && export PATH="$HOME/.cargo/bin:$PATH"
 ::   [ -f "$HOME/.profile" ] && . "$HOME/.profile" >/dev/null 2>&1 || true
 ::   [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc" >/dev/null 2>&1 || true
 ::   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
@@ -5987,7 +6017,9 @@ exit /b %errorlevel%
 ::
 :: load_user_env() {
 ::   export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+::   [ -d "$HOME/.grok/bin" ] && export PATH="$HOME/.grok/bin:$PATH"
 ::   [ -d "$HOME/.opencode/bin" ] && export PATH="$HOME/.opencode/bin:$PATH"
+::   [ -d "$HOME/.cargo/bin" ] && export PATH="$HOME/.cargo/bin:$PATH"
 ::   [ -f "$HOME/.profile" ] && . "$HOME/.profile" >/dev/null 2>&1 || true
 ::   [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc" >/dev/null 2>&1 || true
 ::   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
@@ -6176,7 +6208,9 @@ exit /b %errorlevel%
 ::
 :: load_user_env() {
 ::   export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+::   [ -d "$HOME/.grok/bin" ] && export PATH="$HOME/.grok/bin:$PATH"
 ::   [ -d "$HOME/.opencode/bin" ] && export PATH="$HOME/.opencode/bin:$PATH"
+::   [ -d "$HOME/.cargo/bin" ] && export PATH="$HOME/.cargo/bin:$PATH"
 ::   [ -f "$HOME/.profile" ] && . "$HOME/.profile" >/dev/null 2>&1 || true
 ::   [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc" >/dev/null 2>&1 || true
 ::   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
@@ -6545,7 +6579,9 @@ exit /b %errorlevel%
 ::
 :: load_user_env() {
 ::   export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+::   [ -d "$HOME/.grok/bin" ] && export PATH="$HOME/.grok/bin:$PATH"
 ::   [ -d "$HOME/.opencode/bin" ] && export PATH="$HOME/.opencode/bin:$PATH"
+::   [ -d "$HOME/.cargo/bin" ] && export PATH="$HOME/.cargo/bin:$PATH"
 ::   [ -f "$HOME/.profile" ] && . "$HOME/.profile" >/dev/null 2>&1 || true
 ::   [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc" >/dev/null 2>&1 || true
 ::   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"

@@ -41,7 +41,7 @@
 | `Settings` | 修改启动器偏好，例如语言和项目目录 |
 | `Extra` | 从主菜单打开维护工具和较小的工作流工具 |
 | `Check launcher update` | 强制重新检查启动器发布版本，并在需要时提供自更新 |
-| `Light update` | 仅更新已安装的 AI 编码 CLI，包括 Kilo Code CLI 和 DROID CLI |
+| `Light update` | 仅更新已安装的 AI 编码 CLI，包括 Kilo Code CLI、DROID CLI 和 Grok CLI |
 | `Update utilities add-ons` | 仅更新已安装的实用工具扩展 |
 | `Update all` | 运行更广泛的工具链维护更新 |
 | Diagnostics | 显示安装状态、版本与认证/配置提示 |
@@ -62,6 +62,7 @@
 - `Kilo Code CLI`
 - `Claude Code`
 - `Gemini CLI`
+- `Grok CLI`
 
 ### 主菜单
 
@@ -96,6 +97,7 @@
 - `Claude Code`
 - `Gemini CLI`
 - `DROID CLI`
+- `Grok CLI`
 - `Oh My OpenCode Slim`
 
 `First install` 是面向新手的路径：在需要时先启动 WSL Ubuntu，再询问是否安装或修复 PowerShell 7，最后在 Ubuntu 真正就绪后安装核心 AI CLI 工具。
@@ -107,9 +109,11 @@
 - `Claude Code`
 - `Gemini CLI`
 
-`Kilo Code CLI`、`Oh My Codex / OMX`、`Oh My OpenAgent`、`DROID CLI` 和 `Oh My OpenCode Slim` 仍然是安装菜单里的独立可选项。
+`Kilo Code CLI`、`Oh My Codex / OMX`、`Oh My OpenAgent`、`DROID CLI`、`Grok CLI` 和 `Oh My OpenCode Slim` 仍然是安装菜单里的独立可选项。
 
 `DROID CLI` 是 Factory AI 的 CLI。SYTA 会在 WSL 中通过 Factory AI 官方 Linux bootstrap 命令安装它。
+
+`Grok CLI` 是 xAI 的终端代理。SYTA 会在 WSL 中通过官方 `curl -fsSL https://x.ai/cli/install.sh | bash` 安装，然后用 `grok` 命令启动。
 
 `Kilo Code CLI` 会通过官方 npm 包 `@kilocode/cli` 安装，并在 WSL 中使用 `kilo` 命令启动。
 
@@ -131,7 +135,7 @@
 
 `Cleaner helper` 会扫描旧版 `nvm` Node 环境里遗留的 AI CLI 安装，以及 PATH 里的重复命中项，然后在清理前征求确认，只删除它能安全清理的旧 npm 全局包。
 
-`Reset tool configs` 会打开另一层选择器。从那里你可以只重置 `Codex / OMX`、`OpenCode`、`Oh My OpenAgent`、`Oh My OpenCode Slim`、`Claude Code`、`Gemini CLI`，或 `All tracked configs`。
+`Reset tool configs` 会打开另一层选择器。从那里你可以只重置 `Codex / OMX`、`OpenCode`、`Oh My OpenAgent`、`Oh My OpenCode Slim`、`Claude Code`、`Gemini CLI`、`DROID CLI`、`Grok CLI`，或 `All tracked configs`。
 
 这些工具仍然遵循启动器的 WSL-first 模型。`RTK`、`ccusage`、`codex-auth` 和 `OpenSpec` 会在 WSL 中运行各自的官方安装命令。`superpowers` 会克隆上游仓库并把技能链接到 Codex，然后提示可选的 OpenCode / Gemini 后续步骤。`Claw Code` 会克隆 `ultraworkers/claw-code`，以 release 模式构建 `claw` 二进制，并把它链接到 `~/.local/bin`。`BMAD` 是项目级安装：SYTA 会先让你在当前配置的项目根目录下选择项目，然后在该项目里启动官方 BMAD 安装器。
 

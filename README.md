@@ -48,7 +48,7 @@ The entire runtime is embedded into the batch file itself. At launch, it reuses 
 | `Settings` | Changes launcher preferences such as language and projects directory |
 | `Extra` | Opens maintenance tools and smaller workflow utilities from the main menu |
 | `Check launcher update` | Forces a fresh launcher-release check and offers self-update when needed |
-| `Light update` | Updates installed AI coding CLIs only, including Kilo Code CLI and DROID CLI |
+| `Light update` | Updates installed AI coding CLIs only, including Kilo Code CLI, DROID CLI, and Grok CLI |
 | `Update utilities add-ons` | Updates installed utility add-ons only |
 | `Update all` | Runs a broader toolchain update pass |
 | Diagnostics | Shows install, version, and auth/config hints |
@@ -69,6 +69,7 @@ The launcher can start these tools in WSL:
 - `Kilo Code CLI`
 - `Claude Code`
 - `Gemini CLI`
+- `Grok CLI`
 
 ### Main Menu
 
@@ -103,6 +104,7 @@ The installer currently supports:
 - `Claude Code`
 - `Gemini CLI`
 - `DROID CLI`
+- `Grok CLI`
 - `Oh My OpenCode Slim`
 
 `First install` is the beginner lane: it starts WSL Ubuntu when needed, asks whether PowerShell 7 should be installed or repaired, then runs the core AI CLI installer only once Ubuntu is actually ready for user-scoped CLI setup. If Ubuntu still needs a reboot or first-run account setup, SYTA tells the user to finish that step and rerun `First install` afterward.
@@ -114,9 +116,11 @@ The core bundle currently installs:
 - `Claude Code`
 - `Gemini CLI`
 
-`Kilo Code CLI`, `Oh My Codex / OMX`, `Oh My OpenAgent`, `DROID CLI`, and `Oh My OpenCode Slim` remain separate optional installs from the install menu.
+`Kilo Code CLI`, `Oh My Codex / OMX`, `Oh My OpenAgent`, `DROID CLI`, `Grok CLI`, and `Oh My OpenCode Slim` remain separate optional installs from the install menu.
 
 `DROID CLI` is Factory AI's CLI. SYTA installs it through Factory AI's official Linux bootstrap command inside WSL.
+
+`Grok CLI` is xAI's terminal agent. SYTA installs it through the official `curl -fsSL https://x.ai/cli/install.sh | bash` bootstrap inside WSL, then launches it with the `grok` command.
 
 `Kilo Code CLI` is installed through the official npm package `@kilocode/cli`, then launched in WSL with the `kilo` command.
 
@@ -128,7 +132,7 @@ The core bundle currently installs:
 
 `Cleaner helper` scans for tracked AI CLI installs left behind in older `nvm` Node versions, plus duplicate PATH hits, then asks before removing stale npm globals it can safely clean.
 
-`Reset tool configs` opens a second selector. From there you can reset only `Codex / OMX`, `OpenCode`, `Oh My OpenAgent`, `Oh My OpenCode Slim`, `Claude Code`, `Gemini CLI`, or `All tracked configs`.
+`Reset tool configs` opens a second selector. From there you can reset only `Codex / OMX`, `OpenCode`, `Oh My OpenAgent`, `Oh My OpenCode Slim`, `Claude Code`, `Gemini CLI`, `DROID CLI`, `Grok CLI`, or `All tracked configs`.
 
 `Utilities` opens a third selector for smaller workflow add-ons:
 

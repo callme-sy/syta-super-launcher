@@ -4,7 +4,7 @@ setlocal EnableExtensions DisableDelayedExpansion
 
 set "SYTA_PORTABLE_ROOT=%~dp0"
 set "SYTA_SELF=%~f0"
-set "SYTA_BUILD_ID=SYTA-build-2026-06-08-231500Z"
+set "SYTA_BUILD_ID=SYTA-build-2026-07-24-155346Z"
 set "SYTA_RUNTIME_BASE=%LOCALAPPDATA%\SYTA Super Launcher\runtime"
 if not defined LOCALAPPDATA set "SYTA_RUNTIME_BASE=%TEMP%\SYTA Super Launcher\runtime"
 set "SYTA_RUNTIME=%SYTA_RUNTIME_BASE%\%SYTA_BUILD_ID%"
@@ -41,11 +41,11 @@ exit /b %errorlevel%
 :: param(
 ::     [ValidateSet('Code', 'Install', 'Extra', 'Settings', 'Explanations', 'CleanerHelper', 'Update', 'LauncherUpdate', 'UpdateAll', 'UpdateLight', 'UpdateUtilities')]
 ::     [string]$Mode,
-::     [ValidateSet('codex-yolo', 'omx-madmax-high', 'opencode', 'kilocode-cli', 'claude-code', 'gemini-cli', 'droid-cli', 'grok-cli')]
+::     [ValidateSet('codex-yolo', 'omx-madmax-high', 'opencode', 'kilocode-cli', 'claude-code', 'gemini-cli', 'droid-cli', 'grok-cli', 'command-code')]
 ::     [string]$Agent,
-::     [ValidateSet('first-install', 'wsl-ubuntu', 'powershell-7', 'extra', 'all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'utilities', 'codex', 'opencode', 'kilocode-cli', 'omx', 'claude-code', 'gemini-cli', 'droid-cli', 'grok-cli', 'oh-my-openagent', 'oh-my-opencode-slim', 'utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec', 'utility-claw-code', 'utility-bmad')]
+::     [ValidateSet('first-install', 'wsl-ubuntu', 'powershell-7', 'extra', 'all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'utilities', 'codex', 'opencode', 'kilocode-cli', 'omx', 'claude-code', 'gemini-cli', 'droid-cli', 'grok-cli', 'command-code', 'oh-my-openagent', 'oh-my-opencode-slim', 'utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec', 'utility-claw-code', 'utility-bmad')]
 ::     [string]$InstallTarget,
-::     [ValidateSet('codex-omx', 'opencode', 'oh-my-openagent', 'oh-my-opencode-slim', 'claude-code', 'gemini-cli', 'droid-cli', 'grok-cli', 'all')]
+::     [ValidateSet('codex-omx', 'opencode', 'oh-my-openagent', 'oh-my-opencode-slim', 'claude-code', 'gemini-cli', 'droid-cli', 'grok-cli', 'command-code', 'all')]
 ::     [string]$ResetTarget,
 ::     [string]$ProjectName,
 ::     [switch]$NoAnimation,
@@ -90,8 +90,8 @@ exit /b %errorlevel%
 :: $script:PreferredWslDistroCache = $null
 :: $script:WslCliReadyCache = $null
 :: $script:LastToolDiagnosticsError = ''
-:: $script:BuildId = 'SYTA-build-2026-06-08-231500Z'
-:: $script:ReleaseTag = 'v1.10.7'
+:: $script:BuildId = 'SYTA-build-2026-07-24-155346Z'
+:: $script:ReleaseTag = 'v1.10.8'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -368,7 +368,7 @@ exit /b %errorlevel%
 ::             'Light update' = '轻量更新'
 ::             'Update all' = '全量更新'
 ::             'Update utilities add-ons' = '更新实用工具扩展'
-::             'Update AI coding CLIs only: Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI.' = '仅更新 AI 编码 CLI：Codex、OMX、OpenCode、Kilo Code CLI、Claude Code、Gemini CLI、DROID CLI、Grok CLI。'
+::             'Update AI coding CLIs only: Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI, Command Code.' = '仅更新 AI 编码 CLI：Codex、OMX、OpenCode、Kilo Code CLI、Claude Code、Gemini CLI、DROID CLI、Grok CLI、Command Code。'
 ::             'Run the broader toolchain update pass, including system package managers.' = '运行更全面的工具链更新，包括系统包管理器。'
 ::             'Update installed utility add-ons only: RTK, ccusage, codex-auth, superpowers, OpenSpec, Claw Code, BMAD.' = '仅更新已安装的实用工具扩展：RTK、ccusage、codex-auth、superpowers、OpenSpec、Claw Code、BMAD。'
 ::             'Run the installed utility add-ons updater without touching the broader toolchain.' = '只运行已安装实用工具扩展的更新器，不触碰更广泛的工具链。'
@@ -512,6 +512,8 @@ exit /b %errorlevel%
 ::             'Remove tracked DROID CLI config folder.' = '删除已跟踪的 DROID CLI 配置目录。'
 ::             'Grok CLI configs' = 'Grok CLI 配置'
 ::             'Remove tracked Grok CLI auth and config files.' = '删除已跟踪的 Grok CLI 认证和配置文件。'
+::             'Command Code configs' = 'Command Code 配置'
+::             'Remove tracked Command Code auth and config files.' = '删除已跟踪的 Command Code 认证和配置文件。'
 ::             'All tracked configs' = '所有已跟踪的配置'
 ::             'Remove every tracked config/auth path shown by SYTA.' = '删除 SYTA 显示的所有已跟踪配置/认证路径。'
 ::             'SYTA Install - Config Reset Helper' = 'SYTA 安装 - 配置重置助手'
@@ -682,7 +684,7 @@ exit /b %errorlevel%
 ::             'Light update' = 'Mise a jour legere'
 ::             'Update all' = 'Mise a jour complete'
 ::             'Update utilities add-ons' = 'Mettre a jour les utilitaires'
-::             'Update AI coding CLIs only: Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI.' = 'Mettre a jour seulement les CLI IA : Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI.'
+::             'Update AI coding CLIs only: Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI, Command Code.' = 'Mettre a jour seulement les CLI IA : Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI, Command Code.'
 ::             'Run the broader toolchain update pass, including system package managers.' = 'Lancer la maintenance plus large de la chaine d''outils, y compris les gestionnaires systeme.'
 ::             'Update installed utility add-ons only: RTK, ccusage, codex-auth, superpowers, OpenSpec, Claw Code, BMAD.' = 'Mettre a jour seulement les utilitaires installes : RTK, ccusage, codex-auth, superpowers, OpenSpec, Claw Code, BMAD.'
 ::             'Run the installed utility add-ons updater without touching the broader toolchain.' = 'Lancer la mise a jour des utilitaires installes sans toucher au reste de la chaine d''outils.'
@@ -826,6 +828,8 @@ exit /b %errorlevel%
 ::             'Remove tracked DROID CLI config folder.' = 'Supprimer le dossier de config suivi de DROID CLI.'
 ::             'Grok CLI configs' = 'Configs Grok CLI'
 ::             'Remove tracked Grok CLI auth and config files.' = 'Supprimer les fichiers auth/config suivis de Grok CLI.'
+::             'Command Code configs' = 'Configs Command Code'
+::             'Remove tracked Command Code auth and config files.' = 'Supprimer les fichiers auth/config suivis de Command Code.'
 ::             'All tracked configs' = 'Toutes les configs suivies'
 ::             'Remove every tracked config/auth path shown by SYTA.' = 'Supprimer tous les chemins config/auth suivis affiches par SYTA.'
 ::             'SYTA Install - Config Reset Helper' = 'SYTA Installation - Assistant de reinitialisation des configs'
@@ -1108,6 +1112,13 @@ exit /b %errorlevel%
 ::         Accent = 'DarkGreen'
 ::         WindowTitle = 'Grok CLI'
 ::     }
+::     [pscustomobject]@{
+::         Key = 'command-code'
+::         Title = 'Command Code | optional'
+::         Subtitle = 'AI coding agent with taste learning from commandcode.ai.'
+::         Accent = 'Magenta'
+::         WindowTitle = 'Command Code'
+::     }
 :: )
 :: $script:ToolSpecs = @{
 ::     'codex' = [pscustomobject]@{
@@ -1172,6 +1183,13 @@ exit /b %errorlevel%
 ::         DetectScript = $null
 ::         AuthScript = 'if [ -n "${GROK_DEPLOYMENT_KEY:-}" ] || [ -n "${XAI_API_KEY:-}" ]; then echo env-key; elif [ -f "$HOME/.grok/auth.json" ] || [ -f "$HOME/.grok/config.toml" ]; then echo config-present; else echo not-detected; fi'
 ::         InstallHint = 'Install from Install -> Grok CLI.'
+::     }
+::     'command-code' = [pscustomobject]@{
+::         Command = 'command-code'
+::         VersionScript = 'if command -v command-code >/dev/null 2>&1; then command-code --version 2>/dev/null | head -n 1; elif command -v cmd >/dev/null 2>&1; then cmd --version 2>/dev/null | head -n 1; fi'
+::         DetectScript = $null
+::         AuthScript = 'if [ -f "$HOME/.commandcode/auth.json" ]; then echo config-present; elif [ -d "$HOME/.commandcode" ]; then echo config-present; else echo not-detected; fi'
+::         InstallHint = 'Install from Install -> Command Code.'
 ::     }
 ::     'oh-my-opencode-slim' = [pscustomobject]@{
 ::         Command = ''
@@ -2973,7 +2991,7 @@ exit /b %errorlevel%
 :: function Launch-UpdateMenu {
 ::     $items = @(
 ::         [pscustomobject]@{ Title = 'Check launcher update'; Subtitle = 'Force a fresh GitHub release check for SYTA and offer self-update if a newer version exists.'; Accent = 'Yellow'; Key = 'LauncherUpdate' }
-::         [pscustomobject]@{ Title = 'Light update'; Subtitle = 'Update AI coding CLIs only: Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI.'; Accent = 'Green'; Key = 'UpdateLight' }
+::         [pscustomobject]@{ Title = 'Light update'; Subtitle = 'Update AI coding CLIs only: Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI, Command Code.'; Accent = 'Green'; Key = 'UpdateLight' }
 ::         [pscustomobject]@{ Title = 'Update utilities add-ons'; Subtitle = 'Update installed utility add-ons only: RTK, ccusage, codex-auth, superpowers, OpenSpec, Claw Code, BMAD.'; Accent = 'Cyan'; Key = 'UpdateUtilities' }
 ::         [pscustomobject]@{ Title = 'Update all'; Subtitle = 'Run the broader toolchain update pass, including system package managers.'; Accent = 'Yellow'; Key = 'UpdateAll' }
 ::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the main menu.'; Accent = 'DarkGray'; Key = 'back' }
@@ -3459,7 +3477,7 @@ exit /b %errorlevel%
 ::     $distroReady = Test-WslPreferredDistroReadyForCli
 ::     $pwshInfo = Get-PwshInfo
 ::     if ($distroReady) {
-::         Warm-ToolDiagnosticsCache -Keys @('codex', 'omx', 'opencode', 'kilocode-cli', 'claude-code', 'gemini-cli', 'droid-cli', 'grok-cli', 'oh-my-openagent', 'oh-my-opencode-slim') -Fast
+::         Warm-ToolDiagnosticsCache -Keys @('codex', 'omx', 'opencode', 'kilocode-cli', 'claude-code', 'gemini-cli', 'droid-cli', 'grok-cli', 'command-code', 'oh-my-openagent', 'oh-my-opencode-slim') -Fast
 ::         $codexDiag = Get-ToolDiagnostics -Key 'codex'
 ::         $omxDiag = Get-ToolDiagnostics -Key 'omx'
 ::         $opencodeDiag = Get-ToolDiagnostics -Key 'opencode'
@@ -3468,6 +3486,7 @@ exit /b %errorlevel%
 ::         $geminiDiag = Get-ToolDiagnostics -Key 'gemini-cli'
 ::         $droidDiag = Get-ToolDiagnostics -Key 'droid-cli'
 ::         $grokDiag = Get-ToolDiagnostics -Key 'grok-cli'
+::         $commandCodeDiag = Get-ToolDiagnostics -Key 'command-code'
 ::         $omaDiag = Get-ToolDiagnostics -Key 'oh-my-openagent'
 ::         $omoDiag = Get-ToolDiagnostics -Key 'oh-my-opencode-slim'
 ::     } else {
@@ -3480,6 +3499,7 @@ exit /b %errorlevel%
 ::         $geminiDiag = New-WslMissingToolDiagnostics -Key 'gemini-cli' -SetupIncomplete:$setupIncomplete
 ::         $droidDiag = New-WslMissingToolDiagnostics -Key 'droid-cli' -SetupIncomplete:$setupIncomplete
 ::         $grokDiag = New-WslMissingToolDiagnostics -Key 'grok-cli' -SetupIncomplete:$setupIncomplete
+::         $commandCodeDiag = New-WslMissingToolDiagnostics -Key 'command-code' -SetupIncomplete:$setupIncomplete
 ::         $omaDiag = New-WslMissingToolDiagnostics -Key 'oh-my-openagent' -SetupIncomplete:$setupIncomplete
 ::         $omoDiag = New-WslMissingToolDiagnostics -Key 'oh-my-opencode-slim' -SetupIncomplete:$setupIncomplete
 ::     }
@@ -3508,6 +3528,7 @@ exit /b %errorlevel%
 ::         [pscustomobject]@{ Title = 'Gemini CLI | optional'; Subtitle = $geminiDiag.MenuText; Accent = if ($geminiDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'gemini-cli'; DiagnosticMode = $geminiDiag.DiagnosticMode }
 ::         [pscustomobject]@{ Title = 'DROID CLI | optional'; Subtitle = $droidDiag.MenuText; Accent = if ($droidDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'droid-cli'; DiagnosticMode = $droidDiag.DiagnosticMode }
 ::         [pscustomobject]@{ Title = 'Grok CLI | optional'; Subtitle = $grokDiag.MenuText; Accent = if ($grokDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'grok-cli'; DiagnosticMode = $grokDiag.DiagnosticMode }
+::         [pscustomobject]@{ Title = 'Command Code | optional'; Subtitle = $commandCodeDiag.MenuText; Accent = if ($commandCodeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'command-code'; DiagnosticMode = $commandCodeDiag.DiagnosticMode }
 ::         [pscustomobject]@{ Title = 'Oh My OpenCode Slim | optional'; Subtitle = $omoDiag.MenuText; Accent = if ($omoDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Cyan' }; Key = 'oh-my-opencode-slim'; DiagnosticMode = $omoDiag.DiagnosticMode }
 ::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the main menu.'; Accent = 'DarkGray'; Key = 'back' }
 ::     )
@@ -3581,6 +3602,7 @@ exit /b %errorlevel%
 ::         'gemini-cli' = [pscustomobject]@{ Title = 'Gemini CLI | optional'; Subtitle = 'Install or repair Gemini CLI.'; Accent = 'Cyan'; Key = 'gemini-cli' }
 ::         'droid-cli' = [pscustomobject]@{ Title = 'DROID CLI | optional'; Subtitle = 'Install or repair DROID CLI.'; Accent = 'Cyan'; Key = 'droid-cli' }
 ::         'grok-cli' = [pscustomobject]@{ Title = 'Grok CLI | optional'; Subtitle = 'Install or repair Grok CLI.'; Accent = 'Cyan'; Key = 'grok-cli' }
+::         'command-code' = [pscustomobject]@{ Title = 'Command Code | optional'; Subtitle = 'Install or repair Command Code.'; Accent = 'Cyan'; Key = 'command-code' }
 ::         'oh-my-openagent' = [pscustomobject]@{ Title = 'Oh My OpenAgent | advanced optional'; Subtitle = 'Install or repair the OpenCode add-on.'; Accent = 'Yellow'; Key = 'oh-my-openagent' }
 ::         'oh-my-opencode-slim' = [pscustomobject]@{ Title = 'Oh My OpenCode Slim | optional'; Subtitle = 'Install or repair the slim OpenCode preset.'; Accent = 'Cyan'; Key = 'oh-my-opencode-slim' }
 ::         'utility-rtk' = [pscustomobject]@{ Title = 'RTK | output proxy'; Subtitle = 'Install or repair RTK.'; Accent = 'Cyan'; Key = 'utility-rtk' }
@@ -3609,6 +3631,7 @@ exit /b %errorlevel%
 ::         [pscustomobject]@{ Label = 'Gemini'; Key = 'gemini-cli' }
 ::         [pscustomobject]@{ Label = 'DROID'; Key = 'droid-cli' }
 ::         [pscustomobject]@{ Label = 'Grok'; Key = 'grok-cli' }
+::         [pscustomobject]@{ Label = 'CmdCode'; Key = 'command-code' }
 ::     )
 ::
 ::     Warm-ToolDiagnosticsCache -Keys @($items | Select-Object -ExpandProperty Key) -Fast
@@ -3648,6 +3671,7 @@ exit /b %errorlevel%
 ::         [pscustomobject]@{ Title = 'Gemini CLI configs'; Subtitle = 'Remove tracked Gemini and Google AI config folders.'; Accent = 'Blue'; Key = 'gemini-cli' }
 ::         [pscustomobject]@{ Title = 'DROID CLI configs'; Subtitle = 'Remove tracked DROID CLI config folder.'; Accent = 'DarkCyan'; Key = 'droid-cli' }
 ::         [pscustomobject]@{ Title = 'Grok CLI configs'; Subtitle = 'Remove tracked Grok CLI auth and config files.'; Accent = 'DarkGreen'; Key = 'grok-cli' }
+::         [pscustomobject]@{ Title = 'Command Code configs'; Subtitle = 'Remove tracked Command Code auth and config files.'; Accent = 'Magenta'; Key = 'command-code' }
 ::         [pscustomobject]@{ Title = 'All tracked configs'; Subtitle = 'Remove every tracked config/auth path shown by SYTA.'; Accent = 'Red'; Key = 'all' }
 ::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the previous menu.'; Accent = 'DarkGray'; Key = 'back' }
 ::     )
@@ -3973,7 +3997,7 @@ exit /b %errorlevel%
 ::
 :: function Launch-UpdateLightMode {
 ::     $lines = @(
-::         'Scope   : Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI',
+::         'Scope   : Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI, Command Code',
 ::         "Folder  : $script:ScriptDir"
 ::     ) + (Get-CodingCliSummaryLines)
 ::     Show-InfoBox -Title 'Light Update Preflight' -Accent Green -Hint 'A new terminal tab opens immediately after this screen' -Lines $lines
@@ -4213,7 +4237,7 @@ exit /b %errorlevel%
 ::         return
 ::     }
 ::
-::     $wslRequiredKeys = @('all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'codex', 'opencode', 'kilocode-cli', 'omx', 'claude-code', 'gemini-cli', 'droid-cli', 'grok-cli', 'oh-my-openagent', 'oh-my-opencode-slim', 'utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec', 'utility-claw-code', 'utility-bmad')
+::     $wslRequiredKeys = @('all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'codex', 'opencode', 'kilocode-cli', 'omx', 'claude-code', 'gemini-cli', 'droid-cli', 'grok-cli', 'command-code', 'oh-my-openagent', 'oh-my-opencode-slim', 'utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec', 'utility-claw-code', 'utility-bmad')
 ::     if ($wslRequiredKeys -contains $selection.Key -and -not (Test-WslPreferredDistroReadyForCli)) {
 ::         $distroInstalled = Test-WslUserDistroInstalled
 ::         $lines = if ($distroInstalled) {
@@ -4677,6 +4701,16 @@ exit /b %errorlevel%
 ::       command_name='grok'
 ::       { [ -n "${GROK_DEPLOYMENT_KEY:-}" ] || [ -n "${XAI_API_KEY:-}" ]; } && auth='env-key'
 ::       [ "$auth" = 'not-detected' ] && { [ -f "$HOME/.grok/auth.json" ] || [ -f "$HOME/.grok/config.toml" ]; } && auth='config-present'
+::       ;;
+::     command-code)
+::       if command -v command-code >/dev/null 2>&1; then
+::         command_name='command-code'
+::       elif command -v cmd >/dev/null 2>&1; then
+::         command_name='cmd'
+::       else
+::         command_name='command-code'
+::       fi
+::       [ "$auth" = 'not-detected' ] && { [ -f "$HOME/.commandcode/auth.json" ] || [ -d "$HOME/.commandcode" ]; } && auth='config-present'
 ::       ;;
 ::     utility-rtk)
 ::       command_name='rtk'
@@ -5152,6 +5186,7 @@ exit /b %errorlevel%
 ::         gemini_missing) printf 'gemini n''est pas disponible dans le PATH.\n' ;;
 ::         droid_missing) printf 'droid n''est pas disponible dans le PATH.\n' ;;
 ::         grok_missing) printf 'grok n''est pas disponible dans le PATH.\n' ;;
+::         command_code_missing) printf 'command-code n''est pas disponible dans le PATH.\n' ;;
 ::         launch_codex) printf 'Lancement de Codex YOLO...\n\n' ;;
 ::         launch_omx) printf 'Lancement de OMX MADMAX HIGH...\n\n' ;;
 ::         launch_opencode) printf 'Lancement de OpenCode...\n\n' ;;
@@ -5160,6 +5195,7 @@ exit /b %errorlevel%
 ::         launch_gemini) printf 'Lancement de Gemini CLI...\n\n' ;;
 ::         launch_droid) printf 'Lancement de DROID CLI...\n\n' ;;
 ::         launch_grok) printf 'Lancement de Grok CLI...\n\n' ;;
+::         launch_command_code) printf 'Lancement de Command Code...\n\n' ;;
 ::         unknown_agent) printf 'Cle agent inconnue : %s\n' "$value" ;;
 ::         agent_exit) printf '\nL''agent s''est termine avec le code %s.\n' "$value" ;;
 ::         session_end) printf '\nSession agent terminee.\n' ;;
@@ -5178,6 +5214,7 @@ exit /b %errorlevel%
 ::         gemini_missing) printf 'PATH 中没有 gemini。\n' ;;
 ::         droid_missing) printf 'PATH 中没有 droid。\n' ;;
 ::         grok_missing) printf 'PATH 中没有 grok。\n' ;;
+::         command_code_missing) printf 'PATH 中没有 command-code。\n' ;;
 ::         launch_codex) printf '正在启动 Codex YOLO...\n\n' ;;
 ::         launch_omx) printf '正在启动 OMX MADMAX HIGH...\n\n' ;;
 ::         launch_opencode) printf '正在启动 OpenCode...\n\n' ;;
@@ -5186,6 +5223,7 @@ exit /b %errorlevel%
 ::         launch_gemini) printf '正在启动 Gemini CLI...\n\n' ;;
 ::         launch_droid) printf '正在启动 DROID CLI...\n\n' ;;
 ::         launch_grok) printf '正在启动 Grok CLI...\n\n' ;;
+::         launch_command_code) printf '正在启动 Command Code...\n\n' ;;
 ::         unknown_agent) printf '未知代理键：%s\n' "$value" ;;
 ::         agent_exit) printf '\n代理已退出，状态码为 %s。\n' "$value" ;;
 ::         session_end) printf '\n代理会话已结束。\n' ;;
@@ -5204,6 +5242,7 @@ exit /b %errorlevel%
 ::         gemini_missing) printf 'gemini is not available in PATH.\n' ;;
 ::         droid_missing) printf 'droid is not available in PATH.\n' ;;
 ::         grok_missing) printf 'grok is not available in PATH.\n' ;;
+::         command_code_missing) printf 'command-code is not available in PATH.\n' ;;
 ::         launch_codex) printf 'Launching Codex YOLO...\n\n' ;;
 ::         launch_omx) printf 'Launching OMX MADMAX HIGH...\n\n' ;;
 ::         launch_opencode) printf 'Launching OpenCode...\n\n' ;;
@@ -5212,6 +5251,7 @@ exit /b %errorlevel%
 ::         launch_gemini) printf 'Launching Gemini CLI...\n\n' ;;
 ::         launch_droid) printf 'Launching DROID CLI...\n\n' ;;
 ::         launch_grok) printf 'Launching Grok CLI...\n\n' ;;
+::         launch_command_code) printf 'Launching Command Code...\n\n' ;;
 ::         unknown_agent) printf 'Unknown agent key: %s\n' "$value" ;;
 ::         agent_exit) printf '\nAgent exited with status %s.\n' "$value" ;;
 ::         session_end) printf '\nAgent session ended.\n' ;;
@@ -5254,6 +5294,14 @@ exit /b %errorlevel%
 ::     grok-cli)
 ::       if ! command -v grok >/dev/null 2>&1; then msg grok_missing; msg current_path "$PATH"; return 127; fi
 ::       msg launch_grok; grok ;;
+::     command-code)
+::       if command -v command-code >/dev/null 2>&1; then
+::         msg launch_command_code; command-code
+::       elif command -v cmd >/dev/null 2>&1; then
+::         msg launch_command_code; cmd
+::       else
+::         msg command_code_missing; msg current_path "$PATH"; return 127
+::       fi ;;
 ::     *) msg unknown_agent "$agent_key"; return 64 ;;
 ::   esac
 :: }
@@ -5398,6 +5446,7 @@ exit /b %errorlevel%
 :: comment-checker|@code-yeongyu/comment-checker
 :: droid|droid
 :: grok|grok
+:: command-code|command-code
 :: rtk|rtk
 :: EOF
 :: }
@@ -5431,6 +5480,8 @@ exit /b %errorlevel%
 :: grok-cli|Grok CLI config|file|~/.grok/config.toml
 :: grok-cli|Grok CLI managed config|file|~/.grok/managed_config.toml
 :: grok-cli|Grok CLI requirements|file|~/.grok/requirements.toml
+:: command-code|Command Code auth|file|~/.commandcode/auth.json
+:: command-code|Command Code config directory|dir|~/.commandcode
 :: EOF
 :: }
 ::
@@ -5640,6 +5691,23 @@ exit /b %errorlevel%
 ::     return 0
 ::   fi
 ::   printf 'Grok CLI install finished but grok is still not on PATH.
+:: '
+::   return 1
+:: }
+::
+:: install_command_code() {
+::   ensure_node_npm_latest || return 1
+::   run_step "Install Command Code" with_nvm npm install -g command-code@latest || return 1
+::   load_user_env
+::   if command -v command-code >/dev/null 2>&1; then
+::     with_nvm command-code --version 2>/dev/null || true
+::     return 0
+::   fi
+::   if command -v cmd >/dev/null 2>&1; then
+::     with_nvm cmd --version 2>/dev/null || true
+::     return 0
+::   fi
+::   printf 'Command Code install finished but command-code is still not on PATH.
 :: '
 ::   return 1
 :: }
@@ -6111,6 +6179,7 @@ exit /b %errorlevel%
 ::   gemini-cli) install_gemini_cli || status=$? ;;
 ::   droid-cli) install_droid_cli || status=$? ;;
 ::   grok-cli) install_grok_cli || status=$? ;;
+::   command-code) install_command_code || status=$? ;;
 ::   oh-my-openagent) install_oh_my_openagent || status=$? ;;
 ::   oh-my-opencode-slim) install_oh_my_opencode_slim || status=$? ;;
 ::   utility-rtk) install_rtk || status=$? ;;
@@ -6250,7 +6319,7 @@ exit /b %errorlevel%
 :: fi
 ::
 :: echo
-:: for tool in codex omx opencode kilo claude gemini droid grok npm npx; do
+:: for tool in codex omx opencode kilo claude gemini droid grok command-code cmd npm npx; do
 ::   if have_cmd "$tool"; then
 ::     printf '%-14s %s
 :: ' "$tool" "$(command -v "$tool")"
@@ -6332,6 +6401,18 @@ exit /b %errorlevel%
 ::   else
 ::     echo
 ::     echo "== Update Grok CLI =="
+::     echo SKIPPED
+::   fi
+::
+::   if have_cmd command-code || have_cmd cmd; then
+::     if have_nvm; then
+::       run_step "Update Command Code" with_nvm npm install -g command-code@latest || true
+::     else
+::       run_step "Update Command Code" npm install -g command-code@latest || true
+::     fi
+::   else
+::     echo
+::     echo "== Update Command Code =="
 ::     echo SKIPPED
 ::   fi
 ::

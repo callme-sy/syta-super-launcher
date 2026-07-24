@@ -48,7 +48,7 @@ Tout le runtime est embarqué dans le fichier batch lui-même. Au lancement, il 
 | `Settings` | Modifie les preferences du lanceur comme la langue et le dossier des projets |
 | `Extra` | Ouvre depuis le menu principal les outils de maintenance et les utilitaires plus legers |
 | `Check launcher update` | Force une nouvelle verification de release du lanceur et propose l'auto-mise-a-jour si besoin |
-| `Light update` | Met a jour uniquement les CLI IA de code deja installees, y compris Kilo Code CLI, DROID CLI et Grok CLI |
+| `Light update` | Met a jour uniquement les CLI IA de code deja installees, y compris Kilo Code CLI, DROID CLI, Grok CLI et Command Code |
 | `Update utilities add-ons` | Met a jour uniquement les utilitaires deja installes |
 | `Update all` | Lance une mise à jour plus large de la chaîne d’outils |
 | Diagnostics | Affiche l’état d’installation, la version et des indices d’auth/config |
@@ -70,6 +70,7 @@ Le lanceur peut démarrer dans WSL :
 - `Claude Code`
 - `Gemini CLI`
 - `Grok CLI`
+- `Command Code`
 
 ### Menu Principal
 
@@ -105,6 +106,7 @@ Le menu d’installation prend actuellement en charge :
 - `Gemini CLI`
 - `DROID CLI`
 - `Grok CLI`
+- `Command Code`
 - `Oh My OpenCode Slim`
 
 `First install` est le parcours debutant : il lance WSL Ubuntu si besoin, demande s'il faut installer ou reparer PowerShell 7, puis lance l'installation des CLI IA de base seulement quand Ubuntu est vraiment pret pour un setup CLI utilisateur. Si Ubuntu demande encore un redemarrage ou la creation initiale du compte Linux, SYTA indique de terminer cette etape puis de relancer `First install`.
@@ -116,11 +118,13 @@ Le bundle de base installe actuellement :
 - `Claude Code`
 - `Gemini CLI`
 
-`Kilo Code CLI`, `Oh My Codex / OMX`, `Oh My OpenAgent`, `DROID CLI`, `Grok CLI` et `Oh My OpenCode Slim` restent des installations optionnelles separees dans le menu d'installation.
+`Kilo Code CLI`, `Oh My Codex / OMX`, `Oh My OpenAgent`, `DROID CLI`, `Grok CLI`, `Command Code` et `Oh My OpenCode Slim` restent des installations optionnelles separees dans le menu d'installation.
 
 `DROID CLI` est la CLI de Factory AI. SYTA l'installe via la commande officielle de bootstrap Linux de Factory AI dans WSL.
 
 `Grok CLI` est l'agent terminal de xAI. SYTA l'installe dans WSL via `curl -fsSL https://x.ai/cli/install.sh | bash`, puis le lance avec la commande `grok`.
+
+`Command Code` est l'agent de code de [commandcode.ai](https://commandcode.ai/). SYTA l'installe via `npm install -g command-code@latest` dans WSL, puis le lance avec `command-code` (ou l'alias `cmd`).
 
 `Kilo Code CLI` est installee via le package npm officiel `@kilocode/cli`, puis lancee dans WSL avec la commande `kilo`.
 
@@ -132,7 +136,7 @@ Le bundle de base installe actuellement :
 
 `Cleaner helper` analyse les installations des CLI IA laissees dans d'anciennes versions Node gerees par `nvm`, ainsi que les doublons du PATH, puis demande avant de supprimer les npm globaux obsoletes qu'il peut nettoyer sans risque.
 
-`Reset tool configs` ouvre un second selecteur. Depuis ce menu, vous pouvez reinitialiser seulement `Codex / OMX`, `OpenCode`, `Oh My OpenAgent`, `Oh My OpenCode Slim`, `Claude Code`, `Gemini CLI`, `DROID CLI`, `Grok CLI`, ou `Toutes les configs suivies`.
+`Reset tool configs` ouvre un second selecteur. Depuis ce menu, vous pouvez reinitialiser seulement `Codex / OMX`, `OpenCode`, `Oh My OpenAgent`, `Oh My OpenCode Slim`, `Claude Code`, `Gemini CLI`, `DROID CLI`, `Grok CLI`, `Command Code`, ou `Toutes les configs suivies`.
 
 `Utilities` ouvre un troisieme selecteur pour les petits add-ons de workflow :
 

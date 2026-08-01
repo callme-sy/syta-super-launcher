@@ -4,7 +4,7 @@ setlocal EnableExtensions DisableDelayedExpansion
 
 set "SYTA_PORTABLE_ROOT=%~dp0"
 set "SYTA_SELF=%~f0"
-set "SYTA_BUILD_ID=SYTA-build-2026-08-01-103722Z"
+set "SYTA_BUILD_ID=SYTA-build-2026-08-01-104535Z"
 set "SYTA_RUNTIME_BASE=%LOCALAPPDATA%\SYTA Super Launcher\runtime"
 if not defined LOCALAPPDATA set "SYTA_RUNTIME_BASE=%TEMP%\SYTA Super Launcher\runtime"
 set "SYTA_RUNTIME=%SYTA_RUNTIME_BASE%\%SYTA_BUILD_ID%"
@@ -41,11 +41,11 @@ exit /b %errorlevel%
 :: param(
 ::     [ValidateSet('Code', 'Install', 'Extra', 'Settings', 'Explanations', 'CleanerHelper', 'Update', 'LauncherUpdate', 'UpdateAll', 'UpdateLight', 'UpdateUtilities')]
 ::     [string]$Mode,
-::     [ValidateSet('codex-yolo', 'omx-madmax-high', 'opencode', 'kilocode-cli', 'claude-code', 'gemini-cli', 'droid-cli', 'grok-cli', 'command-code', 'reasonix')]
+::     [ValidateSet('codex-yolo', 'omx-madmax-high', 'opencode', 'kilocode-cli', 'claude-code', 'gemini-cli', 'droid-cli', 'grok-cli', 'command-code', 'reasonix', 'pi', 'omp')]
 ::     [string]$Agent,
-::     [ValidateSet('first-install', 'wsl-ubuntu', 'powershell-7', 'extra', 'all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'utilities', 'codex', 'opencode', 'kilocode-cli', 'omx', 'claude-code', 'gemini-cli', 'droid-cli', 'grok-cli', 'command-code', 'reasonix', 'oh-my-openagent', 'oh-my-opencode-slim', 'utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec', 'utility-claw-code', 'utility-bmad')]
+::     [ValidateSet('first-install', 'wsl-ubuntu', 'powershell-7', 'extra', 'all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'utilities', 'codex', 'opencode', 'kilocode-cli', 'omx', 'claude-code', 'gemini-cli', 'droid-cli', 'grok-cli', 'command-code', 'reasonix', 'pi', 'omp', 'oh-my-openagent', 'oh-my-opencode-slim', 'utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec', 'utility-claw-code', 'utility-bmad')]
 ::     [string]$InstallTarget,
-::     [ValidateSet('codex-omx', 'opencode', 'oh-my-openagent', 'oh-my-opencode-slim', 'claude-code', 'gemini-cli', 'droid-cli', 'grok-cli', 'command-code', 'reasonix', 'all')]
+::     [ValidateSet('codex-omx', 'opencode', 'oh-my-openagent', 'oh-my-opencode-slim', 'claude-code', 'gemini-cli', 'droid-cli', 'grok-cli', 'command-code', 'reasonix', 'pi', 'omp', 'all')]
 ::     [string]$ResetTarget,
 ::     [string]$ProjectName,
 ::     [switch]$NoAnimation,
@@ -90,8 +90,8 @@ exit /b %errorlevel%
 :: $script:PreferredWslDistroCache = $null
 :: $script:WslCliReadyCache = $null
 :: $script:LastToolDiagnosticsError = ''
-:: $script:BuildId = 'SYTA-build-2026-08-01-103722Z'
-:: $script:ReleaseTag = 'v1.10.9'
+:: $script:BuildId = 'SYTA-build-2026-08-01-104535Z'
+:: $script:ReleaseTag = 'v1.11.0'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -368,7 +368,7 @@ exit /b %errorlevel%
 ::             'Light update' = '轻量更新'
 ::             'Update all' = '全量更新'
 ::             'Update utilities add-ons' = '更新实用工具扩展'
-::             'Update AI coding CLIs only: Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI, Command Code, Reasonix.' = '仅更新 AI 编码 CLI：Codex、OMX、OpenCode、Kilo Code CLI、Claude Code、Gemini CLI、DROID CLI、Grok CLI、Command Code、Reasonix。'
+::             'Update AI coding CLIs only: Codex, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI, Command Code, Reasonix, Pi, OMP (OMX deprecated if installed).' = '仅更新 AI 编码 CLI：Codex、OpenCode、Kilo Code CLI、Claude Code、Gemini CLI、DROID CLI、Grok CLI、Command Code、Reasonix、Pi、OMP（若已安装则仍更新已弃用的 OMX）。'
 ::             'Run the broader toolchain update pass, including system package managers.' = '运行更全面的工具链更新，包括系统包管理器。'
 ::             'Update installed utility add-ons only: RTK, ccusage, codex-auth, superpowers, OpenSpec, Claw Code, BMAD.' = '仅更新已安装的实用工具扩展：RTK、ccusage、codex-auth、superpowers、OpenSpec、Claw Code、BMAD。'
 ::             'Run the installed utility add-ons updater without touching the broader toolchain.' = '只运行已安装实用工具扩展的更新器，不触碰更广泛的工具链。'
@@ -434,7 +434,7 @@ exit /b %errorlevel%
 ::             'Codex CLI | guided' = 'Codex CLI | 引导'
 ::             'OpenCode | simple' = 'OpenCode | 简单'
 ::             'Oh My OpenAgent | advanced optional' = 'Oh My OpenAgent | 进阶可选'
-::             'Oh My Codex / OMX | advanced optional' = 'Oh My Codex / OMX | 进阶可选'
+::             'Oh My Codex / OMX | deprecated' = 'Oh My Codex / OMX | 已弃用'
 ::             'Kilo Code CLI | optional' = 'Kilo Code CLI | 可选'
 ::             'Claude Code | optional' = 'Claude Code | 可选'
 ::             'Gemini CLI | optional' = 'Gemini CLI | 可选'
@@ -516,6 +516,10 @@ exit /b %errorlevel%
 ::             'Remove tracked Command Code auth and config files.' = '删除已跟踪的 Command Code 认证和配置文件。'
 ::             'Reasonix configs' = 'Reasonix 配置'
 ::             'Remove tracked Reasonix auth and config files.' = '删除已跟踪的 Reasonix 认证和配置文件。'
+::             'Pi configs' = 'Pi 配置'
+::             'Remove tracked Pi auth and config files.' = '删除已跟踪的 Pi 认证和配置文件。'
+::             'OMP configs' = 'OMP 配置'
+::             'Remove tracked OMP auth and config files.' = '删除已跟踪的 OMP 认证和配置文件。'
 ::             'All tracked configs' = '所有已跟踪的配置'
 ::             'Remove every tracked config/auth path shown by SYTA.' = '删除 SYTA 显示的所有已跟踪配置/认证路径。'
 ::             'SYTA Install - Config Reset Helper' = 'SYTA 安装 - 配置重置助手'
@@ -686,7 +690,7 @@ exit /b %errorlevel%
 ::             'Light update' = 'Mise a jour legere'
 ::             'Update all' = 'Mise a jour complete'
 ::             'Update utilities add-ons' = 'Mettre a jour les utilitaires'
-::             'Update AI coding CLIs only: Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI, Command Code, Reasonix.' = 'Mettre a jour seulement les CLI IA : Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI, Command Code, Reasonix.'
+::             'Update AI coding CLIs only: Codex, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI, Command Code, Reasonix, Pi, OMP (OMX deprecated if installed).' = 'Mettre a jour seulement les CLI IA : Codex, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI, Command Code, Reasonix, Pi, OMP (OMX deprecate si installe).'
 ::             'Run the broader toolchain update pass, including system package managers.' = 'Lancer la maintenance plus large de la chaine d''outils, y compris les gestionnaires systeme.'
 ::             'Update installed utility add-ons only: RTK, ccusage, codex-auth, superpowers, OpenSpec, Claw Code, BMAD.' = 'Mettre a jour seulement les utilitaires installes : RTK, ccusage, codex-auth, superpowers, OpenSpec, Claw Code, BMAD.'
 ::             'Run the installed utility add-ons updater without touching the broader toolchain.' = 'Lancer la mise a jour des utilitaires installes sans toucher au reste de la chaine d''outils.'
@@ -752,7 +756,7 @@ exit /b %errorlevel%
 ::             'Codex CLI | guided' = 'Codex CLI | guide'
 ::             'OpenCode | simple' = 'OpenCode | simple'
 ::             'Oh My OpenAgent | advanced optional' = 'Oh My OpenAgent | option avancee'
-::             'Oh My Codex / OMX | advanced optional' = 'Oh My Codex / OMX | option avancee'
+::             'Oh My Codex / OMX | deprecated' = 'Oh My Codex / OMX | deprecate'
 ::             'Kilo Code CLI | optional' = 'Kilo Code CLI | optionnel'
 ::             'Claude Code | optional' = 'Claude Code | optionnel'
 ::             'Gemini CLI | optional' = 'Gemini CLI | optionnel'
@@ -834,6 +838,10 @@ exit /b %errorlevel%
 ::             'Remove tracked Command Code auth and config files.' = 'Supprimer les fichiers auth/config suivis de Command Code.'
 ::             'Reasonix configs' = 'Configs Reasonix'
 ::             'Remove tracked Reasonix auth and config files.' = 'Supprimer les fichiers auth/config suivis de Reasonix.'
+::             'Pi configs' = 'Configs Pi'
+::             'Remove tracked Pi auth and config files.' = 'Supprimer les fichiers auth/config suivis de Pi.'
+::             'OMP configs' = 'Configs OMP'
+::             'Remove tracked OMP auth and config files.' = 'Supprimer les fichiers auth/config suivis de OMP.'
 ::             'All tracked configs' = 'Toutes les configs suivies'
 ::             'Remove every tracked config/auth path shown by SYTA.' = 'Supprimer tous les chemins config/auth suivis affiches par SYTA.'
 ::             'SYTA Install - Config Reset Helper' = 'SYTA Installation - Assistant de reinitialisation des configs'
@@ -1069,9 +1077,9 @@ exit /b %errorlevel%
 ::     }
 ::     [pscustomobject]@{
 ::         Key = 'omx-madmax-high'
-::         Title = 'OMX | advanced'
-::         Subtitle = 'More automation and more structure on top of Codex. Better after you already understand the basics.'
-::         Accent = 'Yellow'
+::         Title = 'OMX | deprecated'
+::         Subtitle = 'Deprecated Codex wrapper. Prefer Codex, Pi, or OMP. Still launches when present.'
+::         Accent = 'DarkGray'
 ::         WindowTitle = 'OMX MADMAX HIGH'
 ::     }
 ::     [pscustomobject]@{
@@ -1130,6 +1138,20 @@ exit /b %errorlevel%
 ::         Accent = 'DarkYellow'
 ::         WindowTitle = 'Reasonix'
 ::     }
+::     [pscustomobject]@{
+::         Key = 'pi'
+::         Title = 'Pi | optional'
+::         Subtitle = 'Minimal extensible coding agent from pi.dev.'
+::         Accent = 'Cyan'
+::         WindowTitle = 'Pi'
+::     }
+::     [pscustomobject]@{
+::         Key = 'omp'
+::         Title = 'OMP | optional'
+::         Subtitle = 'Oh My Pi batteries-included coding agent from omp.sh.'
+::         Accent = 'Yellow'
+::         WindowTitle = 'OMP'
+::     }
 :: )
 :: $script:ToolSpecs = @{
 ::     'codex' = [pscustomobject]@{
@@ -1144,7 +1166,7 @@ exit /b %errorlevel%
 ::         VersionScript = 'omx --version 2>/dev/null | head -n 1'
 ::         DetectScript = $null
 ::         AuthScript = 'if [ -n "${OPENAI_API_KEY:-}" ]; then echo env-key; elif [ -f "$HOME/.codex/config.toml" ]; then echo config-present; else echo not-detected; fi'
-::         InstallHint = 'Install from Install -> Oh My Codex / OMX.'
+::         InstallHint = 'Deprecated. Prefer Codex, Pi, or OMP. Install from Install -> Oh My Codex / OMX | deprecated.'
 ::     }
 ::     'opencode' = [pscustomobject]@{
 ::         Command = 'opencode'
@@ -1208,6 +1230,20 @@ exit /b %errorlevel%
 ::         DetectScript = $null
 ::         AuthScript = 'if [ -n "${DEEPSEEK_API_KEY:-}" ]; then echo env-key; elif [ -f "$HOME/.reasonix/config.json" ] || [ -f "$HOME/.reasonix/config.toml" ] || [ -d "$HOME/.reasonix" ]; then echo config-present; else echo not-detected; fi'
 ::         InstallHint = 'Install from Install -> Reasonix.'
+::     }
+::     'pi' = [pscustomobject]@{
+::         Command = 'pi'
+::         VersionScript = 'pi --version 2>/dev/null | head -n 1'
+::         DetectScript = $null
+::         AuthScript = 'if [ -n "${ANTHROPIC_API_KEY:-}" ] || [ -n "${OPENAI_API_KEY:-}" ] || [ -n "${GEMINI_API_KEY:-}" ] || [ -n "${GOOGLE_API_KEY:-}" ]; then echo env-key; elif [ -d "$HOME/.pi/agent" ] || [ -f "$HOME/.pi/agent/settings.json" ] || [ -d "$HOME/.pi" ]; then echo config-present; else echo not-detected; fi'
+::         InstallHint = 'Install from Install -> Pi.'
+::     }
+::     'omp' = [pscustomobject]@{
+::         Command = 'omp'
+::         VersionScript = 'omp --version 2>/dev/null | head -n 1'
+::         DetectScript = $null
+::         AuthScript = 'if [ -n "${ANTHROPIC_API_KEY:-}" ] || [ -n "${OPENAI_API_KEY:-}" ] || [ -n "${GEMINI_API_KEY:-}" ] || [ -n "${GOOGLE_API_KEY:-}" ]; then echo env-key; elif [ -d "$HOME/.omp/agent" ] || [ -f "$HOME/.omp/agent/config.yml" ] || [ -d "$HOME/.omp" ]; then echo config-present; else echo not-detected; fi'
+::         InstallHint = 'Install from Install -> OMP.'
 ::     }
 ::     'oh-my-opencode-slim' = [pscustomobject]@{
 ::         Command = ''
@@ -3009,7 +3045,7 @@ exit /b %errorlevel%
 :: function Launch-UpdateMenu {
 ::     $items = @(
 ::         [pscustomobject]@{ Title = 'Check launcher update'; Subtitle = 'Force a fresh GitHub release check for SYTA and offer self-update if a newer version exists.'; Accent = 'Yellow'; Key = 'LauncherUpdate' }
-::         [pscustomobject]@{ Title = 'Light update'; Subtitle = 'Update AI coding CLIs only: Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI, Command Code, Reasonix.'; Accent = 'Green'; Key = 'UpdateLight' }
+::         [pscustomobject]@{ Title = 'Light update'; Subtitle = 'Update AI coding CLIs only: Codex, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI, Command Code, Reasonix, Pi, OMP (OMX deprecated if installed).'; Accent = 'Green'; Key = 'UpdateLight' }
 ::         [pscustomobject]@{ Title = 'Update utilities add-ons'; Subtitle = 'Update installed utility add-ons only: RTK, ccusage, codex-auth, superpowers, OpenSpec, Claw Code, BMAD.'; Accent = 'Cyan'; Key = 'UpdateUtilities' }
 ::         [pscustomobject]@{ Title = 'Update all'; Subtitle = 'Run the broader toolchain update pass, including system package managers.'; Accent = 'Yellow'; Key = 'UpdateAll' }
 ::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the main menu.'; Accent = 'DarkGray'; Key = 'back' }
@@ -3495,7 +3531,7 @@ exit /b %errorlevel%
 ::     $distroReady = Test-WslPreferredDistroReadyForCli
 ::     $pwshInfo = Get-PwshInfo
 ::     if ($distroReady) {
-::         Warm-ToolDiagnosticsCache -Keys @('codex', 'omx', 'opencode', 'kilocode-cli', 'claude-code', 'gemini-cli', 'droid-cli', 'grok-cli', 'command-code', 'reasonix', 'oh-my-openagent', 'oh-my-opencode-slim') -Fast
+::         Warm-ToolDiagnosticsCache -Keys @('codex', 'omx', 'opencode', 'kilocode-cli', 'claude-code', 'gemini-cli', 'droid-cli', 'grok-cli', 'command-code', 'reasonix', 'pi', 'omp', 'oh-my-openagent', 'oh-my-opencode-slim') -Fast
 ::         $codexDiag = Get-ToolDiagnostics -Key 'codex'
 ::         $omxDiag = Get-ToolDiagnostics -Key 'omx'
 ::         $opencodeDiag = Get-ToolDiagnostics -Key 'opencode'
@@ -3506,6 +3542,8 @@ exit /b %errorlevel%
 ::         $grokDiag = Get-ToolDiagnostics -Key 'grok-cli'
 ::         $commandCodeDiag = Get-ToolDiagnostics -Key 'command-code'
 ::         $reasonixDiag = Get-ToolDiagnostics -Key 'reasonix'
+::         $piDiag = Get-ToolDiagnostics -Key 'pi'
+::         $ompDiag = Get-ToolDiagnostics -Key 'omp'
 ::         $omaDiag = Get-ToolDiagnostics -Key 'oh-my-openagent'
 ::         $omoDiag = Get-ToolDiagnostics -Key 'oh-my-opencode-slim'
 ::     } else {
@@ -3520,6 +3558,8 @@ exit /b %errorlevel%
 ::         $grokDiag = New-WslMissingToolDiagnostics -Key 'grok-cli' -SetupIncomplete:$setupIncomplete
 ::         $commandCodeDiag = New-WslMissingToolDiagnostics -Key 'command-code' -SetupIncomplete:$setupIncomplete
 ::         $reasonixDiag = New-WslMissingToolDiagnostics -Key 'reasonix' -SetupIncomplete:$setupIncomplete
+::         $piDiag = New-WslMissingToolDiagnostics -Key 'pi' -SetupIncomplete:$setupIncomplete
+::         $ompDiag = New-WslMissingToolDiagnostics -Key 'omp' -SetupIncomplete:$setupIncomplete
 ::         $omaDiag = New-WslMissingToolDiagnostics -Key 'oh-my-openagent' -SetupIncomplete:$setupIncomplete
 ::         $omoDiag = New-WslMissingToolDiagnostics -Key 'oh-my-opencode-slim' -SetupIncomplete:$setupIncomplete
 ::     }
@@ -3543,13 +3583,15 @@ exit /b %errorlevel%
 ::         [pscustomobject]@{ Title = 'OpenCode | simple'; Subtitle = $opencodeDiag.MenuText; Accent = if ($opencodeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'opencode'; DiagnosticMode = $opencodeDiag.DiagnosticMode }
 ::         [pscustomobject]@{ Title = 'Kilo Code CLI | optional'; Subtitle = $kilocodeDiag.MenuText; Accent = if ($kilocodeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'kilocode-cli'; DiagnosticMode = $kilocodeDiag.DiagnosticMode }
 ::         [pscustomobject]@{ Title = 'Oh My OpenAgent | advanced optional'; Subtitle = $omaDiag.MenuText; Accent = if ($omaDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Yellow' }; Key = 'oh-my-openagent'; DiagnosticMode = $omaDiag.DiagnosticMode }
-::         [pscustomobject]@{ Title = 'Oh My Codex / OMX | advanced optional'; Subtitle = $omxDiag.MenuText; Accent = if ($omxDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'omx'; DiagnosticMode = $omxDiag.DiagnosticMode }
+::         [pscustomobject]@{ Title = 'Oh My Codex / OMX | deprecated'; Subtitle = $omxDiag.MenuText; Accent = if ($omxDiag.Installed) { 'DarkGray' } else { 'DarkGray' }; Key = 'omx'; DiagnosticMode = $omxDiag.DiagnosticMode }
 ::         [pscustomobject]@{ Title = 'Claude Code | optional'; Subtitle = $claudeDiag.MenuText; Accent = if ($claudeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'claude-code'; DiagnosticMode = $claudeDiag.DiagnosticMode }
 ::         [pscustomobject]@{ Title = 'Gemini CLI | optional'; Subtitle = $geminiDiag.MenuText; Accent = if ($geminiDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'gemini-cli'; DiagnosticMode = $geminiDiag.DiagnosticMode }
 ::         [pscustomobject]@{ Title = 'DROID CLI | optional'; Subtitle = $droidDiag.MenuText; Accent = if ($droidDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'droid-cli'; DiagnosticMode = $droidDiag.DiagnosticMode }
 ::         [pscustomobject]@{ Title = 'Grok CLI | optional'; Subtitle = $grokDiag.MenuText; Accent = if ($grokDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'grok-cli'; DiagnosticMode = $grokDiag.DiagnosticMode }
 ::         [pscustomobject]@{ Title = 'Command Code | optional'; Subtitle = $commandCodeDiag.MenuText; Accent = if ($commandCodeDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'command-code'; DiagnosticMode = $commandCodeDiag.DiagnosticMode }
 ::         [pscustomobject]@{ Title = 'Reasonix | optional'; Subtitle = $reasonixDiag.MenuText; Accent = if ($reasonixDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'reasonix'; DiagnosticMode = $reasonixDiag.DiagnosticMode }
+::         [pscustomobject]@{ Title = 'Pi | optional'; Subtitle = $piDiag.MenuText; Accent = if ($piDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'pi'; DiagnosticMode = $piDiag.DiagnosticMode }
+::         [pscustomobject]@{ Title = 'OMP | optional'; Subtitle = $ompDiag.MenuText; Accent = if ($ompDiag.Installed) { 'Green' } else { 'Cyan' }; Key = 'omp'; DiagnosticMode = $ompDiag.DiagnosticMode }
 ::         [pscustomobject]@{ Title = 'Oh My OpenCode Slim | optional'; Subtitle = $omoDiag.MenuText; Accent = if ($omoDiag.InstallText -ne (Localize-Text 'Missing')) { 'Green' } else { 'Cyan' }; Key = 'oh-my-opencode-slim'; DiagnosticMode = $omoDiag.DiagnosticMode }
 ::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the main menu.'; Accent = 'DarkGray'; Key = 'back' }
 ::     )
@@ -3618,13 +3660,15 @@ exit /b %errorlevel%
 ::         'codex' = [pscustomobject]@{ Title = 'Codex CLI | guided'; Subtitle = 'Install or repair Codex CLI.'; Accent = 'Cyan'; Key = 'codex' }
 ::         'opencode' = [pscustomobject]@{ Title = 'OpenCode | simple'; Subtitle = 'Install or repair OpenCode.'; Accent = 'Cyan'; Key = 'opencode' }
 ::         'kilocode-cli' = [pscustomobject]@{ Title = 'Kilo Code CLI | optional'; Subtitle = 'Install or repair Kilo Code CLI.'; Accent = 'Cyan'; Key = 'kilocode-cli' }
-::         'omx' = [pscustomobject]@{ Title = 'Oh My Codex / OMX | advanced optional'; Subtitle = 'Install or repair OMX.'; Accent = 'Cyan'; Key = 'omx' }
+::         'omx' = [pscustomobject]@{ Title = 'Oh My Codex / OMX | deprecated'; Subtitle = 'Deprecated. Install or repair OMX only if you still need it.'; Accent = 'DarkGray'; Key = 'omx' }
 ::         'claude-code' = [pscustomobject]@{ Title = 'Claude Code | optional'; Subtitle = 'Install or repair Claude Code.'; Accent = 'Cyan'; Key = 'claude-code' }
 ::         'gemini-cli' = [pscustomobject]@{ Title = 'Gemini CLI | optional'; Subtitle = 'Install or repair Gemini CLI.'; Accent = 'Cyan'; Key = 'gemini-cli' }
 ::         'droid-cli' = [pscustomobject]@{ Title = 'DROID CLI | optional'; Subtitle = 'Install or repair DROID CLI.'; Accent = 'Cyan'; Key = 'droid-cli' }
 ::         'grok-cli' = [pscustomobject]@{ Title = 'Grok CLI | optional'; Subtitle = 'Install or repair Grok CLI.'; Accent = 'Cyan'; Key = 'grok-cli' }
 ::         'command-code' = [pscustomobject]@{ Title = 'Command Code | optional'; Subtitle = 'Install or repair Command Code.'; Accent = 'Cyan'; Key = 'command-code' }
 ::         'reasonix' = [pscustomobject]@{ Title = 'Reasonix | optional'; Subtitle = 'Install or repair Reasonix.'; Accent = 'Cyan'; Key = 'reasonix' }
+::         'pi' = [pscustomobject]@{ Title = 'Pi | optional'; Subtitle = 'Install or repair Pi.'; Accent = 'Cyan'; Key = 'pi' }
+::         'omp' = [pscustomobject]@{ Title = 'OMP | optional'; Subtitle = 'Install or repair OMP (Oh My Pi).'; Accent = 'Cyan'; Key = 'omp' }
 ::         'oh-my-openagent' = [pscustomobject]@{ Title = 'Oh My OpenAgent | advanced optional'; Subtitle = 'Install or repair the OpenCode add-on.'; Accent = 'Yellow'; Key = 'oh-my-openagent' }
 ::         'oh-my-opencode-slim' = [pscustomobject]@{ Title = 'Oh My OpenCode Slim | optional'; Subtitle = 'Install or repair the slim OpenCode preset.'; Accent = 'Cyan'; Key = 'oh-my-opencode-slim' }
 ::         'utility-rtk' = [pscustomobject]@{ Title = 'RTK | output proxy'; Subtitle = 'Install or repair RTK.'; Accent = 'Cyan'; Key = 'utility-rtk' }
@@ -3646,7 +3690,7 @@ exit /b %errorlevel%
 :: function Get-CodingCliSummaryLines {
 ::     $items = @(
 ::         [pscustomobject]@{ Label = 'Codex'; Key = 'codex' }
-::         [pscustomobject]@{ Label = 'OMX'; Key = 'omx' }
+::         [pscustomobject]@{ Label = 'OMX*'; Key = 'omx' }
 ::         [pscustomobject]@{ Label = 'OpenCode'; Key = 'opencode' }
 ::         [pscustomobject]@{ Label = 'Kilo'; Key = 'kilocode-cli' }
 ::         [pscustomobject]@{ Label = 'Claude'; Key = 'claude-code' }
@@ -3655,6 +3699,8 @@ exit /b %errorlevel%
 ::         [pscustomobject]@{ Label = 'Grok'; Key = 'grok-cli' }
 ::         [pscustomobject]@{ Label = 'CmdCode'; Key = 'command-code' }
 ::         [pscustomobject]@{ Label = 'Reasonix'; Key = 'reasonix' }
+::         [pscustomobject]@{ Label = 'Pi'; Key = 'pi' }
+::         [pscustomobject]@{ Label = 'OMP'; Key = 'omp' }
 ::     )
 ::
 ::     Warm-ToolDiagnosticsCache -Keys @($items | Select-Object -ExpandProperty Key) -Fast
@@ -3696,6 +3742,8 @@ exit /b %errorlevel%
 ::         [pscustomobject]@{ Title = 'Grok CLI configs'; Subtitle = 'Remove tracked Grok CLI auth and config files.'; Accent = 'DarkGreen'; Key = 'grok-cli' }
 ::         [pscustomobject]@{ Title = 'Command Code configs'; Subtitle = 'Remove tracked Command Code auth and config files.'; Accent = 'Magenta'; Key = 'command-code' }
 ::         [pscustomobject]@{ Title = 'Reasonix configs'; Subtitle = 'Remove tracked Reasonix auth and config files.'; Accent = 'DarkYellow'; Key = 'reasonix' }
+::         [pscustomobject]@{ Title = 'Pi configs'; Subtitle = 'Remove tracked Pi auth and config files.'; Accent = 'Cyan'; Key = 'pi' }
+::         [pscustomobject]@{ Title = 'OMP configs'; Subtitle = 'Remove tracked OMP auth and config files.'; Accent = 'Yellow'; Key = 'omp' }
 ::         [pscustomobject]@{ Title = 'All tracked configs'; Subtitle = 'Remove every tracked config/auth path shown by SYTA.'; Accent = 'Red'; Key = 'all' }
 ::         [pscustomobject]@{ Title = 'Back'; Subtitle = 'Return to the previous menu.'; Accent = 'DarkGray'; Key = 'back' }
 ::     )
@@ -4021,7 +4069,7 @@ exit /b %errorlevel%
 ::
 :: function Launch-UpdateLightMode {
 ::     $lines = @(
-::         'Scope   : Codex, OMX, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI, Command Code, Reasonix',
+::         'Scope   : Codex, OpenCode, Kilo Code CLI, Claude Code, Gemini CLI, DROID CLI, Grok CLI, Command Code, Reasonix, Pi, OMP (OMX deprecated if installed)',
 ::         "Folder  : $script:ScriptDir"
 ::     ) + (Get-CodingCliSummaryLines)
 ::     Show-InfoBox -Title 'Light Update Preflight' -Accent Green -Hint 'A new terminal tab opens immediately after this screen' -Lines $lines
@@ -4261,7 +4309,7 @@ exit /b %errorlevel%
 ::         return
 ::     }
 ::
-::     $wslRequiredKeys = @('all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'codex', 'opencode', 'kilocode-cli', 'omx', 'claude-code', 'gemini-cli', 'droid-cli', 'grok-cli', 'command-code', 'reasonix', 'oh-my-openagent', 'oh-my-opencode-slim', 'utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec', 'utility-claw-code', 'utility-bmad')
+::     $wslRequiredKeys = @('all-ai-cli-tools', 'cleaner-helper', 'reset-tool-configs', 'codex', 'opencode', 'kilocode-cli', 'omx', 'claude-code', 'gemini-cli', 'droid-cli', 'grok-cli', 'command-code', 'reasonix', 'pi', 'omp', 'oh-my-openagent', 'oh-my-opencode-slim', 'utility-rtk', 'utility-ccusage', 'utility-codex-auth', 'utility-superpowers', 'utility-openspec', 'utility-claw-code', 'utility-bmad')
 ::     if ($wslRequiredKeys -contains $selection.Key -and -not (Test-WslPreferredDistroReadyForCli)) {
 ::         $distroInstalled = Test-WslUserDistroInstalled
 ::         $lines = if ($distroInstalled) {
@@ -4747,6 +4795,16 @@ exit /b %errorlevel%
 ::       [ -n "${DEEPSEEK_API_KEY:-}" ] && auth='env-key'
 ::       [ "$auth" = 'not-detected' ] && { [ -f "$HOME/.reasonix/config.json" ] || [ -f "$HOME/.reasonix/config.toml" ] || [ -d "$HOME/.reasonix" ]; } && auth='config-present'
 ::       ;;
+::     pi)
+::       command_name='pi'
+::       { [ -n "${ANTHROPIC_API_KEY:-}" ] || [ -n "${OPENAI_API_KEY:-}" ] || [ -n "${GEMINI_API_KEY:-}" ] || [ -n "${GOOGLE_API_KEY:-}" ]; } && auth='env-key'
+::       [ "$auth" = 'not-detected' ] && { [ -d "$HOME/.pi/agent" ] || [ -f "$HOME/.pi/agent/settings.json" ] || [ -d "$HOME/.pi" ]; } && auth='config-present'
+::       ;;
+::     omp)
+::       command_name='omp'
+::       { [ -n "${ANTHROPIC_API_KEY:-}" ] || [ -n "${OPENAI_API_KEY:-}" ] || [ -n "${GEMINI_API_KEY:-}" ] || [ -n "${GOOGLE_API_KEY:-}" ]; } && auth='env-key'
+::       [ "$auth" = 'not-detected' ] && { [ -d "$HOME/.omp/agent" ] || [ -f "$HOME/.omp/agent/config.yml" ] || [ -d "$HOME/.omp" ]; } && auth='config-present'
+::       ;;
 ::     utility-rtk)
 ::       command_name='rtk'
 ::       auth='not-installed'
@@ -5223,6 +5281,8 @@ exit /b %errorlevel%
 ::         grok_missing) printf 'grok n''est pas disponible dans le PATH.\n' ;;
 ::         command_code_missing) printf 'command-code n''est pas disponible dans le PATH.\n' ;;
 ::         reasonix_missing) printf 'reasonix n''est pas disponible dans le PATH.\n' ;;
+::         pi_missing) printf 'pi n''est pas disponible dans le PATH.\n' ;;
+::         omp_missing) printf 'omp n''est pas disponible dans le PATH.\n' ;;
 ::         launch_codex) printf 'Lancement de Codex YOLO...\n\n' ;;
 ::         launch_omx) printf 'Lancement de OMX MADMAX HIGH...\n\n' ;;
 ::         launch_opencode) printf 'Lancement de OpenCode...\n\n' ;;
@@ -5233,6 +5293,8 @@ exit /b %errorlevel%
 ::         launch_grok) printf 'Lancement de Grok CLI...\n\n' ;;
 ::         launch_command_code) printf 'Lancement de Command Code...\n\n' ;;
 ::         launch_reasonix) printf 'Lancement de Reasonix...\n\n' ;;
+::         launch_pi) printf 'Lancement de Pi...\n\n' ;;
+::         launch_omp) printf 'Lancement de OMP...\n\n' ;;
 ::         unknown_agent) printf 'Cle agent inconnue : %s\n' "$value" ;;
 ::         agent_exit) printf '\nL''agent s''est termine avec le code %s.\n' "$value" ;;
 ::         session_end) printf '\nSession agent terminee.\n' ;;
@@ -5253,6 +5315,8 @@ exit /b %errorlevel%
 ::         grok_missing) printf 'PATH 中没有 grok。\n' ;;
 ::         command_code_missing) printf 'PATH 中没有 command-code。\n' ;;
 ::         reasonix_missing) printf 'PATH 中没有 reasonix。\n' ;;
+::         pi_missing) printf 'PATH 中没有 pi。\n' ;;
+::         omp_missing) printf 'PATH 中没有 omp。\n' ;;
 ::         launch_codex) printf '正在启动 Codex YOLO...\n\n' ;;
 ::         launch_omx) printf '正在启动 OMX MADMAX HIGH...\n\n' ;;
 ::         launch_opencode) printf '正在启动 OpenCode...\n\n' ;;
@@ -5263,6 +5327,8 @@ exit /b %errorlevel%
 ::         launch_grok) printf '正在启动 Grok CLI...\n\n' ;;
 ::         launch_command_code) printf '正在启动 Command Code...\n\n' ;;
 ::         launch_reasonix) printf '正在启动 Reasonix...\n\n' ;;
+::         launch_pi) printf '正在启动 Pi...\n\n' ;;
+::         launch_omp) printf '正在启动 OMP...\n\n' ;;
 ::         unknown_agent) printf '未知代理键：%s\n' "$value" ;;
 ::         agent_exit) printf '\n代理已退出，状态码为 %s。\n' "$value" ;;
 ::         session_end) printf '\n代理会话已结束。\n' ;;
@@ -5283,6 +5349,8 @@ exit /b %errorlevel%
 ::         grok_missing) printf 'grok is not available in PATH.\n' ;;
 ::         command_code_missing) printf 'command-code is not available in PATH.\n' ;;
 ::         reasonix_missing) printf 'reasonix is not available in PATH.\n' ;;
+::         pi_missing) printf 'pi is not available in PATH.\n' ;;
+::         omp_missing) printf 'omp is not available in PATH.\n' ;;
 ::         launch_codex) printf 'Launching Codex YOLO...\n\n' ;;
 ::         launch_omx) printf 'Launching OMX MADMAX HIGH...\n\n' ;;
 ::         launch_opencode) printf 'Launching OpenCode...\n\n' ;;
@@ -5293,6 +5361,8 @@ exit /b %errorlevel%
 ::         launch_grok) printf 'Launching Grok CLI...\n\n' ;;
 ::         launch_command_code) printf 'Launching Command Code...\n\n' ;;
 ::         launch_reasonix) printf 'Launching Reasonix...\n\n' ;;
+::         launch_pi) printf 'Launching Pi...\n\n' ;;
+::         launch_omp) printf 'Launching OMP...\n\n' ;;
 ::         unknown_agent) printf 'Unknown agent key: %s\n' "$value" ;;
 ::         agent_exit) printf '\nAgent exited with status %s.\n' "$value" ;;
 ::         session_end) printf '\nAgent session ended.\n' ;;
@@ -5351,6 +5421,12 @@ exit /b %errorlevel%
 ::       else
 ::         msg reasonix_missing; msg current_path "$PATH"; return 127
 ::       fi ;;
+::     pi)
+::       if ! command -v pi >/dev/null 2>&1; then msg pi_missing; msg current_path "$PATH"; return 127; fi
+::       msg launch_pi; pi ;;
+::     omp)
+::       if ! command -v omp >/dev/null 2>&1; then msg omp_missing; msg current_path "$PATH"; return 127; fi
+::       msg launch_omp; omp ;;
 ::     *) msg unknown_agent "$agent_key"; return 64 ;;
 ::   esac
 :: }
@@ -5498,6 +5574,8 @@ exit /b %errorlevel%
 :: command-code|command-code
 :: reasonix|reasonix
 :: dsnix|dsnix
+:: pi|@earendil-works/pi-coding-agent
+:: omp|@oh-my-pi/pi-coding-agent
 :: rtk|rtk
 :: EOF
 :: }
@@ -5536,6 +5614,12 @@ exit /b %errorlevel%
 :: reasonix|Reasonix config|file|~/.reasonix/config.json
 :: reasonix|Reasonix config|file|~/.reasonix/config.toml
 :: reasonix|Reasonix config directory|dir|~/.reasonix
+:: pi|Pi agent settings|file|~/.pi/agent/settings.json
+:: pi|Pi agent directory|dir|~/.pi/agent
+:: pi|Pi config directory|dir|~/.pi
+:: omp|OMP agent config|file|~/.omp/agent/config.yml
+:: omp|OMP agent directory|dir|~/.omp/agent
+:: omp|OMP config directory|dir|~/.omp
 :: EOF
 :: }
 ::
@@ -5779,6 +5863,36 @@ exit /b %errorlevel%
 ::     return 0
 ::   fi
 ::   printf 'Reasonix install finished but reasonix is still not on PATH.
+:: '
+::   return 1
+:: }
+::
+:: install_pi() {
+::   ensure_node_npm_latest || return 1
+::   run_step "Install Pi" with_nvm npm install -g --ignore-scripts @earendil-works/pi-coding-agent || return 1
+::   load_user_env
+::   if command -v pi >/dev/null 2>&1; then
+::     with_nvm pi --version 2>/dev/null || true
+::     return 0
+::   fi
+::   printf 'Pi install finished but pi is still not on PATH.
+:: '
+::   return 1
+:: }
+::
+:: install_omp() {
+::   ensure_curl || return 1
+::   run_step "Install OMP (Oh My Pi)" bash -lc 'curl -fsSL https://omp.sh/install | sh' || {
+::     ensure_node_npm_latest || return 1
+::     run_step "Install OMP via npm" with_nvm npm install -g @oh-my-pi/pi-coding-agent || return 1
+::   }
+::   load_user_env
+::   export PATH="$HOME/.local/bin:$HOME/.omp/bin:$PATH"
+::   if command -v omp >/dev/null 2>&1; then
+::     omp --version 2>/dev/null || true
+::     return 0
+::   fi
+::   printf 'OMP install finished but omp is still not on PATH.
 :: '
 ::   return 1
 :: }
@@ -6252,6 +6366,8 @@ exit /b %errorlevel%
 ::   grok-cli) install_grok_cli || status=$? ;;
 ::   command-code) install_command_code || status=$? ;;
 ::   reasonix) install_reasonix || status=$? ;;
+::   pi) install_pi || status=$? ;;
+::   omp) install_omp || status=$? ;;
 ::   oh-my-openagent) install_oh_my_openagent || status=$? ;;
 ::   oh-my-opencode-slim) install_oh_my_opencode_slim || status=$? ;;
 ::   utility-rtk) install_rtk || status=$? ;;
@@ -6391,7 +6507,7 @@ exit /b %errorlevel%
 :: fi
 ::
 :: echo
-:: for tool in codex omx opencode kilo claude gemini droid grok command-code cmd reasonix dsnix npm npx; do
+:: for tool in codex omx opencode kilo claude gemini droid grok command-code cmd reasonix dsnix pi omp npm npx; do
 ::   if have_cmd "$tool"; then
 ::     printf '%-14s %s
 :: ' "$tool" "$(command -v "$tool")"
@@ -6414,13 +6530,13 @@ exit /b %errorlevel%
 ::
 ::   if have_cmd omx; then
 ::     if have_nvm; then
-::       run_step "Update Oh My Codex / OMX" with_nvm npm install -g oh-my-codex || true
+::       run_step "Update Oh My Codex / OMX (deprecated)" with_nvm npm install -g oh-my-codex || true
 ::     else
-::       run_step "Update Oh My Codex / OMX" npm install -g oh-my-codex || true
+::       run_step "Update Oh My Codex / OMX (deprecated)" npm install -g oh-my-codex || true
 ::     fi
 ::   else
 ::     echo
-::     echo "== Update Oh My Codex / OMX =="
+::     echo "== Update Oh My Codex / OMX (deprecated) =="
 ::     echo SKIPPED
 ::   fi
 ::
@@ -6497,6 +6613,32 @@ exit /b %errorlevel%
 ::   else
 ::     echo
 ::     echo "== Update Reasonix =="
+::     echo SKIPPED
+::   fi
+::
+::   if have_cmd pi; then
+::     if have_nvm; then
+::       run_step "Update Pi" with_nvm npm install -g --ignore-scripts @earendil-works/pi-coding-agent || true
+::     else
+::       run_step "Update Pi" npm install -g --ignore-scripts @earendil-works/pi-coding-agent || true
+::     fi
+::   else
+::     echo
+::     echo "== Update Pi =="
+::     echo SKIPPED
+::   fi
+::
+::   if have_cmd omp; then
+::     if command -v omp >/dev/null 2>&1 && omp update --help >/dev/null 2>&1; then
+::       run_step "Update OMP" omp update --self || true
+::     elif have_nvm; then
+::       run_step "Update OMP via npm" with_nvm npm install -g @oh-my-pi/pi-coding-agent || true
+::     else
+::       run_step "Update OMP via npm" npm install -g @oh-my-pi/pi-coding-agent || true
+::     fi
+::   else
+::     echo
+::     echo "== Update OMP =="
 ::     echo SKIPPED
 ::   fi
 ::

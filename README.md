@@ -48,7 +48,7 @@ The entire runtime is embedded into the batch file itself. At launch, it reuses 
 | `Settings` | Changes launcher preferences such as language and projects directory |
 | `Extra` | Opens maintenance tools and smaller workflow utilities from the main menu |
 | `Check launcher update` | Forces a fresh launcher-release check and offers self-update when needed |
-| `Light update` | Updates installed AI coding CLIs only, including Kilo Code CLI, DROID CLI, Grok CLI, Command Code, and Reasonix |
+| `Light update` | Updates installed AI coding CLIs only, including Kilo Code CLI, DROID CLI, Grok CLI, Command Code, Reasonix, Pi, and OMP (OMX still updated if installed, but deprecated) |
 | `Update utilities add-ons` | Updates installed utility add-ons only |
 | `Update all` | Runs a broader toolchain update pass |
 | Diagnostics | Shows install, version, and auth/config hints |
@@ -72,6 +72,9 @@ The launcher can start these tools in WSL:
 - `Grok CLI`
 - `Command Code`
 - `Reasonix`
+- `Pi`
+- `OMP`
+- `OMX` (deprecated)
 
 ### Main Menu
 
@@ -109,6 +112,9 @@ The installer currently supports:
 - `Grok CLI`
 - `Command Code`
 - `Reasonix`
+- `Pi`
+- `OMP`
+- `Oh My Codex / OMX` (deprecated)
 - `Oh My OpenCode Slim`
 
 `First install` is the beginner lane: it starts WSL Ubuntu when needed, asks whether PowerShell 7 should be installed or repaired, then runs the core AI CLI installer only once Ubuntu is actually ready for user-scoped CLI setup. If Ubuntu still needs a reboot or first-run account setup, SYTA tells the user to finish that step and rerun `First install` afterward.
@@ -120,7 +126,7 @@ The core bundle currently installs:
 - `Claude Code`
 - `Gemini CLI`
 
-`Kilo Code CLI`, `Oh My Codex / OMX`, `Oh My OpenAgent`, `DROID CLI`, `Grok CLI`, `Command Code`, `Reasonix`, and `Oh My OpenCode Slim` remain separate optional installs from the install menu.
+`Kilo Code CLI`, `Oh My OpenAgent`, `DROID CLI`, `Grok CLI`, `Command Code`, `Reasonix`, `Pi`, `OMP`, `Oh My Codex / OMX` (deprecated), and `Oh My OpenCode Slim` remain separate optional installs from the install menu.
 
 `DROID CLI` is Factory AI's CLI. SYTA installs it through Factory AI's official Linux bootstrap command inside WSL.
 
@@ -129,6 +135,12 @@ The core bundle currently installs:
 `Command Code` is the coding agent from [commandcode.ai](https://commandcode.ai/). SYTA installs it through `npm install -g command-code@latest` inside WSL, then launches it with `command-code` (or the `cmd` alias).
 
 `Reasonix` is the DeepSeek-native coding agent from [DeepSeek-Reasonix](https://github.com/esengine/DeepSeek-Reasonix). SYTA installs it through `npm install -g reasonix@latest` inside WSL, then launches it with `reasonix` (or the `dsnix` alias).
+
+`Pi` is the minimal extensible coding agent from [pi.dev](https://pi.dev). SYTA installs it through `npm install -g --ignore-scripts @earendil-works/pi-coding-agent` inside WSL, then launches it with the `pi` command.
+
+`OMP` (Oh My Pi) is the batteries-included Pi fork from [omp.sh](https://omp.sh). SYTA installs it through the official `curl -fsSL https://omp.sh/install | sh` bootstrap inside WSL (npm fallback: `@oh-my-pi/pi-coding-agent`), then launches it with the `omp` command.
+
+`Oh My Codex / OMX` is deprecated. Prefer `Codex`, `Pi`, or `OMP`. Existing installs can still be launched, repaired, and light-updated.
 
 `Kilo Code CLI` is installed through the official npm package `@kilocode/cli`, then launched in WSL with the `kilo` command.
 
@@ -140,7 +152,7 @@ The core bundle currently installs:
 
 `Cleaner helper` scans for tracked AI CLI installs left behind in older `nvm` Node versions, plus duplicate PATH hits, then asks before removing stale npm globals it can safely clean.
 
-`Reset tool configs` opens a second selector. From there you can reset only `Codex / OMX`, `OpenCode`, `Oh My OpenAgent`, `Oh My OpenCode Slim`, `Claude Code`, `Gemini CLI`, `DROID CLI`, `Grok CLI`, `Command Code`, `Reasonix`, or `All tracked configs`.
+`Reset tool configs` opens a second selector. From there you can reset only `Codex / OMX`, `OpenCode`, `Oh My OpenAgent`, `Oh My OpenCode Slim`, `Claude Code`, `Gemini CLI`, `DROID CLI`, `Grok CLI`, `Command Code`, `Reasonix`, `Pi`, `OMP`, or `All tracked configs`.
 
 `Utilities` opens a third selector for smaller workflow add-ons:
 

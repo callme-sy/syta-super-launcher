@@ -4,7 +4,7 @@ setlocal EnableExtensions DisableDelayedExpansion
 
 set "SYTA_PORTABLE_ROOT=%~dp0"
 set "SYTA_SELF=%~f0"
-set "SYTA_BUILD_ID=SYTA-build-2026-08-01-104535Z"
+set "SYTA_BUILD_ID=SYTA-build-2026-08-01-105300Z"
 set "SYTA_RUNTIME_BASE=%LOCALAPPDATA%\SYTA Super Launcher\runtime"
 if not defined LOCALAPPDATA set "SYTA_RUNTIME_BASE=%TEMP%\SYTA Super Launcher\runtime"
 set "SYTA_RUNTIME=%SYTA_RUNTIME_BASE%\%SYTA_BUILD_ID%"
@@ -90,8 +90,8 @@ exit /b %errorlevel%
 :: $script:PreferredWslDistroCache = $null
 :: $script:WslCliReadyCache = $null
 :: $script:LastToolDiagnosticsError = ''
-:: $script:BuildId = 'SYTA-build-2026-08-01-104535Z'
-:: $script:ReleaseTag = 'v1.11.0'
+:: $script:BuildId = 'SYTA-build-2026-08-01-105300Z'
+:: $script:ReleaseTag = 'v1.11.1'
 :: $script:ReleaseApiUrl = 'https://api.github.com/repos/callme-sy/syta-super-launcher/releases/latest'
 :: $script:UpdateCheckTtlHours = 6
 :: $script:Language = 'en'
@@ -4619,10 +4619,56 @@ exit /b %errorlevel%
 :: set -u
 ::
 :: prepend_known_cli_paths() {
-::   export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+::   export PATH="$HOME/.local/bin:$HOME/bin:$HOME/.omp/bin:$HOME/.pi/bin:$PATH"
 ::   [ -d "$HOME/.grok/bin" ] && export PATH="$HOME/.grok/bin:$PATH"
 ::   [ -d "$HOME/.opencode/bin" ] && export PATH="$HOME/.opencode/bin:$PATH"
 ::   [ -d "$HOME/.cargo/bin" ] && export PATH="$HOME/.cargo/bin:$PATH"
+::   [ -d "$HOME/.volta/bin" ] && export PATH="$HOME/.volta/bin:$PATH"
+::   [ -d "$HOME/.asdf/shims" ] && export PATH="$HOME/.asdf/shims:$PATH"
+::   [ -d "$HOME/.local/share/fnm" ] && export PATH="$HOME/.local/share/fnm:$PATH"
+::   [ -d "$HOME/.npm-global/bin" ] && export PATH="$HOME/.npm-global/bin:$PATH"
+::   prepend_nvm_bin_dirs
+:: }
+::
+:: SYTA_NVM_BIN_DIRS_READY=0
+:: SYTA_NVM_BIN_DIRS=()
+::
+:: prepare_nvm_binary_dirs() {
+::   [ "$SYTA_NVM_BIN_DIRS_READY" = '1' ] && return 0
+::   SYTA_NVM_BIN_DIRS_READY=1
+::   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+::   local root="$NVM_DIR/versions/node"
+::   local version default_alias default_target
+::   [ -d "$root" ] || return 0
+::   default_alias="$(cat "$NVM_DIR/alias/default" 2>/dev/null || true)"
+::   if [ -n "$default_alias" ] && [ -d "$root/$default_alias/bin" ]; then
+::     SYTA_NVM_BIN_DIRS+=("$root/$default_alias/bin")
+::   elif [ -n "$default_alias" ]; then
+::     default_target="$(cat "$NVM_DIR/alias/$default_alias" 2>/dev/null || true)"
+::     [ -n "$default_target" ] && [ -d "$root/$default_target/bin" ] && SYTA_NVM_BIN_DIRS+=("$root/$default_target/bin")
+::   fi
+::   while IFS= read -r version; do
+::     [ -n "$version" ] || continue
+::     [ -d "$root/$version/bin" ] || continue
+::     case " ${SYTA_NVM_BIN_DIRS[*]} " in
+::       *" $root/$version/bin "*) continue ;;
+::     esac
+::     SYTA_NVM_BIN_DIRS+=("$root/$version/bin")
+::   done < <(find "$root" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null | sort -Vr)
+:: }
+::
+:: prepend_nvm_bin_dirs() {
+::   local dir count=0
+::   prepare_nvm_binary_dirs
+::   for dir in "${SYTA_NVM_BIN_DIRS[@]}"; do
+::     [ -d "$dir" ] || continue
+::     case ":$PATH:" in
+::       *":$dir:"*) ;;
+::       *) export PATH="$dir:$PATH" ;;
+::     esac
+::     count=$((count + 1))
+::     [ "$count" -ge 4 ] && break
+::   done
 :: }
 ::
 :: load_user_env() {
@@ -4651,21 +4697,20 @@ exit /b %errorlevel%
 ::       [ -n "$latest" ] && nvm use "$latest" >/dev/null 2>&1 || true
 ::     fi
 ::   fi
+::   prepend_known_cli_paths
 ::   hash -r 2>/dev/null || true
 :: }
 ::
-:: SYTA_NVM_BIN_DIRS_READY=0
-:: SYTA_NVM_BIN_DIRS=()
-::
-:: prepare_nvm_binary_dirs() {
-::   [ "$SYTA_NVM_BIN_DIRS_READY" = '1' ] && return 0
-::   SYTA_NVM_BIN_DIRS_READY=1
-::   local root="${NVM_DIR:-$HOME/.nvm}/versions/node"
-::   local version
-::   [ -d "$root" ] || return 0
-::   while IFS= read -r version; do
-::     [ -n "$version" ] && SYTA_NVM_BIN_DIRS+=("$root/$version/bin")
-::   done < <(find "$root" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null | sort -Vr)
+:: is_linux_cli_path() {
+::   local candidate="$1"
+::   case "$candidate" in
+::     '') return 1 ;;
+::     /mnt/[a-zA-Z]/*) return 1 ;;
+::     *.exe|*.bat|*.cmd|*.COM|*.EXE|*.BAT|*.CMD) return 1 ;;
+::     */Windows/*|*/windows/*|*/System32/*|*/system32/*) return 1 ;;
+::   esac
+::   [ -x "$candidate" ] || [ -L "$candidate" ] || return 1
+::   return 0
 :: }
 ::
 :: find_nvm_binary() {
@@ -4673,7 +4718,7 @@ exit /b %errorlevel%
 ::   local dir
 ::   prepare_nvm_binary_dirs
 ::   for dir in "${SYTA_NVM_BIN_DIRS[@]}"; do
-::     if [ -x "$dir/$name" ]; then
+::     if [ -x "$dir/$name" ] || [ -L "$dir/$name" ]; then
 ::       printf '%s\n' "$dir/$name"
 ::       return 0
 ::     fi
@@ -4685,26 +4730,46 @@ exit /b %errorlevel%
 ::   local name="$1"
 ::   local candidate
 ::   if command -v "$name" >/dev/null 2>&1; then
-::     command -v "$name"
-::     return 0
+::     candidate="$(command -v "$name" 2>/dev/null || true)"
+::     if is_linux_cli_path "$candidate"; then
+::       printf '%s\n' "$candidate"
+::       return 0
+::     fi
 ::   fi
 ::   for candidate in \
+::     "$HOME/.omp/bin/$name" \
+::     "$HOME/.pi/bin/$name" \
 ::     "$HOME/.grok/bin/$name" \
+::     "$HOME/.opencode/bin/$name" \
 ::     "$HOME/.local/bin/$name" \
 ::     "$HOME/bin/$name" \
-::     "$HOME/.cargo/bin/$name"; do
-::     if [ -x "$candidate" ]; then
+::     "$HOME/.cargo/bin/$name" \
+::     "$HOME/.volta/bin/$name" \
+::     "$HOME/.asdf/shims/$name" \
+::     "$HOME/.npm-global/bin/$name"; do
+::     if is_linux_cli_path "$candidate"; then
 ::       printf '%s\n' "$candidate"
 ::       return 0
 ::     fi
 ::   done
-::   if [ "${SYTA_DIAG_FAST:-0}" != '1' ]; then
-::     candidate="$(find_nvm_binary "$name" 2>/dev/null || true)"
-::     if [ -n "$candidate" ]; then
+::   candidate="$(find_nvm_binary "$name" 2>/dev/null || true)"
+::   if is_linux_cli_path "$candidate"; then
+::     printf '%s\n' "$candidate"
+::     return 0
+::   fi
+::   return 1
+:: }
+::
+:: resolve_tool_binary() {
+::   local name candidate
+::   for name in "$@"; do
+::     [ -n "$name" ] || continue
+::     candidate="$(resolve_binary_path "$name" 2>/dev/null || true)"
+::     if is_linux_cli_path "$candidate"; then
 ::       printf '%s\n' "$candidate"
 ::       return 0
 ::     fi
-::   fi
+::   done
 ::   return 1
 :: }
 ::
@@ -4775,23 +4840,11 @@ exit /b %errorlevel%
 ::       [ "$auth" = 'not-detected' ] && { [ -f "$HOME/.grok/auth.json" ] || [ -f "$HOME/.grok/config.toml" ]; } && auth='config-present'
 ::       ;;
 ::     command-code)
-::       if command -v command-code >/dev/null 2>&1; then
-::         command_name='command-code'
-::       elif command -v cmd >/dev/null 2>&1; then
-::         command_name='cmd'
-::       else
-::         command_name='command-code'
-::       fi
+::       command_name='command-code'
 ::       [ "$auth" = 'not-detected' ] && { [ -f "$HOME/.commandcode/auth.json" ] || [ -d "$HOME/.commandcode" ]; } && auth='config-present'
 ::       ;;
 ::     reasonix)
-::       if command -v reasonix >/dev/null 2>&1; then
-::         command_name='reasonix'
-::       elif command -v dsnix >/dev/null 2>&1; then
-::         command_name='dsnix'
-::       else
-::         command_name='reasonix'
-::       fi
+::       command_name='reasonix'
 ::       [ -n "${DEEPSEEK_API_KEY:-}" ] && auth='env-key'
 ::       [ "$auth" = 'not-detected' ] && { [ -f "$HOME/.reasonix/config.json" ] || [ -f "$HOME/.reasonix/config.toml" ] || [ -d "$HOME/.reasonix" ]; } && auth='config-present'
 ::       ;;
@@ -4882,13 +4935,24 @@ exit /b %errorlevel%
 ::   esac
 ::
 ::   if [ -n "$command_name" ]; then
-::     path="$(resolve_binary_path "$command_name" 2>/dev/null || true)"
-::     [ -n "$path" ] && installed=1
+::     case "$key" in
+::       command-code) path="$(resolve_tool_binary command-code cmd 2>/dev/null || true)" ;;
+::       reasonix) path="$(resolve_tool_binary reasonix dsnix 2>/dev/null || true)" ;;
+::       *) path="$(resolve_binary_path "$command_name" 2>/dev/null || true)" ;;
+::     esac
+::     if is_linux_cli_path "$path"; then
+::       installed=1
+::       command_name="$(basename "$path")"
+::     else
+::       path=''
+::       installed=0
+::     fi
 ::
 ::     if [ "$installed" -eq 1 ]; then
 ::       case "$path" in
 ::         *"/.nvm/"*) install_source='nvm' ;;
-::         *"/.local/"*|*"/bin/"*) install_source='user' ;;
+::         *"/.volta/"*|*"/.asdf/"*|*"/.npm-global/"*) install_source='user' ;;
+::         *"/.local/"*|*"/.omp/"*|*"/.pi/"*|*"/bin/"*) install_source='user' ;;
 ::         /usr/*|/bin/*|/sbin/*) install_source='system' ;;
 ::         *) install_source='custom' ;;
 ::       esac
@@ -4901,11 +4965,17 @@ exit /b %errorlevel%
 ::     install_source='config'
 ::   fi
 ::
-::   if [ "$installed" -eq 1 ] && [ -n "$command_name" ] && [ -x "$path" ]; then
+::   if [ "$installed" -eq 1 ] && [ -n "$command_name" ] && { [ -x "$path" ] || [ -L "$path" ]; }; then
 ::     if [ "$diagnostic_mode" = 'fast' ]; then
 ::       version_deferred=1
 ::     else
-::       version="$($path --version 2>/dev/null | head -n 1)"
+::       version="$($path --version 2>/dev/null | head -n 5 | sed -n 's/\r$//; /^$/d; /[Uu]pdated/d; /→/d; /->/d; p' | head -n 1)"
+::       if [ -z "$version" ]; then
+::         version="$($path -V 2>/dev/null | head -n 1 | tr -d '\r')"
+::       fi
+::       if [ -z "$version" ]; then
+::         version="$($path version 2>/dev/null | head -n 1 | tr -d '\r')"
+::       fi
 ::     fi
 ::   fi
 ::
@@ -5242,10 +5312,19 @@ exit /b %errorlevel%
 :: }
 ::
 :: load_user_env() {
-::   export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+::   export PATH="$HOME/.local/bin:$HOME/bin:$HOME/.omp/bin:$HOME/.pi/bin:$PATH"
 ::   [ -d "$HOME/.grok/bin" ] && export PATH="$HOME/.grok/bin:$PATH"
 ::   [ -d "$HOME/.opencode/bin" ] && export PATH="$HOME/.opencode/bin:$PATH"
 ::   [ -d "$HOME/.cargo/bin" ] && export PATH="$HOME/.cargo/bin:$PATH"
+::   [ -d "$HOME/.volta/bin" ] && export PATH="$HOME/.volta/bin:$PATH"
+::   [ -d "$HOME/.npm-global/bin" ] && export PATH="$HOME/.npm-global/bin:$PATH"
+::   if [ -d "${NVM_DIR:-$HOME/.nvm}/versions/node" ]; then
+::     local _syta_nvm_bin
+::     _syta_nvm_bin="$(find "${NVM_DIR:-$HOME/.nvm}/versions/node" -mindepth 2 -maxdepth 2 -type d -name bin 2>/dev/null | sort -Vr | head -n 3)"
+::     while IFS= read -r _syta_line; do
+::       [ -n "$_syta_line" ] && export PATH="$_syta_line:$PATH"
+::     done <<< "$_syta_nvm_bin"
+::   fi
 ::   [ -f "$HOME/.profile" ] && . "$HOME/.profile" >/dev/null 2>&1 || true
 ::   [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc" >/dev/null 2>&1 || true
 ::   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
@@ -5408,10 +5487,16 @@ exit /b %errorlevel%
 ::     command-code)
 ::       if command -v command-code >/dev/null 2>&1; then
 ::         msg launch_command_code; command-code
-::       elif command -v cmd >/dev/null 2>&1; then
-::         msg launch_command_code; cmd
 ::       else
-::         msg command_code_missing; msg current_path "$PATH"; return 127
+::         _syta_cmd_alias="$(command -v cmd 2>/dev/null || true)"
+::         case "${_syta_cmd_alias:-}" in
+::           ''|/mnt/[a-zA-Z]/*|*.exe|*/System32/*|*/system32/*) _syta_cmd_alias='' ;;
+::         esac
+::         if [ -n "${_syta_cmd_alias:-}" ]; then
+::           msg launch_command_code; cmd
+::         else
+::           msg command_code_missing; msg current_path "$PATH"; return 127
+::         fi
 ::       fi ;;
 ::     reasonix)
 ::       if command -v reasonix >/dev/null 2>&1; then

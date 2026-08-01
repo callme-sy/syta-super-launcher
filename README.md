@@ -51,7 +51,7 @@ The entire runtime is embedded into the batch file itself. At launch, it reuses 
 | `Light update` | Updates installed AI coding CLIs only, including Kilo Code CLI, DROID CLI, Grok CLI, Command Code, Reasonix, Pi, and OMP (OMX still updated if installed, but deprecated) |
 | `Update utilities add-ons` | Updates installed utility add-ons only |
 | `Update all` | Runs a broader toolchain update pass |
-| Diagnostics | Shows install, version, and auth/config hints |
+| Diagnostics | Shows install, version, and auth/config hints; fast mode still finds nvm/fnm/volta and common user bins |
 | Responsive menus | Defers Code-agent diagnostics until selection and uses fast broad diagnostics for install/update menus before full selected-tool preflight |
 | Update prompt | Can offer a newer launcher release when one is available |
 | Portability | Ships as one `.bat` file |

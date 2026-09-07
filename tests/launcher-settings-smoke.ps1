@@ -80,6 +80,16 @@ try {
         throw 'Expected Code dry-run menu to include codex-yolo.'
     }
 
+    foreach ($key in @('zcode', 'dsh', 'muse-code')) {
+        if (-not ($codeMenu.Items | Where-Object Key -eq $key)) {
+            throw "Expected Code dry-run menu to include $key."
+        }
+    }
+
+    if ($codeMenu.Items | Where-Object Key -eq 'omx-madmax-high') {
+        throw 'Expected Code dry-run menu to drop omx-madmax-high.'
+    }
+
     if ($codeMenu.Items | Where-Object { "$($_.Subtitle)" -match 'Auth|version|Installed|Missing' }) {
         throw 'Expected Code dry-run menu to avoid live diagnostic status in agent subtitles.'
     }
@@ -117,6 +127,10 @@ try {
     $utilityDiagItems = @($utilitiesMenu.Items | Where-Object { "$($_.Key)" -like 'utility-*' })
     if (-not $utilityDiagItems) {
         throw 'Expected utility install dry-run to include utility diagnostic items.'
+    }
+
+    if (-not ($utilitiesMenu.Items | Where-Object Key -eq 'utility-patchright')) {
+        throw 'Expected utility install dry-run to include utility-patchright.'
     }
 
     $allowedUtilityDiagnosticModes = @('fast', 'wsl-unavailable')

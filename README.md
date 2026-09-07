@@ -48,7 +48,7 @@ The entire runtime is embedded into the batch file itself. At launch, it reuses 
 | `Settings` | Changes launcher preferences such as language and projects directory |
 | `Extra` | Opens maintenance tools and smaller workflow utilities from the main menu |
 | `Check launcher update` | Forces a fresh launcher-release check and offers self-update when needed |
-| `Light update` | Updates installed AI coding CLIs only, including Kilo Code CLI, DROID CLI, Grok CLI, Command Code, Reasonix, Pi, and OMP (OMX still updated if installed, but deprecated) |
+| `Light update` | Updates installed AI coding CLIs only, including Kilo Code CLI, DROID CLI, Grok CLI, Command Code, Reasonix, Pi, OMP, Zcode, DSH, and Muse Code |
 | `Update utilities add-ons` | Updates installed utility add-ons only |
 | `Update all` | Runs a broader toolchain update pass |
 | Diagnostics | Shows install, version, and auth/config hints; fast mode still finds nvm/fnm/volta and common user bins |
@@ -64,17 +64,19 @@ The entire runtime is embedded into the batch file itself. At launch, it reuses 
 The launcher can start these tools in WSL:
 
 - `Codex`
-- `OMX`
 - `OpenCode`
 - `Kilo Code CLI`
 - `Claude Code`
 - `Gemini CLI`
+- `DROID CLI`
 - `Grok CLI`
 - `Command Code`
 - `Reasonix`
 - `Pi`
 - `OMP`
-- `OMX` (deprecated)
+- `Zcode`
+- `DSH`
+- `Muse Code`
 
 ### Main Menu
 
@@ -105,7 +107,6 @@ The installer currently supports:
 - `OpenCode`
 - `Kilo Code CLI`
 - `Oh My OpenAgent`
-- `Oh My Codex / OMX`
 - `Claude Code`
 - `Gemini CLI`
 - `DROID CLI`
@@ -114,7 +115,9 @@ The installer currently supports:
 - `Reasonix`
 - `Pi`
 - `OMP`
-- `Oh My Codex / OMX` (deprecated)
+- `Zcode`
+- `DSH`
+- `Muse Code`
 - `Oh My OpenCode Slim`
 
 `First install` is the beginner lane: it starts WSL Ubuntu when needed, asks whether PowerShell 7 should be installed or repaired, then runs the core AI CLI installer only once Ubuntu is actually ready for user-scoped CLI setup. If Ubuntu still needs a reboot or first-run account setup, SYTA tells the user to finish that step and rerun `First install` afterward.
@@ -126,7 +129,7 @@ The core bundle currently installs:
 - `Claude Code`
 - `Gemini CLI`
 
-`Kilo Code CLI`, `Oh My OpenAgent`, `DROID CLI`, `Grok CLI`, `Command Code`, `Reasonix`, `Pi`, `OMP`, `Oh My Codex / OMX` (deprecated), and `Oh My OpenCode Slim` remain separate optional installs from the install menu.
+`Kilo Code CLI`, `Oh My OpenAgent`, `DROID CLI`, `Grok CLI`, `Command Code`, `Reasonix`, `Pi`, `OMP`, `Zcode`, `DSH`, `Muse Code`, and `Oh My OpenCode Slim` remain separate optional installs from the install menu.
 
 `DROID CLI` is Factory AI's CLI. SYTA installs it through Factory AI's official Linux bootstrap command inside WSL.
 
@@ -140,7 +143,11 @@ The core bundle currently installs:
 
 `OMP` (Oh My Pi) is the batteries-included Pi fork from [omp.sh](https://omp.sh). SYTA installs it through the official `curl -fsSL https://omp.sh/install | sh` bootstrap inside WSL (npm fallback: `@oh-my-pi/pi-coding-agent`), then launches it with the `omp` command.
 
-`Oh My Codex / OMX` is deprecated. Prefer `Codex`, `Pi`, or `OMP`. Existing installs can still be launched, repaired, and light-updated.
+`Zcode` is the Z.ai GLM coding toolkit from the official `@z_ai/zai-cli` npm package. SYTA installs it through `npm install -g @z_ai/zai-cli` inside WSL, then launches `zai-cli chat`. Bring a Z.ai API key (`zai-cli auth set "your-key" --region global`).
+
+`DSH` is the official DeepSeek agent harness from [deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness). SYTA installs it through `npm install -g @deepseek-ai/dsh` inside WSL, then launches the `web` profile with the `dsh` command. Profiles auto-initialize on first use under `~/.dsh`.
+
+`Muse Code` is Meta's terminal coding agent from [dev.meta.ai](https://dev.meta.ai/docs/muse-code/). SYTA installs the native binary through the official `curl -fsSL https://dev.meta.ai/install.sh | bash` bootstrap inside WSL, then launches it with the `muse` command. Authenticate with `muse login` or `META_API_KEY`.
 
 `Kilo Code CLI` is installed through the official npm package `@kilocode/cli`, then launched in WSL with the `kilo` command.
 
@@ -152,7 +159,7 @@ The core bundle currently installs:
 
 `Cleaner helper` scans for tracked AI CLI installs left behind in older `nvm` Node versions, plus duplicate PATH hits, then asks before removing stale npm globals it can safely clean.
 
-`Reset tool configs` opens a second selector. From there you can reset only `Codex / OMX`, `OpenCode`, `Oh My OpenAgent`, `Oh My OpenCode Slim`, `Claude Code`, `Gemini CLI`, `DROID CLI`, `Grok CLI`, `Command Code`, `Reasonix`, `Pi`, `OMP`, or `All tracked configs`.
+`Reset tool configs` opens a second selector. From there you can reset only `Codex`, `OpenCode`, `Oh My OpenAgent`, `Oh My OpenCode Slim`, `Claude Code`, `Gemini CLI`, `DROID CLI`, `Grok CLI`, `Command Code`, `Reasonix`, `Pi`, `OMP`, `Zcode`, `DSH`, `Muse Code`, or `All tracked configs`.
 
 `Utilities` opens a third selector for smaller workflow add-ons:
 
@@ -163,10 +170,11 @@ The core bundle currently installs:
 - `OpenSpec`
 - `Claw Code`
 - `BMAD`
+- `Patchright`
 
-Those utility lanes still use the launcher's WSL-first model. `RTK`, `ccusage`, `codex-auth`, and `OpenSpec` run the upstream install commands in WSL. `superpowers` clones the upstream repo and links its skills into Codex, then prints the optional OpenCode and Gemini follow-up steps. `Claw Code` clones `ultraworkers/claw-code`, builds the `claw` binary in release mode, and links it into `~/.local/bin`. `BMAD` is project-scoped: SYTA asks you to choose a project under the currently configured projects root, then launches the official BMAD installer inside that project.
+Those utility lanes still use the launcher's WSL-first model. `RTK`, `ccusage`, `codex-auth`, `OpenSpec`, and `Patchright` run the upstream install commands in WSL (`Patchright` also installs its Chromium driver). `superpowers` clones the upstream repo and links its skills into Codex, then prints the optional OpenCode and Gemini follow-up steps. `Claw Code` clones `ultraworkers/claw-code`, builds the `claw` binary in release mode, and links it into `~/.local/bin`. `BMAD` is project-scoped: SYTA asks you to choose a project under the currently configured projects root, then launches the official BMAD installer inside that project.
 
-`Update -> Update utilities add-ons` refreshes only detected installed utilities. It updates the supported user-scoped utility installs, verifies RTK after updating it, rebuilds/relinks managed Claw Code checkouts, and quick-updates BMAD projects already found under the currently configured projects root.
+`Update -> Update utilities add-ons` refreshes only detected installed utilities. It updates the supported user-scoped utility installs, verifies RTK after updating it, refreshes the Patchright package plus its Chromium driver, rebuilds/relinks managed Claw Code checkouts, and quick-updates BMAD projects already found under the currently configured projects root.
 
 `OpenCode`, `Oh My OpenAgent`, and `Oh My OpenCode Slim` are now separate lanes:
 

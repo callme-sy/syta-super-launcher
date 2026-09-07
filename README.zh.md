@@ -41,7 +41,7 @@
 | `Settings` | 修改启动器偏好，例如语言和项目目录 |
 | `Extra` | 从主菜单打开维护工具和较小的工作流工具 |
 | `Check launcher update` | 强制重新检查启动器发布版本，并在需要时提供自更新 |
-| `Light update` | 仅更新已安装的 AI 编码 CLI，包括 Kilo Code CLI、DROID CLI、Grok CLI、Command Code、Reasonix、Pi 和 OMP（若已安装则仍更新已弃用的 OMX） |
+| `Light update` | 仅更新已安装的 AI 编码 CLI，包括 Kilo Code CLI、DROID CLI、Grok CLI、Command Code、Reasonix、Pi、OMP、Zcode、DSH 和 Muse Code |
 | `Update utilities add-ons` | 仅更新已安装的实用工具扩展 |
 | `Update all` | 运行更广泛的工具链维护更新 |
 | Diagnostics | 显示安装状态、版本与认证/配置提示 |
@@ -57,17 +57,19 @@
 启动器可在 WSL 中启动：
 
 - `Codex`
-- `OMX`
 - `OpenCode`
 - `Kilo Code CLI`
 - `Claude Code`
 - `Gemini CLI`
+- `DROID CLI`
 - `Grok CLI`
 - `Command Code`
 - `Reasonix`
 - `Pi`
 - `OMP`
-- `OMX`（已弃用）
+- `Zcode`
+- `DSH`
+- `Muse Code`
 
 ### 主菜单
 
@@ -98,7 +100,6 @@
 - `OpenCode`
 - `Kilo Code CLI`
 - `Oh My OpenAgent`
-- `Oh My Codex / OMX`
 - `Claude Code`
 - `Gemini CLI`
 - `DROID CLI`
@@ -107,7 +108,9 @@
 - `Reasonix`
 - `Pi`
 - `OMP`
-- `Oh My Codex / OMX`（已弃用）
+- `Zcode`
+- `DSH`
+- `Muse Code`
 - `Oh My OpenCode Slim`
 
 `First install` 是面向新手的路径：在需要时先启动 WSL Ubuntu，再询问是否安装或修复 PowerShell 7，最后在 Ubuntu 真正就绪后安装核心 AI CLI 工具。
@@ -119,7 +122,7 @@
 - `Claude Code`
 - `Gemini CLI`
 
-`Kilo Code CLI`、`Oh My OpenAgent`、`DROID CLI`、`Grok CLI`、`Command Code`、`Reasonix`、`Pi`、`OMP`、`Oh My Codex / OMX`（已弃用）和 `Oh My OpenCode Slim` 仍然是安装菜单里的独立可选项。
+`Kilo Code CLI`、`Oh My OpenAgent`、`DROID CLI`、`Grok CLI`、`Command Code`、`Reasonix`、`Pi`、`OMP`、`Zcode`、`DSH`、`Muse Code` 和 `Oh My OpenCode Slim` 仍然是安装菜单里的独立可选项。
 
 `DROID CLI` 是 Factory AI 的 CLI。SYTA 会在 WSL 中通过 Factory AI 官方 Linux bootstrap 命令安装它。
 
@@ -133,7 +136,11 @@
 
 `OMP`（Oh My Pi）是 [omp.sh](https://omp.sh) 的开箱即用 Pi 分支。SYTA 会在 WSL 中通过官方 `curl -fsSL https://omp.sh/install | sh` 安装（npm 回退：`@oh-my-pi/pi-coding-agent`），然后用 `omp` 命令启动。
 
-`Oh My Codex / OMX` 已弃用。请优先使用 `Codex`、`Pi` 或 `OMP`。已有安装仍可启动、修复，并在 Light update 中更新。
+`Zcode` 是 Z.ai GLM 编码工具包，来自官方 `@z_ai/zai-cli` npm 包。SYTA 会在 WSL 中通过 `npm install -g @z_ai/zai-cli` 安装，然后启动 `zai-cli chat`。需要准备 Z.ai API key（`zai-cli auth set "your-key" --region global`）。
+
+`DSH` 是 DeepSeek 官方 agent harness，来自 [deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness)。SYTA 会在 WSL 中通过 `npm install -g @deepseek-ai/dsh` 安装，然后用 `dsh` 命令启动 `web` profile。各 profile 会在 `~/.dsh` 下首次使用时自动初始化。
+
+`Muse Code` 是 Meta 的终端编码代理，见 [dev.meta.ai](https://dev.meta.ai/docs/muse-code/)。SYTA 会在 WSL 中通过官方 `curl -fsSL https://dev.meta.ai/install.sh | bash` 安装原生二进制，然后用 `muse` 命令启动。用 `muse login` 或 `META_API_KEY` 认证。
 
 `Kilo Code CLI` 会通过官方 npm 包 `@kilocode/cli` 安装，并在 WSL 中使用 `kilo` 命令启动。
 
@@ -152,14 +159,15 @@
 - `OpenSpec`
 - `Claw Code`
 - `BMAD`
+- `Patchright`
 
 `Cleaner helper` 会扫描旧版 `nvm` Node 环境里遗留的 AI CLI 安装，以及 PATH 里的重复命中项，然后在清理前征求确认，只删除它能安全清理的旧 npm 全局包。
 
-`Reset tool configs` 会打开另一层选择器。从那里你可以只重置 `Codex / OMX`、`OpenCode`、`Oh My OpenAgent`、`Oh My OpenCode Slim`、`Claude Code`、`Gemini CLI`、`DROID CLI`、`Grok CLI`、`Command Code`、`Reasonix`、`Pi`、`OMP`，或 `All tracked configs`。
+`Reset tool configs` 会打开另一层选择器。从那里你可以只重置 `Codex`、`OpenCode`、`Oh My OpenAgent`、`Oh My OpenCode Slim`、`Claude Code`、`Gemini CLI`、`DROID CLI`、`Grok CLI`、`Command Code`、`Reasonix`、`Pi`、`OMP`、`Zcode`、`DSH`、`Muse Code`，或 `All tracked configs`。
 
-这些工具仍然遵循启动器的 WSL-first 模型。`RTK`、`ccusage`、`codex-auth` 和 `OpenSpec` 会在 WSL 中运行各自的官方安装命令。`superpowers` 会克隆上游仓库并把技能链接到 Codex，然后提示可选的 OpenCode / Gemini 后续步骤。`Claw Code` 会克隆 `ultraworkers/claw-code`，以 release 模式构建 `claw` 二进制，并把它链接到 `~/.local/bin`。`BMAD` 是项目级安装：SYTA 会先让你在当前配置的项目根目录下选择项目，然后在该项目里启动官方 BMAD 安装器。
+这些工具仍然遵循启动器的 WSL-first 模型。`RTK`、`ccusage`、`codex-auth`、`OpenSpec` 和 `Patchright` 会在 WSL 中运行各自的官方安装命令（`Patchright` 还会安装 Chromium driver）。`superpowers` 会克隆上游仓库并把技能链接到 Codex，然后提示可选的 OpenCode / Gemini 后续步骤。`Claw Code` 会克隆 `ultraworkers/claw-code`，以 release 模式构建 `claw` 二进制，并把它链接到 `~/.local/bin`。`BMAD` 是项目级安装：SYTA 会先让你在当前配置的项目根目录下选择项目，然后在该项目里启动官方 BMAD 安装器。
 
-`Update -> Update utilities add-ons` 只会刷新检测到已安装的实用工具扩展。它会更新受支持的用户级工具，更新后校验 RTK，重建并重新链接受管理的 Claw Code 检出目录，并对当前配置的项目根目录下已找到的 BMAD 项目执行 quick-update。
+`Update -> Update utilities add-ons` 只会刷新检测到已安装的实用工具扩展。它会更新受支持的用户级工具，更新后校验 RTK，刷新 Patchright 包及其 Chromium driver，重建并重新链接受管理的 Claw Code 检出目录，并对当前配置的项目根目录下已找到的 BMAD 项目执行 quick-update。
 
 `OpenCode`、`Oh My OpenAgent` 和 `Oh My OpenCode Slim` 现在是三条独立路径：
 

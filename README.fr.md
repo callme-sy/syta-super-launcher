@@ -48,7 +48,7 @@ Tout le runtime est embarqué dans le fichier batch lui-même. Au lancement, il 
 | `Settings` | Modifie les preferences du lanceur comme la langue et le dossier des projets |
 | `Extra` | Ouvre depuis le menu principal les outils de maintenance et les utilitaires plus legers |
 | `Check launcher update` | Force une nouvelle verification de release du lanceur et propose l'auto-mise-a-jour si besoin |
-| `Light update` | Met a jour uniquement les CLI IA de code deja installees, y compris Kilo Code CLI, DROID CLI, Grok CLI, Command Code, Reasonix, Pi et OMP (OMX encore mis a jour s'il est installe, mais deprecate) |
+| `Light update` | Met a jour uniquement les CLI IA de code deja installees, y compris Kilo Code CLI, DROID CLI, Grok CLI, Command Code, Reasonix, Pi, OMP, Zcode, DSH et Muse Code |
 | `Update utilities add-ons` | Met a jour uniquement les utilitaires deja installes |
 | `Update all` | Lance une mise à jour plus large de la chaîne d’outils |
 | Diagnostics | Affiche l’état d’installation, la version et des indices d’auth/config |
@@ -64,17 +64,19 @@ Tout le runtime est embarqué dans le fichier batch lui-même. Au lancement, il 
 Le lanceur peut démarrer dans WSL :
 
 - `Codex`
-- `OMX`
 - `OpenCode`
 - `Kilo Code CLI`
 - `Claude Code`
 - `Gemini CLI`
+- `DROID CLI`
 - `Grok CLI`
 - `Command Code`
 - `Reasonix`
 - `Pi`
 - `OMP`
-- `OMX` (deprecate)
+- `Zcode`
+- `DSH`
+- `Muse Code`
 
 ### Menu Principal
 
@@ -105,7 +107,6 @@ Le menu d’installation prend actuellement en charge :
 - `OpenCode`
 - `Kilo Code CLI`
 - `Oh My OpenAgent`
-- `Oh My Codex / OMX`
 - `Claude Code`
 - `Gemini CLI`
 - `DROID CLI`
@@ -114,7 +115,9 @@ Le menu d’installation prend actuellement en charge :
 - `Reasonix`
 - `Pi`
 - `OMP`
-- `Oh My Codex / OMX` (deprecate)
+- `Zcode`
+- `DSH`
+- `Muse Code`
 - `Oh My OpenCode Slim`
 
 `First install` est le parcours debutant : il lance WSL Ubuntu si besoin, demande s'il faut installer ou reparer PowerShell 7, puis lance l'installation des CLI IA de base seulement quand Ubuntu est vraiment pret pour un setup CLI utilisateur. Si Ubuntu demande encore un redemarrage ou la creation initiale du compte Linux, SYTA indique de terminer cette etape puis de relancer `First install`.
@@ -126,7 +129,7 @@ Le bundle de base installe actuellement :
 - `Claude Code`
 - `Gemini CLI`
 
-`Kilo Code CLI`, `Oh My OpenAgent`, `DROID CLI`, `Grok CLI`, `Command Code`, `Reasonix`, `Pi`, `OMP`, `Oh My Codex / OMX` (deprecate) et `Oh My OpenCode Slim` restent des installations optionnelles separees dans le menu d'installation.
+`Kilo Code CLI`, `Oh My OpenAgent`, `DROID CLI`, `Grok CLI`, `Command Code`, `Reasonix`, `Pi`, `OMP`, `Zcode`, `DSH`, `Muse Code` et `Oh My OpenCode Slim` restent des installations optionnelles separees dans le menu d'installation.
 
 `DROID CLI` est la CLI de Factory AI. SYTA l'installe via la commande officielle de bootstrap Linux de Factory AI dans WSL.
 
@@ -140,7 +143,11 @@ Le bundle de base installe actuellement :
 
 `OMP` (Oh My Pi) est le fork batteries-included de Pi sur [omp.sh](https://omp.sh). SYTA l'installe via `curl -fsSL https://omp.sh/install | sh` dans WSL (secours npm: `@oh-my-pi/pi-coding-agent`), puis le lance avec `omp`.
 
-`Oh My Codex / OMX` est deprecate. Preferez `Codex`, `Pi` ou `OMP`. Les installs existantes restent lancables, reparables et mises a jour en light update.
+`Zcode` est le toolkit de code GLM de Z.ai via le package npm officiel `@z_ai/zai-cli`. SYTA l'installe avec `npm install -g @z_ai/zai-cli` dans WSL, puis lance `zai-cli chat`. Prevoyez une cle API Z.ai (`zai-cli auth set "votre-cle" --region global`).
+
+`DSH` est le harness d'agents officiel de DeepSeek ([deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness)). SYTA l'installe avec `npm install -g @deepseek-ai/dsh` dans WSL, puis lance le profil `web` avec la commande `dsh`. Les profils s'initialisent seuls au premier usage sous `~/.dsh`.
+
+`Muse Code` est l'agent de code terminal de Meta ([dev.meta.ai](https://dev.meta.ai/docs/muse-code/)). SYTA installe le binaire natif via `curl -fsSL https://dev.meta.ai/install.sh | bash` dans WSL, puis le lance avec `muse`. Authentifiez-vous avec `muse login` ou `META_API_KEY`.
 
 `Kilo Code CLI` est installee via le package npm officiel `@kilocode/cli`, puis lancee dans WSL avec la commande `kilo`.
 
@@ -152,7 +159,7 @@ Le bundle de base installe actuellement :
 
 `Cleaner helper` analyse les installations des CLI IA laissees dans d'anciennes versions Node gerees par `nvm`, ainsi que les doublons du PATH, puis demande avant de supprimer les npm globaux obsoletes qu'il peut nettoyer sans risque.
 
-`Reset tool configs` ouvre un second selecteur. Depuis ce menu, vous pouvez reinitialiser seulement `Codex / OMX`, `OpenCode`, `Oh My OpenAgent`, `Oh My OpenCode Slim`, `Claude Code`, `Gemini CLI`, `DROID CLI`, `Grok CLI`, `Command Code`, `Reasonix`, `Pi`, `OMP`, ou `Toutes les configs suivies`.
+`Reset tool configs` ouvre un second selecteur. Depuis ce menu, vous pouvez reinitialiser seulement `Codex`, `OpenCode`, `Oh My OpenAgent`, `Oh My OpenCode Slim`, `Claude Code`, `Gemini CLI`, `DROID CLI`, `Grok CLI`, `Command Code`, `Reasonix`, `Pi`, `OMP`, `Zcode`, `DSH`, `Muse Code`, ou `Toutes les configs suivies`.
 
 `Utilities` ouvre un troisieme selecteur pour les petits add-ons de workflow :
 
@@ -163,10 +170,11 @@ Le bundle de base installe actuellement :
 - `OpenSpec`
 - `Claw Code`
 - `BMAD`
+- `Patchright`
 
-Ces utilitaires restent installes dans le modele WSL-first du lanceur. `RTK`, `ccusage`, `codex-auth` et `OpenSpec` utilisent les commandes d'installation upstream dans WSL. `superpowers` clone le depot upstream et lie ses skills dans Codex, puis affiche les etapes optionnelles pour OpenCode et Gemini. `Claw Code` clone `ultraworkers/claw-code`, compile le binaire `claw` en mode release, puis le lie dans `~/.local/bin`. `BMAD` est installe par projet : SYTA vous demande de choisir un projet sous la racine de projets actuellement configuree, puis lance l'installateur officiel BMAD dans ce projet.
+Ces utilitaires restent installes dans le modele WSL-first du lanceur. `RTK`, `ccusage`, `codex-auth`, `OpenSpec` et `Patchright` utilisent les commandes d'installation upstream dans WSL (`Patchright` installe aussi son driver Chromium). `superpowers` clone le depot upstream et lie ses skills dans Codex, puis affiche les etapes optionnelles pour OpenCode et Gemini. `Claw Code` clone `ultraworkers/claw-code`, compile le binaire `claw` en mode release, puis le lie dans `~/.local/bin`. `BMAD` est installe par projet : SYTA vous demande de choisir un projet sous la racine de projets actuellement configuree, puis lance l'installateur officiel BMAD dans ce projet.
 
-`Update -> Update utilities add-ons` met a jour seulement les utilitaires detectes comme installes. Cette voie actualise les utilitaires utilisateur pris en charge, verifie RTK apres mise a jour, recompile/relie les checkouts Claw Code geres, et lance un quick-update BMAD sur les projets deja trouves sous la racine de projets actuellement configuree.
+`Update -> Update utilities add-ons` met a jour seulement les utilitaires detectes comme installes. Cette voie actualise les utilitaires utilisateur pris en charge, verifie RTK apres mise a jour, rafraichit le package Patchright et son driver Chromium, recompile/relie les checkouts Claw Code geres, et lance un quick-update BMAD sur les projets deja trouves sous la racine de projets actuellement configuree.
 
 `OpenCode`, `Oh My OpenAgent` et `Oh My OpenCode Slim` sont maintenant trois voies distinctes :
 
